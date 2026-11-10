@@ -39,6 +39,17 @@ export function assemble(srcDir = SRC) {
   return { html, used: seen };
 }
 
+// Version autonome : chaque <script src="x.js"> de public/ est remplacé par le contenu du fichier,
+// pour avoir un seul fichier HTML qui s'ouvre directement (double-clic), sans serveur ni fichiers à côté.
+export function standalone(html, pubDir = path.join(ROOT, 'public')) {
+  return html.replace(/<script src="([^"/]+\.js)"><\/script>/g, (all, name) => {
+    const f = path.join(pubDir, name);
+    return fs.existsSync(f) ? '<script>' + fs.readFileSync(f, 'utf8') + '</script>' : all;
+  });
+}
+
+export const STANDALONE_NAME = 'IndoorGolfCareer.html';
+
 export function build(outDir = path.join(ROOT, 'dist')) {
   const { html, used } = assemble();
   fs.rmSync(outDir, { recursive: true, force: true });
@@ -50,11 +61,15 @@ export function build(outDir = path.join(ROOT, 'dist')) {
     fs.copyFileSync(path.join(pub, f), path.join(outDir, f));
     copied.push(f);
   }
-  return { outDir, bytes: Buffer.byteLength(html), modules: used.size, copied };
+  const solo = standalone(html, pub);
+  fs.writeFileSync(path.join(outDir, STANDALONE_NAME), solo);
+  return { outDir, bytes: Buffer.byteLength(html), soloBytes: Buffer.byteLength(solo), modules: used.size, copied };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const r = build(process.argv[2] ? path.resolve(process.argv[2]) : undefined);
-  console.log(`Page construite : ${path.relative(ROOT, r.outDir) || '.'}/index.html (${(r.bytes / 1e6).toFixed(2)} Mo, ${r.modules} fichiers source)`);
-  if (r.copied.length) console.log('Copiés à côté : ' + r.copied.join(', '));
+  const dir = path.relative(ROOT, r.outDir) || '.';
+  console.log(`Page pour l'artifact : ${dir}/index.html (${(r.bytes / 1e6).toFixed(2)} Mo, ${r.modules} fichiers source)`);
+  if (r.copied.length) console.log('  avec à côté : ' + r.copied.join(', '));
+  console.log(`Fichier autonome    : ${dir}/${STANDALONE_NAME} (${(r.soloBytes / 1e6).toFixed(2)} Mo, données incluses)`);
 }

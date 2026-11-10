@@ -5,13 +5,13 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { build } from '../tools/build.mjs';
+import { build, STANDALONE_NAME } from '../tools/build.mjs';
 import { ROOT } from '../tools/lib.mjs';
 
 let chromium;
 try { ({ chromium } = createRequire(import.meta.url)('playwright')); } catch { }
 
-test('l’application démarre sans erreur (téléphone et ordinateur)', { skip: !chromium && 'Playwright non installé' }, async () => {
+test('l’application démarre sans erreur (artifact et fichier autonome, téléphone et ordinateur)', { skip: !chromium && 'Playwright non installé' }, async () => {
   const dir = path.join(ROOT, 'dist');
   build(dir);
   const server = http.createServer((req, res) => {
@@ -23,16 +23,21 @@ test('l’application démarre sans erreur (téléphone et ordinateur)', { skip:
   const url = `http://127.0.0.1:${server.address().port}/`;
   const browser = await chromium.launch();
   try {
-    for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
+    const cases = [
+      { url, viewport: { width: 390, height: 844 } },
+      { url, viewport: { width: 1440, height: 900 } },
+      { url: 'file://' + path.join(dir, STANDALONE_NAME), viewport: { width: 1440, height: 900 } },
+    ];
+    for (const { url, viewport } of cases) {
       const page = await browser.newPage({ viewport });
       const errors = [];
       page.on('pageerror', e => errors.push(e.message));
       await page.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
-      await page.goto(url, { waitUntil: 'load' });
+      await page.goto(url, { waitUntil: 'load', timeout: 60000 });
       await page.waitForFunction(() => document.querySelector('#app')?.children.length > 0, null, { timeout: 30000 });
       const text = await page.locator('#app').innerText();
       assert.ok(text.trim().length > 20, 'l’écran d’accueil affiche du contenu');
-      assert.deepEqual(errors, [], 'aucune erreur JavaScript');
+      assert.deepEqual(errors, [], 'aucune erreur JavaScript : ' + url);
       await page.close();
     }
   } finally { await browser.close(); server.close(); }

@@ -3,8 +3,12 @@
 Simulateur de carrière de golf à jouer sur un simulateur intérieur (GSPro) : saisie des scores trou par trou,
 ligues, classements mondiaux, rivalités, recrues, Temple de la renommée, Almanac, etc.
 
-L'application publiée est **une seule page HTML** (l'artifact claude.ai) accompagnée de trois gros fichiers de
-données. Dans ce dépôt, cette page est découpée en modules lisibles ; un petit outil la réassemble.
+L'application existe sous deux formes, produites à partir du même code :
+
+- **la page de l'artifact claude.ai** (`index.html`, 3,8 Mo) accompagnée de trois gros fichiers de données ;
+- **le fichier autonome** (`IndoorGolfCareer.html`, 14 Mo), avec les données incluses : il s'ouvre d'un double-clic.
+
+Dans ce dépôt, le code est découpé en modules lisibles ; un petit outil réassemble les deux versions.
 
 ## Organisation
 
@@ -21,8 +25,8 @@ public/             données publiées à côté de la page, copiées telles que
   ootp-names-extra.js   ensembles culturels supplémentaires
   terrains-data.js      liste des 2 476 terrains incluse
 tools/
-  build.mjs         assemble src/ → dist/index.html (+ copie public/)
-  importer.mjs      l'inverse : découpe une page complète en modules dans src/
+  build.mjs         assemble src/ → dist/index.html (+ public/) et dist/IndoorGolfCareer.html
+  importer.mjs      l'inverse : découpe une page complète (artifact ou autonome) en modules dans src/
 tests/              aller-retour sans perte + démarrage réel dans Chromium
 ```
 
@@ -48,26 +52,29 @@ par le contenu du fichier.
 Il faut [Node.js](https://nodejs.org) 20 ou plus récent ; aucune dépendance à installer.
 
 ```sh
-npm run build     # produit dist/index.html et y copie les fichiers de public/
+npm run build     # produit dist/index.html (+ ses données) et dist/IndoorGolfCareer.html (autonome)
 npm test          # vérifie l'aller-retour, puis (si Playwright est installé) le démarrage dans Chromium
 ```
 
-Pour jouer en local : ouvrir `dist/index.html` via un petit serveur (par exemple `npx serve dist`), car la
-page charge ses fichiers de données à côté d'elle.
+Pour jouer sur le PC du simulateur : ouvrir `dist/IndoorGolfCareer.html`.
 
 ## Publier sur l'artifact
 
 Publier `dist/index.html` comme page, avec `ootp-names.js`, `ootp-names-extra.js` et `terrains-data.js`
-comme fichiers à côté. La page construite à partir de ce commit est identique, octet pour octet, à la
-version de l'artifact du 10 novembre 2026 (v385).
+comme fichiers à côté.
+
+Point de départ vérifié : à partir de ce code, `IndoorGolfCareer.html` est identique, octet pour octet, au fichier
+`IndoorGolfCareer-v385.html` envoyé sur GitHub le 10 novembre 2026, et `index.html` à la page de l'artifact
+(à une balise `</body></html>` en double près, retirée en fin de fichier).
 
 ## Réimporter une version modifiée ailleurs
 
-Si une nouvelle version de la page est produite en dehors du dépôt (par exemple dans le chat claude.ai) :
+Si une nouvelle version est produite en dehors du dépôt (par exemple dans le chat claude.ai) :
 
 ```sh
-node tools/importer.mjs nouvelle-page.html --remplacer
+node tools/importer.mjs IndoorGolfCareer-v386.html --remplacer
 git diff          # montre exactement ce qui a changé, module par module
 ```
 
-Une page téléchargée depuis claude.ai (avec son enveloppe de publication) est acceptée telle quelle.
+L'outil accepte le fichier autonome (les données sont ressorties dans `public/`) comme la page de l'artifact,
+même téléchargée depuis claude.ai avec son enveloppe de publication.

@@ -6,6 +6,8 @@
 //
 // Utile si une nouvelle version de la page a été produite ailleurs (par exemple dans le chat claude.ai) :
 // on la réimporte, puis `git diff` montre exactement ce qui a changé, module par module.
+// Accepte la page de l'artifact (avec ou sans l'enveloppe de claude.ai) ou la version autonome
+// (données intégrées) : dans ce cas, les données sont ressorties dans public/.
 // Les fichiers .js donnés après la page sont copiés dans public/ (données publiées à côté de la page).
 import fs from 'node:fs';
 import path from 'node:path';
@@ -57,8 +59,29 @@ function findLastLine(lines, pred, what = '') {
   throw new Error('Structure inattendue : ' + what + ' introuvable');
 }
 
+// Données intégrées dans une version autonome : reconnues par le commentaire en tête de leur script.
+const DATA_SCRIPTS = [
+  [/^\/\* Base de noms OOTP v1\./, 'ootp-names.js'],
+  [/^\/\* Base de noms OOTP v2\./, 'ootp-names-extra.js'],
+  [/^\/\* Indoor Golf Career : liste de terrains incluse/, 'terrains-data.js'],
+];
+
+// Version autonome -> page de l'artifact : sort les données intégrées (inverse de standalone() dans build.mjs).
+export function extractData(html) {
+  const data = new Map();
+  html = html.replace(/<script>([^]*?)<\/script>/g, (all, body) => {
+    const hit = DATA_SCRIPTS.find(([re]) => re.test(body));
+    if (!hit) return all;
+    data.set(hit[1], body);
+    return `<script src="${hit[1]}"></script>`;
+  });
+  return { html, data };
+}
+
 export function split(html) {
   html = unwrap(html);
+  const ex = extractData(html);
+  html = ex.html;
   const lines = html.split('\n');
   const files = new Map(); // chemin relatif dans src/ -> contenu texte
   const tpl = [];
@@ -118,7 +141,7 @@ export function split(html) {
     files.set(rel, out);
   }
   if (/\{\{asset:/.test(html)) throw new Error('La page contient déjà « {{asset: » : le découpage ne serait pas réversible');
-  return { files, assets };
+  return { files, assets, data: ex.data };
 }
 
 export function writeSrc({ files, assets }, dir = SRC) {
@@ -142,9 +165,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   const res = split(fs.readFileSync(page, 'utf8'));
   writeSrc(res);
+  for (const [name, text] of res.data) {
+    fs.mkdirSync(path.join(ROOT, 'public'), { recursive: true });
+    fs.writeFileSync(path.join(ROOT, 'public', name), text);
+  }
   for (const f of extra) {
     fs.mkdirSync(path.join(ROOT, 'public'), { recursive: true });
     fs.copyFileSync(f, path.join(ROOT, 'public', path.basename(f)));
   }
-  console.log(`Importé : ${res.files.size} fichiers de code et ${res.assets.size} images dans src/` + (extra.length ? `, ${extra.length} fichiers de données dans public/` : ''));
+  console.log(`Importé : ${res.files.size} fichiers de code et ${res.assets.size} images dans src/` + (res.data.size + extra.length ? `, ${res.data.size + extra.length} fichiers de données dans public/` : ''));
 }

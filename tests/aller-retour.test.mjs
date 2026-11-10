@@ -22,3 +22,14 @@ test('chaque fichier de src/ est utilisé par la page', () => {
   const unused = listFiles(SRC).map(f => path.relative(SRC, f)).filter(r => !used.has(r));
   assert.deepEqual(unused, []);
 });
+
+test('la version autonome se réimporte en redonnant src/ et public/', async () => {
+  const { standalone } = await import('../tools/build.mjs');
+  const { ROOT } = await import('../tools/lib.mjs');
+  const { html } = assemble();
+  const res = split(standalone(html));
+  assert.deepEqual(split(html).files, res.files);
+  const pub = path.join(ROOT, 'public');
+  assert.deepEqual([...res.data.keys()].sort(), fs.readdirSync(pub).sort());
+  for (const [name, text] of res.data) assert.equal(text, fs.readFileSync(path.join(pub, name), 'utf8'), name);
+});
