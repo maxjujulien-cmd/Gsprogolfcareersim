@@ -1,0 +1,289 @@
+# Paramètres du simulateur : talent, potentiel, scores, vent
+
+Ce document résume les paramètres qui décident du niveau des golfeurs et de leurs scores : ce qu'ils font, où ils se trouvent et pourquoi ils ont ces valeurs. Il sert de mémoire entre les sessions, parce que les conversations précédentes ne suivent pas d'une session à l'autre.
+
+> **Source** : code de la branche `claude/golf-career-simulator-improvements-ff32jf` (10 novembre 2026). Si l'artifact publié a été modifié depuis, certaines valeurs peuvent être différentes. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
+
+Échelle utilisée partout : **coups par rapport au par**, sur une ronde de 18 trous.
+
+---
+
+## 1. Le niveau caché (overall, de 0 à 1000)
+
+Chaque golfeur a un niveau `g.o` de 0 à 1000. Le joueur ne le voit jamais directement : il voit des titres.
+
+### Titres de niveau (`TIERS`)
+
+`src/js/07-pression-en-direct-elan-et.js`, vers la ligne 587.
+
+| Niveau | Titre |
+|---|---|
+| 0 | Weak |
+| 150 | Amateur |
+| 300 | Average |
+| 450 | Semi-Pro |
+| 600 | Pro |
+| 700 | Established Pro |
+| 800 | Elite |
+| 900 | Hall Of Famer |
+| 950 | Generational |
+
+### Titres de potentiel (`POTS`)
+
+Même fichier, ligne suivante. Le potentiel est exprimé par la ligue et le rôle visés.
+
+| Potentiel | Titre |
+|---|---|
+| 0 | L4 - Bottom |
+| 100 | L4 - Everyday Player |
+| 200 | L4 - Leader |
+| 300 | L3 - Everyday Player |
+| 400 | L3 - Established |
+| 500 | L2 - Everyday Player |
+| 600 | L2 - Leader |
+| 700 | L1 - Everyday Player |
+| 800 | L1 - Established |
+| 900 | L1 - Leader |
+| 950 | Generational |
+
+### Répartition cible des golfeurs (`OVERALL_DIST`)
+
+`src/js/07-pression-en-direct-elan-et.js`, vers la ligne 1327. Ces pourcentages ont été fournis par Max. C'est un repère et non un quota : chaque golfeur est tiré sur une courbe lissée entre les milieux des tranches. **Les seuils de ligue découlent du talent réel du circuit**, ils ne sont pas fixés à l'avance.
+
+| Tranche | % des golfeurs |
+|---|---|
+| 0-100 | 3 |
+| 100-200 | 8 |
+| 200-300 | 11 |
+| 300-400 | 13 |
+| 400-500 | 14 |
+| 500-600 | 14 |
+| 600-700 | 13 |
+| 700-800 | 13 |
+| 800-900 | 9 |
+| 900-950 | 1,9 |
+| 950-1000 | 0,1 |
+
+### Structure des ligues
+
+`src/js/07-pression-en-direct-elan-et.js`, vers la ligne 1321.
+
+- 4 ligues : L1 Tour, L2 Pro, L3 Semi-Pro, L4 Amateur. Environ 600 golfeurs en tout.
+- `FIELD = 150` golfeurs par tournoi, `N_TOURN = 10` tournois par saison.
+- **Tournoi de 2 rondes. La coupure se fait après la ronde 1 (18 trous)** : on garde les `DEFAULT_CUT = 65` premiers, égalités comprises (`cutScoreOf`, `src/js/08-fiche-d-identite-et-personnalite.js`, ligne 263).
+- Ligues variables (réglage `varLg`, activé par défaut) : la L1 à la L3 comptent entre 130 et 170 golfeurs selon le niveau du circuit. La L4 n'a pas de limite. Voir `src/js/09-familles.js`.
+
+---
+
+## 2. Du niveau au score : la formule centrale
+
+`src/js/03-moteur-de-simulation.js`, lignes 108-110.
+
+```js
+const MU = { A: 0.2, B: 21.0, GAM: 1.25 };
+mu(o) = A + B × (1 − o/1000)^GAM      // coups au-dessus du par attendus sur 18 trous
+```
+
+- **A = 0,2** : le score d'un golfeur parfait (1000).
+- **B = 21** : l'écart entre le meilleur et le pire. Il valait 23 jusqu'à la v153 et a été resserré de 10 % en v154. Dans l'app, le réglage « Écart entre les meilleurs et les plus faibles » (`gap`, de 0,7 à 1,3) multiplie B (`MU.B = 21 × gap`, `src/js/41-reglages-avances.js`).
+- **GAM = 1,25** : la courbure. Au-dessus de 1, chaque point de talent vaut **plus de coups en bas de l'échelle qu'en haut**.
+
+### Valeurs calculées
+
+| Niveau | `mu` (coups/ronde) | Écart-type de la ronde | Effet du vent et de la distance |
+|---|---|---|---|
+| 0 | +21,2 | 2,45 | ×1,21 |
+| 100 | +18,6 | 2,33 | ×1,16 |
+| 200 | +16,1 | 2,22 | ×1,12 |
+| 300 | +13,6 | 2,10 | ×1,08 |
+| 400 | +11,3 | 1,99 | ×1,04 |
+| 500 | +9,0 | 1,88 | ×1,00 |
+| 600 | +6,9 | 1,76 | ×0,96 |
+| 700 | +4,9 | 1,65 | ×0,93 |
+| 800 | +3,0 | 1,53 | ×0,90 |
+| 900 | +1,4 | 1,42 | ×0,87 |
+| 1000 | +0,2 | 1,30 | ×0,85 |
+
+L'écart-type est calculé pour une régularité moyenne (`v = 1`) avec le hasard réglé à 100 %.
+
+Sur 100 points de talent, l'écart est d'environ **2,5 coups par ronde en bas** (100-300) contre **1,7 à 1,9 en haut** (700-900).
+
+### Tout ce qui s'ajoute au score d'une ronde (`roundTarget`)
+
+`src/js/07-pression-en-direct-elan-et.js`, ligne 374. La cible d'une ronde est la somme de ces éléments :
+
+1. `mu(niveau effectif)`, où le niveau effectif vaut `o` + forme `f` + séquence en cours `sm` (`effOverall`).
+2. Le terrain (`courseAdjust`) : décalage dû au course rating, et slope qui **étire l'écart** entre les golfeurs (plus le slope est élevé, plus les faibles sont punis).
+3. La distance du tee × l'effet des conditions (`condFactor`).
+4. Le vent × l'effet des conditions (voir section 3).
+5. L'aléa du terrain et la météo de la ronde (`newCtx`, `src/js/08-fiche-d-identite-et-personnalite.js`, ligne 368) : terrain ±0,32, météo ±0,56 par ronde, partagés par tout le champ.
+6. Le jour du golfeur (`dayFactor`, `src/js/03-moteur-de-simulation.js`, ligne 111) :
+   - bruit normal d'écart-type `(1,3 + 1,15 × (1 − x)) × régularité × hasard` : **les faibles sont plus irréguliers** ;
+   - ronde de feu (`hotP = 4 %`) : −2,4 coups et plus ;
+   - ronde catastrophe (`coldP = 5 %`) : +2,9 coups et plus.
+7. Les talents cachés (`talRT`), les cotes de jeu (`skRT`) et le tempérament sous pression (`clutchAdj`).
+8. Le niveau du circuit (`lvlFor`) : décalage réglable qui s'applique aux adversaires seulement, pas à ton golfeur.
+9. Le nivellement de l'élite (`eliteHandicap`) : **désactivé par défaut** depuis la v190 (`eliteHc = 0`). Une simulation montrait que, sans lui, le top 5 gagne 20 % des tournois au lieu de 9 %.
+
+Le score cible est ensuite converti trou par trou à l'aide des tables de probabilités (`DEFAULT_TABLES`, ligne 35), qui donnent la répartition birdie, bogey, double, etc. selon le par du trou.
+
+---
+
+## 3. Le vent
+
+`src/js/08-fiche-d-identite-et-personnalite.js`, lignes 425-445.
+
+| Vent | Probabilité (`windW`) | Coups ajoutés à un golfeur moyen |
+|---|---|---|
+| Aucun | 10 % | 0 |
+| Calme | 39 % | 0 |
+| Léger (`breezy`) | 32 % | 1,5 ± 0,45 (entre 0,4 et 3) |
+| Fort (`gusty`) | 19 % | 3,5 ± 0,55 (entre 2 et 5,5) |
+
+- Le vent est tiré séparément pour chaque ronde (`wind` et `wind2`).
+- `CFG.windMul` multiplie tout l'effet du vent.
+- **`condFactor`** (`src/js/07-pression-en-direct-elan-et.js`, ligne 373) adapte l'effet au niveau : ×0,85 pour l'élite, ×1 pour un golfeur de niveau 500, jusqu'à ×1,21 pour les plus faibles. Il réutilise `MU.GAM`.
+- Le talent caché « Joueur de vent » réduit cet effet de 10 % par niveau (−10, −20 ou −30 %). Le défaut « Déteste le vent » l'augmente d'autant (`src/js/06-profil-statistique-en-radar.js`, ligne 55).
+
+---
+
+## 4. Potentiel affiché et plafond réel
+
+`src/js/07-pression-en-direct-elan-et.js`, lignes 438-460 (`DEV`, `initDev`).
+
+- **`g.p`** est le potentiel affiché, c'est-à-dire l'estimation des dépisteurs.
+- **`g.pt`** est le vrai plafond. Il est caché et peut être différent de l'estimation.
+
+À la création, pour un golfeur de moins de 27 ans, on part de l'écart `gap = p − o` et on tire un rendement R :
+
+| Cas | Probabilité | Rendement R (part de l'écart atteinte) |
+|---|---|---|
+| Espoir qui ne perce pas | 40 % (`bustP`) | 0,08 à 0,40 |
+| Dépasse les attentes | 7 % (`boomP`) | 1,12 à 1,52 |
+| Normal | le reste | 0,95 ± 0,1 (`baseR`) |
+
+Le vrai plafond vaut `pt = o + gap × R`, borné entre 50 et 1000. S'y ajoutent :
+
+- **éclosion tardive** (10 %, `lateP`) : +20 % de l'écart, avec 2 à 4 ans de retard ;
+- **surprise** (16 %, `surpriseP`) : de +150 à +600.
+
+Autres traits :
+
+- `dv` : rythme de développement personnel, de 0,3 à 2,8 (log-normal, écart-type 0,75).
+- Phases de poussée (×1,8) ou de plateau (×0,2) : 17 % de chances par saison avant 27 ans.
+- **Déclic** (v337, `clickP = 1/175`) : chez un jeune de 24 ans ou moins dont le plafond est sous 700, le vrai plafond monte en secret entre 830 et 980. Les dépisteurs le remarquent avec 20 % de chances par intersaison, en 3 essais au maximum.
+- À chaque intersaison, l'estimation se rapproche du vrai plafond de 20 % (`revise`), plus un bruit de ±8.
+
+---
+
+## 5. Évolution de fin de saison (`ageSeason`)
+
+`src/js/07-pression-en-direct-elan-et.js`, ligne 462.
+
+**Avant le sommet** (`pk`, 29 ans par défaut), le golfeur rattrape son plafond réel à ce rythme :
+
+| Âge | Part de l'écart rattrapée par saison |
+|---|---|
+| moins de 23 ans | 33 % |
+| 23 à 26 ans | 24 % |
+| 27 ans et plus | 11,5 % |
+
+Ce rythme est multiplié par `dv`, la phase en cours et `CFG.youth`, avec un maximum de 92 %.
+
+**Après le sommet**, le déclin vaut `−min(38, 2 + 1,7 × années depuis le sommet) × dr × CFG.decline` par saison.
+
+**Bruit** : ±24 avant 26 ans, ±18 ensuite.
+
+**Événements** :
+
+| Événement | Probabilité | Effet |
+|---|---|---|
+| Percée (`up`) | 14 % avant 23 ans, puis 9 %, 4,5 %, 3 %, 1,2 % selon l'âge | +45 à +115 ; le plafond et le potentiel montent aussi |
+| Bonus « personne ne l'attendait » | +4,5 % si moins de 27 ans et plafond sous 450 | percée plus probable |
+| Chute (`down`) | 2,5 % à 8,5 % selon l'âge | −45 à −115 |
+| Éclosion de vétéran | 27 ans et plus : 2 %, puis 1,2 %, puis 0,6 % | +70 à +160 ; le sommet est repoussé de 3 ans |
+| Yips | 25 à 30 ans : 2 % | −70 à −160, sur le niveau et le plafond |
+
+Seulement 85 % de la variation s'applique à l'intersaison (`INS.off`). Le reste s'est joué en secret pendant la saison.
+
+La régularité `g.v` dérive d'une saison à l'autre et revient vers la nature du golfeur `g.v0` (`REG`) :
+
+| Catégorie | Part des golfeurs |
+|---|---|
+| Très régulier | 15 % |
+| Régulier | 20 % |
+| Moyen | 30 % |
+| Irrégulier | 20 % |
+| Montagnes russes | 15 % |
+
+---
+
+## 6. Recrues
+
+`src/js/08-fiche-d-identite-et-personnalite.js`, ligne 508 (`ROOK`), et `src/js/09-familles.js`, ligne 71 (`newRookie`).
+
+- Toutes les recrues arrivent en **Ligue 4**, entre 17 et 25 ans.
+- **Vrai plafond** : `pt = 450 + (tirage sur OVERALL_DIST − 450) × ptS × époque`, avec `ptS = 1,15` par défaut. Le réglage « Talent des recrues » va de 0,9 à 1,4.
+- **Niveau de départ** : une fraction du plafond, `0,35 + (1 − t) × 0,35 ± 0,08`, où `t` vaut 1 à 17 ans et 0 à 25 ans. Plus la recrue est jeune, plus elle part loin de son plafond.
+- **Estimation des dépisteurs** : `pt ± 80` (`scout`). Au-dessus de 700, l'estimation est compressée (×0,75 avec le réglage « Prudents ») pour éviter trop de recrues cotées Generational.
+- **Familles** : un fils ou un frère hérite d'une part du sommet de son parent (`FAM.inh`).
+- **Recrue déjà prête** (`rcProd = 0,5 %`) : elle arrive avec un niveau entre 640 et 840.
+- **Phénomène** (« un Tiger », `PHEN`, `src/js/03-moteur-de-simulation.js`, ligne 148) : 0,13 % des recrues, environ une fois aux 25 saisons et jamais deux à la fois. Son plafond va de 935 à 990. Il reste caché jusqu'à 3 victoires en L1 dans la même saison, ou 5 en carrière.
+- **Retraite forcée en L4** : à 24 ans ou plus, après 4 saisons complètes de suite en L4 sans monter (`FORCED_L4`).
+
+---
+
+## 7. Talents cachés et cotes de jeu
+
+**Talents cachés** (`src/js/04-talents-caches.js`) :
+
+- 30 % des golfeurs ont une force et 12 % un défaut.
+- Types : par 3, par 4, par 5, vent, longs terrains, précision, sauveur, partant rapide, finisseur.
+- Niveaux bronze, argent et or : −0,15, −0,30 et −0,45 coup par ronde dans les bonnes conditions. Répartition : 65 %, 28 % et 7 %.
+- Un talent se révèle après 3, 2 ou 1 saison selon son niveau.
+
+**Cotes de jeu** (`src/js/05-cotes-de-jeu-fairways-fers.js`) :
+
+- Trois cotes de 1 à 5 : Fairways, Fers, Putting. Leurs poids (`SK_W`) sont 0,7, 1,0 et 0,8 coup.
+- Répartition (`SK_DIST`) : 5 %, 20 %, 50 %, 20 % et 5 % pour les cotes 1 à 5.
+- L'effet est recentré sur la moyenne du circuit, donc le niveau global ne bouge pas.
+
+---
+
+## 8. Où changer les choses
+
+| Je veux… | Paramètre | Où |
+|---|---|---|
+| Resserrer ou élargir tout le champ | `gap` (multiplie `MU.B`) | App : Plus › Réglages avancés › Moteur des rondes. Code : `src/js/41-reglages-avances.js` |
+| Changer la forme de la courbe talent → coups | `MU.GAM` | `src/js/03-moteur-de-simulation.js`, ligne 109 (agit aussi sur `condFactor`) |
+| Rendre les rondes plus ou moins prévisibles | `rand` | Réglages avancés |
+| Changer la variance des faibles | `1,3 + 1,15 × (1 − x)` dans `dayFactor` | `src/js/03-moteur-de-simulation.js`, ligne 113 |
+| Changer la force du vent | `windMul`, `windW`, `windBump0` | `src/js/08-fiche-d-identite-et-personnalite.js`, ligne 427 |
+| Changer l'abondance de talent chez les recrues | `ptS` | Réglages avancés › Talent et recrues |
+| Changer le nombre de golfeurs qui passent la coupure | `DEFAULT_CUT` / `S.settings.cut` | `src/js/07-pression-en-direct-elan-et.js`, ligne 1323 |
+
+Les valeurs par défaut des réglages sont dans `DEFAULT_CFG` (`src/js/02-carriere-de-golf-moteur-de.js`, ligne 23) et `ADV_DEF` (`src/js/41-reglages-avances.js`, ligne 4).
+
+---
+
+## 9. Discussions en cours
+
+### Écart des coupures entre les ligues (novembre 2026)
+
+**Constat de Max** : les coupures observées sont environ L1 +4, L2 +7, L3 +11 et L4 +18 **après la ronde 1** (18 trous). Les écarts entre ligues sont donc +3, +4, puis **+7**. Le dernier palier est presque deux fois plus grand que les autres.
+
+**Causes probables, trouvées dans le code** :
+
+1. `MU.GAM = 1,25` : 100 points de talent valent environ 2,5 coups en bas de l'échelle contre 1,8 en haut.
+2. La variance d'une ronde augmente quand le niveau baisse : écart-type de 2,2 à 200 contre 1,5 à 800.
+3. `condFactor` amplifie le vent et la distance chez les faibles (×1,12 à 200), alors que le vent ajoute déjà 1,5 à 3,5 coups dans 51 % des rondes.
+4. 22 % des golfeurs sont sous 300, et ils sont presque tous en L4.
+
+**Pistes à tester par simulation** :
+
+- `MU.GAM` à 1,0 ou 1,1, en ajustant B pour garder le haut du classement à peu près pareil.
+- Adoucir la pente de l'écart-type, par exemple `1,3 + 0,6 × (1 − x)`.
+- Plafonner `condFactor` à environ ×1,05.
+- Cible proposée : environ L1 +3 / L2 +6 / L3 +9 / L4 +12 à +13, soit un écart régulier de 3 à 4 coups par palier.
+
+**Avant de toucher quoi que ce soit** : vérifier les effets sur la répartition des victoires (le top 5 gagne environ 20 % des tournois), sur la montée L4 → L3 et sur les records déjà calibrés.
