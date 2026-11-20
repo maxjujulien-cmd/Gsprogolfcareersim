@@ -27,13 +27,27 @@ function rsLgAvg(s, l) {   // moyennes de la ligue l à la saison s (ronde moyen
 }
 function rsRows(id, past, l) {   // les saisons du golfeur (passées + en cours), de la plus récente à la plus ancienne
   const all = golferHistory(id, false, true), rows = past.slice();
-  if (l >= 0 && S.hist[S.season - 1] && all.some(x => x.s === S.season)) { const st = getSt(id); rows.push({ s: S.season, l, rank: seasonRank(l, id), pts: st.pts, cur: 1 }); }
+  if (l >= 0 && S.hist[S.season - 1] && all.some(x => x.s === S.season)) {
+    const st = getSt(id); rows.push({ s: S.season, l, rank: seasonRank(l, id), pts: st.pts, cur: 1 });
+    /* v392 : déplacé pendant la saison en cours → une ligne par ligue quittée (comme pour les saisons passées),
+       avec son rang et ses points dans le classement de cette ligue, où il reste comme « fantôme » */
+    const gm = typeof gmv === 'function' ? gmv(id) : null, mvs = gm && gm.mv ? (gm.mv.moves || [{ fromL: gm.mv.fromL, toL: l, type: gm.mv.type, reason: gm.mv.reason }]) : [];
+    const seq = []; all.filter(x => x.s === S.season && !x.fin).sort((a, b) => a.t - b.t).forEach(x => { if (seq[seq.length - 1] !== x.l) seq.push(x.l); });
+    seq.forEach((L, i) => {
+      if (i === seq.length - 1 && L === l) return;   // le dernier tronçon est la ligue actuelle
+      const nx = i + 1 < seq.length ? seq[i + 1] : l, R = rankAll(L), j = R.findIndex(z => z.id === id);
+      rows.push({ s: S.season, l: L, rank: j >= 0 ? j + 1 : null, pts: j >= 0 ? R[j].pts : all.filter(x => x.s === S.season && x.l === L).reduce((a, x) => a + (x.pts || 0), 0),
+        fld: S.L[L].length, mid: 1, up: nx < L, dn: nx > L, why: [((mvs.find(m => m.fromL === L && m.toL === nx) || {}).reason) || '', 'en cours de saison'] });
+    });
+  }
   rows.sort((a, b) => b.s - a.s || (a.mid ? 1 : 0) - (b.mid ? 1 : 0));
-  rows.forEach(p => { const H = S.hist[p.s - 1]; p.fld = p.cur ? S.L[p.l].length : H && H.end && H.end.tables[p.l] ? H.end.tables[p.l].length : null; });
+  rows.forEach(p => { p.part = all.some(x => x.s === p.s && !x.fin && x.l !== p.l); });   // v395 : saison partagée entre deux ligues
+  rows.forEach(p => { if (p.fld != null) return; const H = S.hist[p.s - 1]; p.fld = p.cur ? S.L[p.l].length : H && H.end && H.end.tables[p.l] ? H.end.tables[p.l].length : null; });
   return rows;
 }
 const rsScore = p => p.l + (p.rank - 1) / Math.max(1, (p.fld || 150) - 1);   // 0 = 1er de la L1 ; plus bas = meilleur
-function rsBestKey(rows) { const done = rows.filter(p => !p.cur && !p.mid && p.rank); if (done.length < 2) return null; const b = done.reduce((m, p) => !m || rsScore(p) < rsScore(m) ? p : m, null); return b.s + '-' + b.l; }
+function rsBestKey(rows) { const done = rows.filter(p => !p.cur && !p.mid && !p.part && p.rank);   // v395 : une saison partielle n’est jamais « meilleure saison »
+  if (done.length < 2) return null; const b = done.reduce((m, p) => !m || rsScore(p) < rsScore(m) ? p : m, null); return b.s + '-' + b.l; }
 function rsLegs(id, s) {   // v338 : la ligue du golfeur à chaque tournoi de la saison s → déplacements en cours de saison [{k, from, to}]
   const H = S.hist[s - 1], seq = [], out = []; if (!H) return out;
   H.t.forEach(t => { if (!t || !t.lg) return; for (let L = 0; L < 4; L++) if (t.lg[L] && t.lg[L].rows.some(r => r[0] === id)) { seq.push(L); break; } });
@@ -115,6 +129,7 @@ function seasonsHTML(id, past, l) {
   let h = '<h2>Saison par saison</h2><p class="small mute" style="margin:-4px 0 8px">Touche l’année pour voir la ligue de cette saison, ou la flèche pour voir tous les tournois et les rondes.</p><div class="rsx">';
   rows.forEach(p => {
     const T = all.filter(x => x.s === p.s && (x.fin ? p.l === 0 && !p.mid : x.l === p.l)), reg = T.filter(x => !x.fin);
+    const moved = all.some(x => x.s === p.s && !x.fin && x.l !== p.l);   // v394 : saison partagée entre deux ligues → astérisque et nombre de tournois
     const w = T.filter(x => x.pos === 1).length, t10 = T.filter(x => x.pos > 0 && x.pos <= 10).length, mc = T.filter(x => x.mc).length, earn = T.reduce((a, x) => a + (x.pay || 0), 0);
     const rds = []; T.forEach(x => { if (x.r1 != null) rds.push(x.r1); if (x.r2 != null) rds.push(x.r2); });
     const avg = rds.length ? rds.reduce((a, b) => a + b, 0) / rds.length : null, best = T.filter(x => x.pos > 0).reduce((m, x) => m == null || x.pos < m ? x.pos : m, null);
@@ -124,7 +139,8 @@ function seasonsHTML(id, past, l) {
     const mvB = p.up || p.dn ? '<span class="rsb ' + (p.up ? 'up' : 'dn') + tipA + '">' + '<span>' + (p.up ? '\u25B2 Promu' : '\u25BC Rel\u00e9gu\u00e9') + '</span>' + (wy[1] ? ' · <span>' + esc(wy[1]) + '</span>' : '') + '</span>' : '';
     const head = '<div class="rsh">' + yl + '<span class="rsl">L' + (p.l + 1) + ' · ' + LEAGUE_SHORT[p.l] + '</span>' +
       (p.cur ? '<span class="rsb cur"><span>En cours</span> · ' + Math.min(S.t, N_TOURN) + '/' + N_TOURN + '</span>' : '') + (p.mid && !mvB ? '<span class="rsb cur">Avant son déplacement</span>' : '') + (isB ? '<span class="rsb best">\u2605 <span>Meilleure saison</span></span>' : '') + (w ? '<span class="rsb win">' + w + ' <span>' + (w > 1 ? 'victoires' : 'victoire') + '</span></span>' : '') + mvB +
-      '<span class="rsr">' + (p.rank == null ? '–' : '<b>' + ord(p.rank) + '</b>' + (fld ? ' <span class="mute">/ ' + fld + '</span>' : '')) + ' <span class="rsarr" aria-hidden="true">▸</span></span></div>';
+      '<span class="rsr">' + (p.rank == null ? '–' : '<b>' + ord(p.rank) + '</b>' + (moved ? '<sup class="rsast">*</sup>' : '') + (fld ? ' <span class="mute">/ ' + fld + '</span>' : '')) + ' <span class="rsarr" aria-hidden="true">▸</span>' +
+      (moved ? '<span class="rsn">* <span>' + reg.length + '</span> <span>' + (reg.length > 1 ? 'tournois dans cette ligue' : 'tournoi dans cette ligue') + '</span></span>' : '') + '</span></div>';
     const vs = (v, a, hi, m) => v == null || a == null ? '' : (hi ? v - a : a - v) >= m ? 'g' : (hi ? a - v : v - a) >= m ? 'b' : '';
     const chips = '<div class="rscs">' + chip('pts', p.partial ? '(' + p.pts + ')' : p.pts) + chip('tourn.', reg.length + (T.length > reg.length ? '+F' : '')) + chip('top 10', t10) + chip('coupures ratées', mc, mc ? 'bd' : '') +
       (best ? chip('meilleur', ord(best)) : '') + (earn ? chip('gains', fmtMoney(earn)) : '') + '</div>';

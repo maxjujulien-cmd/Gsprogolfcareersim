@@ -56,6 +56,17 @@ function vPalm() {
   h += '<p style="margin-top:14px"><a href="#" data-a="golfer" data-id="' + id + '">‹ <span>Retour à la fiche</span></a></p>';
   return '<div class="narrow" style="max-width:860px">' + h + '</div>';
 }
+/* v393 : en haut du profil, à la place de la fiche (talents, cotes de jeu, début de carrière, personnalité, partis dans
+   Stats et Biographie) : le parcours ligue par saison sur toute la largeur, puis la carte handicap et la progression
+   niveau · potentiel côte à côte, à la même hauteur. Les trois restent aussi dans leurs onglets. */
+function gTopBand(B, rsCh) {
+  const pan = (t, body, cls) => '<section class="dpn ' + cls + '"><header><span>' + t + '</span></header><div class="dpb">' + body + '</div></section>';
+  const prog = B.prog ? B.prog.replace(/^<h3>[^<]*<\/h3>/, '') : '<p class="mute small" style="margin:0">Pas encore de courbe.</p>';
+  let h = '<div class="gtop">';
+  if (rsCh) h += pan('Parcours · ligue par saison', rsCh.replace(/<h3>Progression<\/h3>/, ''), 'gt-rs');
+  if (B.hc || B.prog) h += '<div class="gtop2">' + (B.hc ? pan('Carte handicap', B.hc, 'gt-hc') : '') + pan('Progression · niveau et potentiel', prog, 'gt-pr') + '</div>';
+  return h + '</div>';
+}
 function vGolfer() {
   const id = VIEW.id, g = S.G[id], l = leagueOf(id), hist = golferHistory(id);
   if (g && !g.ph && GFX.faces.length && GFX.on) { try { if (phAssignAll()) persist(); } catch (e) { } }
@@ -96,6 +107,7 @@ function vGolfer() {
     for (let L = 0; L < 4; L++) { const i = H.end.tables[L].findIndex(r => r[0] === id); if (i >= 0) { const r = H.end.tables[L][i]; past.push({ s: H.s, l: L, rank: i + 1, pts: r[1], partial: false, up: H.end.up[L].includes(id), dn: H.end.down[L].includes(id), why: [ord(i + 1) + ' sur ' + H.end.tables[L].length, 'fin de saison'] }); } }
   });
   const earnBySL = {}, nBySL = {}; hist.forEach(x => { const k = x.s + '-' + x.l; earnBySL[k] = (earnBySL[k] || 0) + (x.pay || 0); nBySL[k] = (nBySL[k] || 0) + 1; });
+  let rsCh = '';   // v393 : graphique « parcours » (ligue par saison), aussi affiché en haut du profil
   if (hist.length) {
     const wins = hist.filter(x => x.pos === 1).length, t10 = hist.filter(x => x.pos > 0 && x.pos <= 10).length, mc = hist.filter(x => x.mc).length, made = hist.filter(x => x.pos > 0 && !x.mc);
     const earn = hist.reduce((a, x) => a + (x.pay || 0), 0);
@@ -106,7 +118,7 @@ function vGolfer() {
     const brow = (label, f) => '<tr><td>' + label + '</td>' + cols.map(L => { const v = f(by[L]); return '<td class="r' + (v === 0 || v === dash ? ' mute' : '') + '">' + v + '</td>'; }).join('') + '</tr>';
     { const ph = hcHolder(id) || (S.old && S.old[id]); B.pa = paHTML(ph && ph.pa, hist.length ? hist[0].s : null); }
     B.best = bestScoresHTML(id); B.riv = rivalsHTML(id);
-    { const RR = rsRows(id, past, l), bk = rsBestKey(RR), ch = rsChartHTML(RR, bk, id);   // v333
+    { const RR = rsRows(id, past, l), bk = rsBestKey(RR), ch = rsChartHTML(RR, bk, id); rsCh = ch;   // v333
       B.car = '<h2>Carri\u00e8re</h2><div class="carl">' + rsCareerHTML(id, by, cols, RR, bk, earnAll) + bigWinsHTML(id) + '</div>' + (ch ? '<div class="carr">' + ch + '</div>' : ''); }
     const last = hist.slice(-24), maxp = 100;
     B.bars = '<h3>Points par tournoi</h3><div class="bars" role="img" aria-label="Points gagn\u00e9s lors des derniers tournois">' + last.map(x => '<i class="' + (x.pos === 0 ? 'mc' : '') + '" style="height:' + Math.max(4, Math.round(x.pts / maxp * 100)) + '%" title="' + esc(x.name) + ' : ' + x.pts + ' pts"></i>').join('') + '</div><div class="small mute">Les barres rouges sont des coupures rat\u00e9es.</div>';
@@ -126,14 +138,15 @@ function vGolfer() {
     ['res', 'R\u00e9sultats', hofProfileHTML(id) + (B.car ? '<div class="rscar">' + B.car + '</div>' : '') + B.seas],
     ['tl', 'Chronologie', tlHTML(id)],
     ['log', isPC() ? 'Carnet de tournois' : 'Carnet', tlogHTML(id)],
-    ['stats', 'Stats', skStatsHTML(id) + B.hc + B.pa + B.best],
-    ['riv', 'Rivaux', B.riv]
+    ['stats', 'Stats', charBlock(id, 'jeu') + skStatsHTML(id) + B.hc + B.pa + B.best],
+    ['riv', 'Rivaux', B.riv],
+    ['bio', 'Biographie', charBlock(id, 'bio')]
   ].filter(t => t[2]);
   const cur = TABS.find(t => t[0] === PTAB) || TABS[0];
   const bar = TABS.length > 1 ? '<div class="ptabs" role="tablist">' + TABS.map(t => '<button class="ptab" role="tab" data-a="ptab" data-v="' + t[0] + '" aria-selected="' + (t === cur) + '">' + t[1] + '</button>').join('') + '</div>' : '';
   h = cur ? cur[2] : '';
   h += '<button class="btn sec" data-a="backview" style="margin-top:14px">Retour</button>';
-  return T + wlBar(id) + geBlock(id) + charBlock(id) + bar + '<div class="pcols' + (cur && (cur[0] === 'riv' || cur[0] === 'res' || cur[0] === 'ov' || cur[0] === 'log' || cur[0] === 'tl') ? ' one' : '') + '">' + h + '</div>';
+  return T + wlBar(id) + geBlock(id) + gTopBand(B, rsCh) + bar + '<div class="pcols' + (cur && (cur[0] === 'riv' || cur[0] === 'res' || cur[0] === 'ov' || cur[0] === 'log' || cur[0] === 'tl' || cur[0] === 'bio') ? ' one' : '') + '">' + h + '</div>';
 }
 
 
@@ -186,7 +199,7 @@ function recRow(i, e, d, sub, extraTag) {
 }
 function recCard(d, entries, subFn, tagFn) {
   let h = '<div class="block reccard"><h3>' + esc(d.t) + '</h3>';
-  if (!entries.length) return h + '<p class="small mute" style="margin:2px 0 0">Pas encore \u00e9tabli</p></div>';
+  if (!entries.length) return h + '<p class="emrec"><span aria-hidden="true">🏆</span><span>Libre : à toi de l’établir !</span></p></div>';
   const rows = entries.map((e, i) => recRow(i, e, d, subFn(e), tagFn ? tagFn(e) : ''));
   h += rows.slice(0, 3).join('');
   if (rows.length > 3) h += detailsBox(rows.length >= RECN ? 'Voir le top ' + RECN : 'Voir les ' + (rows.length - 3) + ' autres', rows.slice(3).join(''));

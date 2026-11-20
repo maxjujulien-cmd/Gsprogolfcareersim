@@ -90,14 +90,14 @@ function homeDash(h, hero, pl, lastH, prvH) {
   const next = '<section class="dpn dnext"><div class="dart">' + DART + '</div>' + hero + '</section>';
   // boîte de réception : les nouvelles du circuit
   ibxSync();
-  const inbox = ibxVis().slice(0, 6).map(n => { const tg = dNewsTag(n.text); return '<div class="dmsg' + (n.rd ? '' : ' new') + '" data-a="ibxopen" data-id="' + n.id + '"><i></i><div><span class="dtg ' + tg[0] + '">' + tg[1] + '</span>' + newsHTML(n.text, n.ids) + '</div></div>'; }).join('') || '<p class="mute small" style="padding:12px">Aucune nouvelle pour l’instant.</p>';
+  const inbox = ibxVis().slice(0, 6).map(n => { const tg = dNewsTag(n.text); return '<div class="dmsg' + (n.rd ? '' : ' new') + '" data-a="ibxopen" data-id="' + n.id + '"><i></i><div><span class="dtg ' + tg[0] + '">' + tg[1] + '</span>' + newsHTML(n.text, n.ids) + '</div></div>'; }).join('') || emptyCard('📬', 'Aucune nouvelle pour l’instant', 'Les nouvelles du circuit arrivent dès ta première ronde.', false, 'small1');
   const ibU = ibxUnread();
   // ta forme
   const gh = golferHistory(0, true), cur = gh.filter(x => x.s === S.season), last = gh.slice(-8);
   const chip = x => { const w = x.pos === 1, t10 = x.pos > 0 && x.pos <= 10, mc = x.pos === 0; return '<a href="#" class="dres' + (w ? ' w' : t10 ? ' t' : mc ? ' c' : '') + '" data-a="tourn" data-s="' + x.s + '" data-t="' + x.t + '" data-l="' + x.l + '" title="' + esc(x.name) + ' · ' + yr(x.s) + ' · ' + (x.l === 4 ? 'Recrues' : 'L' + (x.l + 1)) + '">' + (mc ? 'CUT' : x.pos) + '</a>'; };
   const made = cur.filter(x => x.pos > 0).length;
   const hh = hcHolder(0), hc = hh && hh.hc && hh.hc.x != null ? fmtHI(hh.hc.x) : '–';
-  const forme = '<div class="dform"><div class="dfl">Derniers résultats</div><div class="dress">' + (last.length ? last.map(chip).join('') : '<span class="mute small">Aucun tournoi joué</span>') + '</div></div>' +
+  const forme = '<div class="dform"><div class="dfl">Derniers résultats</div><div class="dress">' + (last.length ? last.map(chip).join('') : '<span class="emsm"><span aria-hidden="true">⛳ </span><span>Ton premier résultat t’attend</span></span>') + '</div></div>' +
     '<div class="dst3"><div><b>' + (pl >= 0 && rk && (pl !== 4 || rcX(0) < 90) ? ord(rk) : '–') + '</b><span>' + (pl === 4 ? 'Rang de la classe' : 'Rang en L' + (pl + 1)) + '</span></div>' + (pl === 4 ? '<div><b>' + hc + '</b><span>Index</span></div>' : '<div><b>' + st.pts + '</b><span>Points</span></div>') + '<div><b>' + (wrPub(0) ? '#' + wrPub(0) : 'NC') + '</b><span>World Ranking</span></div></div>' +
     '<div class="dst3"><div><b>' + (pl === 4 ? cur.filter(x => x.pos === 1).length + ' · ' + cur.filter(x => x.pos > 0 && x.pos <= 10).length : st.w + ' · ' + st.t10) + '</b><span>V · T10</span></div>' + (pl === 4 ? '<div><b>' + cur.length + '</b><span>Tournois</span></div>' : '<div><b>' + made + '/' + cur.length + '</b><span>Coupures</span></div>') + '<div><b>' + (g0 ? TIERS[tierOf(g0)][1] : hc) + '</b><span>' + (g0 ? 'Niveau' : 'Handicap') + '</span></div></div>';
   // classement

@@ -75,7 +75,7 @@ const almName = id => '<a href="#" data-a="golfer" data-id="' + id + '">' + esc(
 
 /* ---- Graphique en lignes : un seul axe, étiquettes directes, bulle au toucher (data-mw) ---- */
 function almLine(series, o) {
-  const pc = isPC(), W = pc ? 640 : 360, H = pc ? 230 : 210, fs = pc ? 12 : 11, X0 = 40, X1 = W - (o.endW || 30), Y0 = 10, Y1 = H - 24;
+  const pc = isPC(), W = pc ? (o.wide ? 1430 : 640) : 360,   /* v413 : wide = graphique pleine largeur, même hauteur */ H = pc ? 230 : 210, fs = pc ? 12 : 11, X0 = 40, X1 = W - (o.endW || 30), Y0 = 10, Y1 = H - 24;
   const xs = [...new Set(series.flatMap(s => s.pts.map(p => p[0])))].sort((a, b) => a - b);
   const ys = series.flatMap(s => s.pts.map(p => p[1]));
   if (xs.length < 2 || !ys.length) return '<p class="small mute">Le graphique apparaît après deux saisons.</p>';
@@ -139,9 +139,13 @@ function almScoring(l) {
 function almScoringHTML(l) {
   const all = [0, 1, 2, 3].map(L => almScoring(L));
   const A = almBlock('Score moyen par ronde', 'Par rapport au par, toutes les rondes de la saison.', almLegend(['L1', 'L2', 'L3', 'L4']) +
-    almLine(all.map((a, L) => ({ name: 'L' + (L + 1), c: ALM_C[L], pts: a.filter(r => r.avg != null).map(r => [r.s, r.avg]) })), { fmt: af1, label: 'Score moyen par ronde, par ligue et par année' }));
-  let B = almLgChips(l) + '<h3>Les rondes · Ligue ' + (l + 1) + '</h3>' + almTable([['Année'], ['Moyenne', 1], ['Ronde 1', 1], ['Ronde 2', 1], ['Gagnant', 1], ['Coupure', 1], ['Sous le par', 1], ['Meilleure ronde'], ['Pire ronde']],
-    all[l].slice().reverse().map(r => '<tr>' + almYr(r.s, almPart(r.s)) + '<td class="r"><b>' + af1(r.avg) + '</b></td><td class="r">' + af1(r.r1) + '</td><td class="r">' + af1(r.r2) + '</td><td class="r">' + af1(r.win) + '</td><td class="r">' + af1(r.cut) + '</td><td class="r">' + apc(r.sub) + '</td><td>' + (r.best ? '<span class="' + cls(r.best.v) + '">' + fmt(r.best.v) + '</span> ' + almName(r.best.id) : '') + '</td><td>' + (r.worst ? '<span class="' + cls(r.worst.v) + '">' + fmt(r.worst.v) + '</span> ' + almName(r.worst.id) : '') + '</td></tr>'));
+    almLine(all.map((a, L) => ({ name: 'L' + (L + 1), c: ALM_C[L], pts: a.filter(r => r.avg != null).map(r => [r.s, r.avg]) })), { fmt: af1, label: 'Score moyen par ronde, par ligue et par année', wide: 1 }));
+  /* v413 : handicap moyen de la ligue : la photo de fin de saison (après le dernier tournoi, avant les montées et les
+     descentes), ou la moyenne actuelle pour la saison en cours */
+  const A0 = S.alm || {}, ixNow = (() => { try { return almIdxMeans(); } catch (e) { return null; } })();
+  const ixOf = s => { const a = A0[s]; if (a && a.ix && a.ix[l] != null) return a.ix[l]; return s === S.season && ixNow ? ixNow[l] : null; };
+  let B = almLgChips(l) + '<h3>Les rondes · Ligue ' + (l + 1) + '</h3>' + almTable([['Année'], ['Moyenne', 1], ['Handicap moy.', 1], ['Ronde 1', 1], ['Ronde 2', 1], ['Gagnant', 1], ['Coupure', 1], ['Sous le par', 1], ['Meilleure ronde'], ['Pire ronde']],
+    all[l].slice().reverse().map(r => '<tr>' + almYr(r.s, almPart(r.s)) + '<td class="r"><b>' + af1(r.avg) + '</b></td><td class="r">' + (ixOf(r.s) == null ? '–' : fmtHI(ixOf(r.s))) + '</td><td class="r">' + af1(r.r1) + '</td><td class="r">' + af1(r.r2) + '</td><td class="r">' + af1(r.win) + '</td><td class="r">' + af1(r.cut) + '</td><td class="r">' + apc(r.sub) + '</td><td>' + (r.best ? '<span class="' + cls(r.best.v) + '">' + fmt(r.best.v) + '</span> ' + almName(r.best.id) : '') + '</td><td>' + (r.worst ? '<span class="' + cls(r.worst.v) + '">' + fmt(r.worst.v) + '</span> ' + almName(r.worst.id) : '') + '</td></tr>'));
   const X = almX(), hrows = X.ss.slice().reverse().map(s => { const hs = almHs(s); const o = hs && hs[l]; if (!o || !o[6]) return null; const per = k => (o[k] / o[6]).toFixed(2).replace('.', ',');
     return '<tr>' + almYr(s, almPart(s)) + '<td class="r">' + af2(o[0] / o[1]) + '</td><td class="r">' + af2(o[2] / o[3]) + '</td><td class="r">' + af2(o[4] / o[5]) + '</td><td class="r">' + per(7) + '</td><td class="r">' + per(8) + '</td><td class="r">' + per(9) + '</td><td class="r">' + o[10] + '</td><td class="r">' + o[11] + '</td><td class="r">' + o[12] + '</td></tr>'; }).filter(Boolean);
   B += '<h3>Trou par trou · Ligue ' + (l + 1) + '</h3>' + (hrows.length ? almTable([['Année'], ['Par 3', 1], ['Par 4', 1], ['Par 5', 1], ['Birdies+', 1], ['Bogeys', 1], ['Doubles+', 1], ['Aigles', 1], ['Albatros', 1], ['As', 1]], hrows) +

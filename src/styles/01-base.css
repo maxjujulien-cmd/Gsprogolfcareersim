@@ -87,7 +87,7 @@ a{color:var(--acc)}
 .cutst{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin:8px 0}.cuth{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 12px}
 .cutme{font-weight:700;font-size:14px}.cutme.ok{color:var(--good)}.cutme.mid{color:#D9A21E}.cutme.bad{color:var(--bad)}
 .cutbars{display:flex;align-items:flex-end;gap:5px;margin:6px 0 2px;max-width:520px}.cutbars .cb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:0;max-width:90px}
-.cutbars i{display:block;width:100%;background:#3D7FE0;border-radius:4px 4px 0 0;opacity:.75}.cutbars .cb.on i{background:#E8B931;opacity:1}.cutbars small{font-size:11px;color:var(--mute);white-space:nowrap}.cutbars span{font:700 13px 'Arimo',sans-serif}
+.cutbars i{display:block;height:calc(var(--h,4)*1px);width:100%;background:#3D7FE0;border-radius:4px 4px 0 0;opacity:.75}.cutbars .cb.on i{background:#E8B931;opacity:1}.cutbars small{font-size:11px;color:var(--mute);white-space:nowrap}.cutbars span{font:700 13px 'Arimo',sans-serif}
 .board tr.dn td.pos{box-shadow:inset 3px 0 0 var(--underB)}
 .scroll{overflow-x:auto}
 .u{color:var(--under)} .e{color:inherit}

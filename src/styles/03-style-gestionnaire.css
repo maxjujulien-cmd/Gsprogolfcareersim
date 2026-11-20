@@ -381,7 +381,7 @@ html.mgr.pc .v-records.rv-arch .block,html.mgr.pc .v-records .jbl{border-radius:
 @media (max-width:1250px){html.mgr.pc .v-records:not(.rv-hof):not(.rv-arch){grid-template-columns:repeat(2,minmax(0,1fr))}.gsgrid{grid-template-columns:1fr}}
 
 /* ronde en cours (gestionnaire) */
-html.mgr.pc .cols.play{grid-template-columns:minmax(360px,440px) minmax(0,1fr);column-gap:18px}
+html.mgr.pc .cols.play{grid-template-columns:minmax(360px,calc(440px * var(--lz,1))) minmax(0,1fr);column-gap:18px}
 html.mgr.pc .cols.play .ca>.top{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 12px}
 html.mgr.pc .cols.play .ca>.top .ctx{color:var(--ink);font:600 14px Inter}
 html.mgr.pc .cols.play .ca>.top a{font:600 14px Arimo!important;color:var(--bad)}
@@ -555,3 +555,6 @@ table.cards{font-size:15px}.cards .s2{font-size:17px}.cards td.r{font-size:14px}
 .potw{font-size:22px}.verdict{font-size:20px}label{font-size:15px}summary{font-size:18px}
 @media (max-width:420px){.hero .big{font-size:clamp(30px,9.5vw,40px)}.wrap.sc>.top h1{font-size:34px}.cards .s1{font-size:14px}.tab{font-size:11.5px;letter-spacing:-.02em}}
 @media (max-width:340px){.tab{font-size:10.5px}}
+
+/* v416 : bouton plein écran dans la barre du haut */
+.mtfs{flex:none;width:40px;height:40px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:20px;line-height:1;cursor:pointer;margin-right:10px}.mtfs:hover{background:rgba(255,255,255,.06)}

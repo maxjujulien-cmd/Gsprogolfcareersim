@@ -25,7 +25,7 @@ function projSeason(l, rows) {
 function projBoard(l, rows) {
   const list = projSeason(l, rows), pc = isPC(); markZones(list, l, 'up', 'dn', null);
   const mvH = d => d > 0 ? '<span class="up">▲' + d + '</span>' : d < 0 ? '<span class="dn">▼' + (-d) + '</span>' : '<span class="eq">=</span>';
-  let h = '<p class="small mute" style="margin:2px 0 6px">Le classement de la saison si le tournoi finissait maintenant. Mouv. : par rapport au classement d’avant le tournoi.</p>';
+  let h = '<p class="small mute pjint" style="margin:2px 0 6px">Le classement de la saison si le tournoi finissait maintenant. Mouv. : par rapport au classement d’avant le tournoi.</p>';
   h += '<div class="boardwrap scroll pjwrap"><table class="board pjb"><tr><th>Rang</th><th>Mouv.</th>' + (pc ? '<th class="fl"></th>' : '') + '<th>Joueur</th><th class="r">Pts</th><th class="r">Tournoi</th></tr>';
   let upDone = false, dnDone = false; const lastUp = list.reduce((m, r) => r.zone === 'up' ? r.idx : m, 0);
   list.forEach(r => {
@@ -37,21 +37,23 @@ function projBoard(l, rows) {
   });
   return h + '</table></div>';
 }
-function cutMC(k, rows) {
-  const c = S.cur; if (!c || c.r !== 0 || c.fin || c.rc || S.one) return null;
+/* v408 : lv = une autre ligue regardée pendant ta ronde (null = ta ligue) : même calcul, avec ses propres cartes */
+function cutMC(k, rows, lv) {
+  const c = S.cur, oth = lv != null; if (!c || c.r !== 0 || S.one || (oth ? !(c.oth && c.oth[lv]) : c.fin || c.rc)) return null;
+  const slot = oth ? '_cmc' + lv : '_cmc';
   const tot = rows.length * 18; let done = 0; const info = rows.map(r => { const n = r.n != null ? r.n : r.pending ? k - 1 : k; done += Math.min(18, Math.max(0, n)); return { id: r.id, n: Math.min(18, Math.max(0, n)) }; });
   const prog = done / tot, key = k + ':' + done;
-  if (c._cmc && c._cmc.key === key) return c._cmc;
+  if (c[slot] && c[slot].key === key) return c[slot];
   const out = { key, prog, dist: null, me: null };
-  if (prog < CMC.min) { Object.defineProperty(c, '_cmc', { value: out, writable: true, configurable: true, enumerable: false }); return out; }
+  if (prog < CMC.min) { Object.defineProperty(c, slot, { value: out, writable: true, configurable: true, enumerable: false }); return out; }
   const grid = gridFor(c.pars), hv = c.ctx.hv && c.ctx.hv[0], meSim = S.mode === 'sim';
   const par = c.pars, cutSz = S.settings.cut, hc = (hcHolder(0) && hcHolder(0).hc) || null;
   const pIdx = hc && hc.x != null ? hc.x : 10, pMu = (pIdx * (c.slope || 128) / 113 + ((c.cr != null ? c.cr : parTotal(par) - 1) - parTotal(par)) + 1.5) / 18;
   /* v271 : sans handicap fiable pour toi (moins de 5 rondes), on te simule comme le golfeur médian de ton champ */
   const hcOk = hc && hc.x != null && (hc.hi || []).filter(v => v != null).length >= 5;
   const prox = hcOk ? null : (() => { const gs = info.map(o => S.G[o.id]).filter(g => g && g.id !== 0 && c.aiD && c.aiD[g.id] != null); if (!gs.length) return null; gs.sort((a, b) => (a.o || 0) - (b.o || 0)); return gs[Math.floor(gs.length / 2)]; })();
-  const G = info.map(o => { const id = o.id, ai = id !== 0 || meSim, hol = (id === 0 && !meSim ? myHoles(c) : c.ai[id] || []).slice(0, o.n); return { id, ai, hol, base: relTo(hol, par, hol.length), g: S.G[id] }; });
-  const dist = {}; let me = 0, meIn = G.some(x => x.id === 0);
+  const G = info.map(o => { const id = o.id, ai = oth || id !== 0 || meSim, hol = (oth ? othHoles(lv, id) : id === 0 && !meSim ? myHoles(c) : c.ai[id] || []).slice(0, o.n); return { id, ai, hol, base: relTo(hol, par, hol.length), g: S.G[id] }; });
+  const dist = {}; let me = 0, meIn = !oth && G.some(x => x.id === 0);
   for (let it = 0; it < CMC.n; it++) {
     const tots = new Array(G.length); let myT = null;
     for (let i = 0; i < G.length; i++) {
@@ -61,29 +63,53 @@ function cutMC(k, rows) {
         else if (prox) { const D = solveDelta(grid, roundTarget(prox, c.ctx, 0, null)), hh = x.hol.slice(); for (let j = hh.length; j < 18; j++) { const s = liveHole(MODEL, par, c.index, hv, j, prox, D, hh, null); hh.push(s); t += s - par[j]; } }
         else for (let j = x.hol.length; j < 18; j++) t += Math.round(pMu + gauss() * 0.85);
       }
-      tots[i] = t; if (x.id === 0) myT = t;
+      tots[i] = t; if (meIn && x.id === 0) myT = t;
     }
     const cv = cutScoreOf(tots, cutSz); dist[cv] = (dist[cv] || 0) + 1; if (myT != null && myT <= cv) me++;
   }
   Object.keys(dist).forEach(v => { dist[v] /= CMC.n; });
   out.dist = dist; out.me = meIn ? me / CMC.n : null;
-  Object.defineProperty(c, '_cmc', { value: out, writable: true, configurable: true, enumerable: false });
+  Object.defineProperty(c, slot, { value: out, writable: true, configurable: true, enumerable: false });
   return out;
 }
-function cutStripHTML(k, rows) {
-  const M = cutMC(k, rows); if (!M) return '';
+function cutStripHTML(k, rows, lv) {
+  const M = cutMC(k, rows, lv); if (!M) return '';
   const cur = cutScoreOf(rows.map(r => r.tot), S.settings.cut);
-  if (!M.dist) return '<div class="cutst"><div class="cuth"><b>Coupure actuelle : ' + fmt(cur) + '</b><span class="mute">Estimation dès que le tiers des trous de la ronde sera joué (' + Math.round(M.prog * 100) + ' %)</span></div></div>';
+  /* v408 : avant le tiers des trous joués, aucun score de coupure (trop peu de données pour un chiffre fiable) */
+  if (!M.dist) return '<div class="cutst pre"><div class="cuth"><span class="mute">Coupure projetée dès que le tiers des trous de la ronde sera joué (' + Math.round(M.prog * 100) + ' %)</span></div></div>';
   const vals = Object.keys(M.dist).map(Number).sort((a, b) => a - b), best = vals.reduce((a, v) => M.dist[v] > M.dist[a] ? v : a, vals[0]);
   const shown = vals.filter(v => M.dist[v] >= 0.02), mx = Math.max.apply(null, shown.map(v => M.dist[v]));
   const pc = v => { const x = Math.round(M.dist[v] * 100); return (x < 1 ? '<1' : x) + ' %'; };
   return '<div class="cutst"><div class="cuth"><b>Coupure estimée : ' + fmt(best) + ' <span class="mute">(' + pc(best) + ')</span></b>' + (M.me != null ? '<span class="cutme ' + (M.me >= 0.7 ? 'ok' : M.me >= 0.35 ? 'mid' : 'bad') + '"><span>Tes chances de passer</span> : ' + Math.round(M.me * 100) + ' %</span>' : '') + '</div>' +
-    '<div class="cutbars" role="img" aria-label="Chances de chaque score de coupure">' + shown.map(v => '<div class="cb' + (v === best ? ' on' : '') + '"><small>' + pc(v) + '</small><i style="height:' + Math.max(4, Math.round(M.dist[v] / mx * 46)) + 'px"></i><span>' + fmt(v) + '</span></div>').join('') + '</div>' +
-    '<div class="small mute" style="margin-top:2px"><span>Coupure actuelle : ' + fmt(cur) + '</span> · <span>' + Math.round(M.prog * 100) + ' % des trous de la ronde joués</span></div></div>';
+    '<div class="cutbars" role="img" aria-label="Chances de chaque score de coupure">' + shown.map(v => '<div class="cb' + (v === best ? ' on' : '') + '"><small>' + pc(v) + '</small><i style="--h:' + Math.max(4, Math.round(M.dist[v] / mx * 46)) + '"></i><span>' + fmt(v) + '</span></div>').join('') + '</div>' +
+    '<div class="small mute cutft" style="margin-top:2px"><span>Coupure actuelle : ' + fmt(cur) + '</span> · <span>' + Math.round(M.prog * 100) + ' % des trous de la ronde joués</span></div></div>';
 }
 /* Bloc « ronde en cours » partagé par l'écran de jeu et la fin de ronde 1 */
+/* v415 : ligne de coupure dans le classement de la ronde (ronde 1 avec coupure, ta ligue ou une autre).
+   La ligne passe à la position de la coupure dans le classement actuel : sous le dernier golfeur dont le score est au
+   moins aussi bon que celui du N-ième (N = joueurs qualifiés, égalités comprises). Choix du propriétaire : en cours de
+   ronde, comparer les scores partiels à la coupure projetée (un score de fin de ronde) mettait la ligne beaucoup trop bas.
+   Étiquette : pendant la ronde, « Coupure projetée +15 · top 65 » (score le plus probable, dès que le tiers des trous
+   est joué ; avant, pas de ligne) ; ronde terminée, « Ligne de coupure +12 ». Les lignes épinglées en haut sont
+   ignorées ; si la limite tombe dans la partie cachée (« ··· »), c'est la séparation qui porte l'étiquette. */
+function cutMark(list, rows, k, lv, other) {
+  const c = S.cur; if (!rows || c.r !== 0 || S.one || c.fin || (!other && c.rc) || rows.length <= S.settings.cut) return list;
+  const done = rows.some(r => r.n != null) ? rows.every(r => r.n >= 18) : k >= 18;
+  const v = cutScoreOf(rows.map(r => r.tot), S.settings.cut); let lbl = '';
+  if (done) lbl = 'Ligne de coupure ' + fmt(v);
+  else { const M = cutMC(k, rows, other ? lv : null); if (!M || !M.dist) return list;
+    const vals = Object.keys(M.dist).map(Number), best = vals.reduce((a, x) => M.dist[x] > M.dist[a] ? x : a, vals[0]); lbl = 'Coupure projetée ' + fmt(best) + ' · top ' + S.settings.cut; }
+  const L = list.map(r => r.gap ? Object.assign({}, r) : r);
+  let prev = -1, gapAt = -1;
+  for (let i = 0; i < L.length; i++) {
+    const r = L[i]; if (r.gap) { if (prev >= 0) gapAt = i; continue; } if (r.pinned) continue;
+    if (prev >= 0 && L[prev].tot <= v && r.tot > v) { if (gapAt > prev) L[gapAt].cut = lbl; else L[prev] = Object.assign({}, L[prev], { cutAfter: lbl }); return L; }
+    prev = i; gapAt = -1;
+  }
+  return list;
+}
 function roundBlock(k) {
-  const c = S.cur, pjOk = !c.rc,   /* v382 : « Saison en direct » aussi en mode 1 ronde */ pv = S.ui.pv === 'proj' && !pjOk ? 'board' : S.ui.pv, lbmode = S.ui.lbmode === 'all' ? 'all' : S.ui.lbmode === 'left' ? 'left' : 'pin';   // « Top 25 » et « Autour de moi » retirés
+  const c = S.cur, pjOk = true,   /* v382 : « Saison en direct » aussi en mode 1 ronde ; v410 : aussi depuis la classe de recrues (voir le message plus bas) */ pv = S.ui.pv === 'proj' && !pjOk ? 'board' : S.ui.pv, lbmode = S.ui.lbmode === 'all' ? 'all' : S.ui.lbmode === 'left' ? 'left' : 'pin';   // « Top 25 » et « Autour de moi » retirés
   const lv = S.ui.lgv != null && S.ui.lgv !== c.pl ? S.ui.lgv : c.pl, other = lv !== c.pl;
   let top = c.fin ? '<p class="small mute" style="margin:0 0 6px">\ud83c\udfc6 Finale \u00b7 top ' + FIN.n + ' de la Ligue 1 (' + fld(c).length + ' golfeurs) \u00b7 points doubl\u00e9s</p>' : chipRow((c.rc ? [[4, 'Recrues \u00b7 toi']] : []).concat(LEAGUE_SHORT.map((n, i) => [i, 'L' + (i + 1) + (i === c.pl && !c.sw ? ' \u00b7 toi' : '')])), lv, 'lgv');
   const rows = other ? othRows(lv, k) : liveRows(k);
@@ -91,10 +117,13 @@ function roundBlock(k) {
   const dmap = S.duo && rows && !other ? duoLiveMap(rows) : null;
   if (!rows) return top + '<p class="mute">Les autres ligues seront visibles en direct d\u00e8s le prochain tournoi.</p>';
   const teeRows = rows.some(r => r.n != null);
+  /* v408 : coupure projetée aussi pour une autre ligue regardée (elle a sa coupure même si ta classe de recrues n'en a pas) */
+  const cutOn = c.r === 0 && !S.one && (other ? !c.fin : !c.fin && !c.rc);
   if (other) top += '<p class="small mute" style="margin:0 0 6px">' + esc(LEAGUE_NAMES[lv]) + ' \u00b7 ' + (teeRows ? 'ronde ' + (c.r + 1) : (k === 0 ? 'avant le d\u00e9part' : k === 18 ? 'ronde termin\u00e9e' : 'apr\u00e8s ' + k + ' trou' + (k > 1 ? 's' : '')) + ' \u00b7 ronde ' + (c.r + 1)) + '</p>';
   let h = top + '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">' + chipRow([['cards', 'Cartes de scores'], ['board', 'Classement']].concat(pjOk ? [['proj', 'Saison en direct']] : []), pv, 'pv') +
-    (!other && c.r === 0 && !c.fin && !c.rc && !S.one ? '' : c.fin || c.rc ? '<span class="tag" style="font-size:15px;padding:3px 12px;white-space:nowrap">Aucune coupure</span>' : c.r === 0 ? '<span class="tag" style="font-size:15px;padding:3px 12px;white-space:nowrap">' + (S.one ? 'Pay\u00e9s jusqu\u2019\u00e0' : 'Coupure') + ' : ' + fmt(cutScoreOf(rows.map(r => r.tot), S.settings.cut)) + '</span>' : '') + '</div>';
-  if (!other && c.r === 0 && !c.fin && !c.rc && !S.one) { try { h += cutStripHTML(k, rows); } catch (e) { } }
+    (cutOn ? '' : !other && (c.fin || c.rc) ? '<span class="tag" style="font-size:15px;padding:3px 12px;white-space:nowrap">Aucune coupure</span>' : c.r === 0 && S.one ? '<span class="tag" style="font-size:15px;padding:3px 12px;white-space:nowrap">Pay\u00e9s jusqu\u2019\u00e0 : ' + fmt(cutScoreOf(rows.map(r => r.tot), S.settings.cut)) + '</span>' : '') + '</div>';
+  if (cutOn) { try { h += cutStripHTML(k, rows, other ? lv : null); } catch (e) { } }
+  if (pv === 'proj' && c.rc && !other) return h + '<div class="block pjna" style="margin-top:10px"><b>La saison en direct ne s’applique pas à la classe de recrues</b><p class="small mute" style="margin:4px 0 0">Les recrues n’accumulent aucun point de classement : c’est leur index qui décidera de leur ligue à la fin de la saison. Choisis une ligue dans le menu pour voir son classement en direct.</p></div>';
   if (pv === 'proj') { try { return h + projBoard(lv, rows); } catch (e) { return h + '<p class="mute">Projection indisponible.</p>'; } }
   const nLeft = teeRows ? rows.filter(r => r.n < 18).length : 0;   // v312 : « À jouer » épingle en haut tous ceux qui n'ont pas terminé
   const lbm = lbmode === 'left' && !nLeft ? 'pin' : lbmode;
@@ -108,9 +137,9 @@ function roundBlock(k) {
     nsBar = '<button class="nsbar" data-a="teens" aria-expanded="' + !!S.ui.nsOpen + '">' + '<span>' + (S.ui.nsOpen ? '\u25be ' : '\u25b8 ') + ns.length + ' pas encore parti' + (ns.length > 1 ? 's' : '') + '</span> \u00b7 <span>' + (t0 === t1 ? 'd\u00e9part \u00e0 ' + t0 : 'd\u00e9parts de ' + t0 + ' \u00e0 ' + t1) + '</span> \u00b7 <span>' + (S.ui.nsOpen ? 'masquer' : 'afficher') + '</span></button>';
     return S.ui.nsOpen ? rows : rows.filter(r => !r.ns || r.id === 0);
   })() : rows;
-  const list = lbm === 'left' ? rows.filter(r => r.n < 18).map((r, i, A) => Object.assign({}, r, { pinned: i === A.length - 1 ? 'LE' : 'L' })).concat([{ gap: true }], pickRows(vis, 25, 3)) : lbm === 'all' ? vis : lbmode === 'me' ? pickAround(vis, 20) : lbmode === 'pin' ? pinMe(vis, vis) : pickRows(vis, 25, 3);
+  const list = cutMark(lbm === 'left' ? rows.filter(r => r.n < 18).map((r, i, A) => Object.assign({}, r, { pinned: i === A.length - 1 ? 'LE' : 'L' })).concat([{ gap: true }], pickRows(vis, 25, 3)) : lbm === 'all' ? vis : lbmode === 'me' ? pickAround(vis, 20) : lbmode === 'pin' ? pinMe(vis, vis) : pickRows(vis, 25, 3), rows, k, lv, other);
   if (pv === 'cards') {
-    const cr = list.map(r => r.gap ? r : { id: r.id, pos: posLbl(r), tot: r.tot, me: r.id === 0, pinned: r.pinned, pending: r.pending, holes: (other ? othHoles(lv, r.id) : r.id === 0 ? myHoles(c) : c.ai[r.id]).slice(0, r.n != null ? r.n : r.pending ? k - 1 : k), r1: c.r === 1 ? (other ? c.oth[lv].r1[r.id] : c.r1[r.id]) : null });
+    const cr = list.map(r => r.gap ? r : { id: r.id, pos: posLbl(r), tot: r.tot, me: r.id === 0, pinned: r.pinned, cutAfter: r.cutAfter, pending: r.pending, holes: (other ? othHoles(lv, r.id) : r.id === 0 ? myHoles(c) : c.ai[r.id]).slice(0, r.n != null ? r.n : r.pending ? k - 1 : k), r1: c.r === 1 ? (other ? c.oth[lv].r1[r.id] : c.r1[r.id]) : null });
     if (dmap) h += duoPurseStrip();
     const gain = dmap ? (() => { const g = {}; rows.forEach(r => { g[r.id] = dmap.amt(r); }); return g; })() : null;
     h += cardsHTML(cr, c.pars, { gain, showR1: c.r === 1, next: k < 18 ? k : -1, index: c.index, mwl: lv, tw: !other });

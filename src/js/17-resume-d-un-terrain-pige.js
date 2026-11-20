@@ -115,7 +115,7 @@ function autoDrawCourses() { if (S && S.courses) S.courses.forEach(c => { if (c)
    et le tirage automatique ne les touche pas (c.fpl, le temps du tirage).
    Affichage et modifications : on « prête » le plan à S.courses (futOn), et on le rend à la fin de l'événement ou au render (futOff). */
 let FUT = null;
-const FUT_N = 3;   // nombre de saisons futures qu'on peut planifier
+const FUT_N = 10;   // nombre de saisons futures qu'on peut planifier (v413 : 10 au lieu de 3)
 function futCopy(c) { const n = JSON.parse(JSON.stringify(c)); delete n.fpl; return n; }
 function futPlan(k) {
   if (!S.fut) S.fut = {};
@@ -135,9 +135,11 @@ function futApply() {
   if (!P) return; ensureFinSlot();
   P.forEach((c, i) => { if (!c || !c.name || !S.courses[i]) return; const n = futCopy(c); n.fpl = 1; S.courses[i] = n; });
 }
+/* v413 : menu déroulant (Cette saison + les 10 suivantes), avec le nombre de terrains déjà choisis */
 function futChips() {
-  const it = [[0, 'Cette saison']]; for (let k = 1; k <= FUT_N; k++) { const n = futCount(S.season + k); it.push([k, yr(S.season + k) + (n ? ' · ' + n : '')]); }
-  return chipRow(it, VIEW.cyr || 0, 'cyr');
+  const cur = VIEW.cyr || 0, o = ['<option value="0"' + (cur ? '' : ' selected') + '>Cette saison</option>'];
+  for (let k = 1; k <= FUT_N; k++) { const n = futCount(S.season + k); o.push('<option value="' + k + '"' + (k === cur ? ' selected' : '') + '>' + yr(S.season + k) + (n ? ' · ' + n + (n > 1 ? ' terrains choisis' : ' terrain choisi') : '') + '</option>'); }
+  return '<label class="futsel"><span class="small mute">Saison à préparer</span><select data-c="futyr">' + o.join('') + '</select></label>';
 }
 function swapCourses(i, j) {
   if (i === j || courseFrozen(i) || courseFrozen(j)) return false;

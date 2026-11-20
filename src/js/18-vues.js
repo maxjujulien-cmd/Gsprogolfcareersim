@@ -1,12 +1,17 @@
 /* ============ VUES ============ */
+/* v415 : ligne de coupure dans le classement de la ronde (voir cutMark) */
+const cutRowHTML = (lbl, cols) => '<tr class="cutln" aria-label="' + esc(lbl) + '"><td colspan="' + cols + '"><span class="cutlb">' + esc(lbl) + '</span></td></tr>';
+const gapRowHTML = (r, cols) => r.cut ? '<tr class="gap cutgap"><td colspan="' + cols + '">\u00b7\u00b7\u00b7 <span class="cutlb">' + esc(r.cut) + '</span> \u00b7\u00b7\u00b7</td></tr>' : '<tr class="gap"><td colspan="' + cols + '">\u00b7\u00b7\u00b7</td></tr>';
 function boardRows(rows, o) {
   o = o || {};
   let h = '';
-  rows.forEach(r => {
-    if (r.gap) { h += '<tr class="gap"><td colspan="' + (o.cols || 4) + '">\u00b7\u00b7\u00b7</td></tr>'; return; }
+  rows.forEach((r, ri) => {
+    if (ri && rows[ri - 1].cutAfter) h += cutRowHTML(rows[ri - 1].cutAfter, o.cols || 4);
+    if (r.gap) { h += gapRowHTML(r, o.cols || 4); return; }
     const me = r.id === 0 ? ' me' : '';
     h += '<tr class="' + (me + (r.zone ? ' ' + r.zone : '') + (r.pending ? ' pending' : '') + (r.pinned ? ' ' + pinCls(r.pinned) : '')).trim() + '">' + o.cells(r) + '</tr>';
   });
+  if (rows.length && rows[rows.length - 1].cutAfter) h += cutRowHTML(rows[rows.length - 1].cutAfter, o.cols || 4);
   return h;
 }
 /* v313 : bloc « À jouer » : pas de pointillés par ligne, une seule séparation sous le bloc */
@@ -39,7 +44,8 @@ function pickAround(rows, count) {
   return out;
 }
 /* v232 : âge et recrue à côté du nom (ordinateur seulement : sur téléphone, les noms manqueraient de place) */
-const isRookie = g => !!g && g.cs === 0 && S.season > 1;
+/* v407 : le « R » marque la première saison officielle (en ligue), pas l'année passée dans la classe de recrues (g.rcl) */
+const isRookie = g => !!g && g.cs === 0 && S.season > 1 && g.rcl == null;
 function ageTag(id) {
   if (!isPC()) return ''; const g = S.G[id]; if (!g || !g.a) return '';
   return (isRookie(g) ? '<span class="rkb" title="Recrue" aria-label="Recrue">R</span>' : '') + '<span class="agt notr">' + g.a + (LANG === 'en' ? ' yrs' : ' ans') + '</span>';

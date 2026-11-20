@@ -68,7 +68,7 @@ function wrPopShow(gEl) {
     '<small>' + (LANG === 'en' ? 'Ranked after ' + nr + ' of ' + n + ' tournaments' : 'Classé après ' + nr + ' tournoi' + (nr > 1 ? 's' : '') + ' sur ' + n) + '</small>';
   pop.hidden = false;
   box.querySelectorAll('.wrcol.on').forEach(e => e.classList.remove('on')); gEl.classList.add('on');
-  const br = box.getBoundingClientRect(), gr = gEl.getBoundingClientRect(), pw = pop.offsetWidth, phh = pop.offsetHeight;
+  const z = zf(), B = box.getBoundingClientRect(), Gr = gEl.getBoundingClientRect(), br = { left: B.left / z, width: B.width / z, height: B.height / z }, gr = { left: Gr.left / z, width: Gr.width / z }, pw = pop.offsetWidth, phh = pop.offsetHeight;   // v416 : zoom
   const cl = gr.left - br.left, cr = cl + gr.width;   // la bulle se place à côté de la colonne, sans la cacher
   let left = cl + gr.width / 2 < br.width / 2 ? cr + 8 : cl - pw - 8; if (left < 0 || left + pw > br.width) left = Math.max(0, Math.min(br.width - pw, cl + gr.width / 2 - pw / 2));
   pop.style.left = left + 'px'; pop.style.top = Math.max(0, br.height * 0.06) + 'px';
@@ -104,12 +104,13 @@ function levelCard(g, l, hd) {
 }
 /* v288 : fiche d'identité et personnalité sur la carte du golfeur */
 /* v318 : talents, cotes de jeu, sous pression et personnalité médiatique réunis dans un seul bloc « caractère » (colonnes sur PC, empilés sur mobile) */
-function charBlock(id) {   // v334 : fiche du golfeur — talents · cotes de jeu (avec régularité et sous pression) · début de carrière · personnalité
+function charBlock(id, part) {   // v334 : fiche du golfeur — talents · cotes de jeu (avec régularité et sous pression) · début de carrière · personnalité
+  /* v393 : part = 'jeu' (talents et cotes de jeu, onglet Stats) ou 'bio' (début de carrière et personnalité, onglet Biographie) */
   const col = h => { const m = /^<div class="block talblk"><h3>([^<]*)<\/h3>([\s\S]*)<\/div>$/.exec(h || ''); return m ? '<div class="chc"><div class="chh">' + m[1] + '</div>' + m[2] + '</div>' : ''; };
-  const C = [col(talBlock(id)), ratingsCol(id), rcCol(id)];
+  const C = part === 'bio' ? [rcCol(id)] : [col(talBlock(id)), ratingsCol(id)];
   const b = bioOf(id), m = b && MEDIA_BY[b.pm], gg = S.G[id] && id !== 0 && trOn() ? trOf(S.G[id]) : null;   // v341 : la personnalité inclut tempérament et fin de tournoi
   const trRow = (k, v, t) => '<div class="trow"' + (t ? ' title="' + esc(t) + '"' : '') + '><span>' + k + '</span><b>' + v + '</b></div>';
-  if (m || gg) C.push('<div class="chc chpmc"><div class="chh">Personnalité</div>' + (m ? '<div class="chpm">🎤 <b>' + m.fr + '</b></div><p class="small mute talnote">' + m.d + '</p>' : '') +
+  if (part === 'bio' && (m || gg)) C.push('<div class="chc chpmc"><div class="chh">Personnalité</div>' + (m ? '<div class="chpm">🎤 <b>' + m.fr + '</b></div><p class="small mute talnote">' + m.d + '</p>' : '') +
     (gg ? '<div class="rcrows chtr">' + trRow('Tempérament', TP_ICO[gg.tp - 1] + ' <span>' + TP_LBL[gg.tp - 1] + '</span>', TP_DESC[gg.tp - 1]) + trRow('Fin de tournoi', MC_ICO[gg.mc - 1] + ' <span>' + MC_LBL[gg.mc - 1] + '</span>', MC_DESC[gg.mc - 1]) + '</div>' : '') + '</div>');
   const L = C.filter(Boolean); if (!L.length) return '';
   return '<div class="block chblk n' + L.length + '">' + L.join('') + '</div>';
@@ -143,7 +144,7 @@ function pmDescHTML(id) {   // v288 : la carte montre la fiche ; l'Aperçu garde
 function lcBioHTML(id) {
   const b = bioOf(id); if (!b) return '';
   const m = MEDIA_BY[b.pm];
-  return '<div class="lcbio"><div><span>VILLE NATALE</span><b>' + esc(b.ct || '–') + '</b></div><div><span>TAILLE</span><b>' + fmtHt(b.h) + '</b></div><div><span>POIDS</span><b>' + fmtWt(b.w) + '</b></div><div><span>CÔTÉ</span><b>' + (b.lf ? 'Gaucher' : 'Droitier') + '</b></div></div>' +
+  return '<div class="lcbio"><div><span>VILLE NATALE</span><b>' + esc(b.ct || '–') + '</b></div><div><span>TAILLE</span><b>' + fmtHt(b.h) + '</b></div><div><span>POIDS</span><b>' + fmtWt(b.w) + '</b></div><div><span>CÔTÉ</span><b>' + (!isPC() && LANG === 'en' ? (b.lf ? 'LH' : 'RH') : (b.lf ? 'Gaucher' : 'Droitier')) + '</b></div></div>' +
     (m ? '<div class="lcpm" title="' + esc(m.d) + '">🎤 ' + m.fr + '</div>' : '');
 }
 

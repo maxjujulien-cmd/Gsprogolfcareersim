@@ -354,11 +354,10 @@ function teeJump(v) {
     const after = liveRows(18), ev = []; holeEvents(before, after, 18, ev, true); try { fanStep(before, after, 18); } catch (e) { }
     const left = after.filter(r => r.n < 18).length;
     c.feed.unshift({ n: '+' + c.tx, w: 1, t: (left ? left + ' golfeurs encore sur le terrain. ' : 'Tout le monde a termin\u00e9. ') + 'En t\u00eate : ' + nameOf(after[0].id) + ' (' + fmt(after[0].tot) + ').', ev: ev.slice(0, 3) });
-    persist(); if (!left) finishRound(); render(); window.scrollTo(0, 0); return;
+    persist(); render(); window.scrollTo(0, 0); return;
   }
   if (v.startsWith('h:')) {   // trous du dernier groupe
     const k = Math.min(18, +v.slice(2)); while (c.k2 < k) simSpectHole();
-    if (c.k2 >= 18 && !teeWaiting()) finishRound();
     render(); window.scrollTo(0, 0);
   }
 }
@@ -409,7 +408,7 @@ function syncCardScroll() {
   document.querySelectorAll('.cardwrap').forEach(w => {
     const th = w.querySelector('th.nx'), hr = th && th.parentElement; if (!th) return;
     let rw = 0; Array.from(hr.children).forEach(c => { const cs = getComputedStyle(c); if (cs.position === 'sticky' && cs.right !== 'auto') rw += c.offsetWidth; });
-    const x = th.getBoundingClientRect().right - w.getBoundingClientRect().left - w.clientLeft + w.scrollLeft;
+    const x = (th.getBoundingClientRect().right - w.getBoundingClientRect().left) / zf() - w.clientLeft + w.scrollLeft;
     w.scrollLeft = Math.max(0, Math.round(x - (w.clientWidth - rw)));
   });
   // v259 : classement complet d'une ligue : si ton joueur est plus bas, le tableau défile jusqu'à lui

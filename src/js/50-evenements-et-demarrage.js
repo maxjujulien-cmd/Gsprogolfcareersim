@@ -23,7 +23,7 @@ async function act(a, el) {
   const d = el.dataset;
   if ((!S || VIEW.name === 'new') && document.getElementById('nm')) newFormSave();
   if (/^pn/.test(a)) { pnAct(a, el); return; }
-  if (/^(clock|drawcourses|randomcourses|pigeadd|pigedraw|futclr|futwipe|rrand|rpurse)$/.test(a)) futOn();   // v315 : le dé fonctionne aussi pour les saisons futures
+  if (/^(clock|drawcourses|randomcourses|pigeadd|pigedraw|futclr|futwipe|rrand|rpurse|voysort)$/.test(a)) futOn();   // v405 : le tri du trajet aussi   // v315 : le dé fonctionne aussi pour les saisons futures
   switch (a) {
     case 'start': {
       const name = (document.getElementById('nm').value || 'Toi').trim() || 'Toi';
@@ -147,7 +147,7 @@ async function act(a, el) {
     case 'simhole': {
       if (REVEAL) break;
       const newK2 = simSpectHole();
-      const advance2 = () => { if (newK2 === 18 && !teeWaiting()) finishRound(); render(); scrollAfterHole(); };
+      const advance2 = () => { render(); scrollAfterHole(); };   // v391 : au trou 18, on reste sur la ronde (vWait) ; « holdgo » mène à la suite
       startReveal(newK2, advance2);
       break;
     }
@@ -167,10 +167,11 @@ async function act(a, el) {
       c.feed.unshift({ n: '+' + c.tx, w: 1, t: (left ? left + ' golfeurs encore sur le terrain. ' : 'Tout le monde a termin\u00e9. ') + 'En t\u00eate : ' + nameOf(after[0].id) + ' (' + fmt(after[0].tot) + ').', ev: ev.slice(0, 3) });
       persist();
       const b0 = new Map(before.map(r => [r.id, r.n])), ch = after.filter(r => r.n !== b0.get(r.id)).map(r => r.id);
-      startReveal(18, () => { if (!left) finishRound(); render(); if (left) scrollAfterHole(); else window.scrollTo(0, 0); }, ch);
+      startReveal(18, () => { render(); scrollAfterHole(); }, ch);
       break;
     }
-    case 'teeall': if (REVEAL) { clearInterval(REVEAL.timer); REVEAL = null; } finishRound(); render(); window.scrollTo(0, 0); break;
+    case 'teeall': if (REVEAL) { clearInterval(REVEAL.timer); REVEAL = null; } holdRound(); render(); window.scrollTo(0, 0); break;
+    case 'holdgo': if (REVEAL) break; finishRound(); persist(); render(); window.scrollTo(0, 0); break;
     case 'resume': VIEW = { name: 'play', val: S.cur.pars[S.cur.ps.length] }; render(); window.scrollTo(0, 0); break;
     case 'quit': go('home'); break;
     case 'inc': { const r = holeRange(S.cur.pars[S.cur.ps.length]); VIEW.val = Math.min(r[1], VIEW.val + 1); refreshHoleUI(); if (skInOn()) skRefresh(); break; }
@@ -186,7 +187,7 @@ async function act(a, el) {
       const newK = submitHole(v);
       const advance = () => {
         if (newK === 18 && teeWaiting()) VIEW = { name: 'play' };
-        else if (newK === 18) finishRound();
+        else if (newK === 18) VIEW = { name: 'play' };   // v391 : tout le monde a fini, on reste sur la ronde
         else if (wasPlay) VIEW = { name: 'play', val: S.cur.pars[S.cur.ps.length], all: keepAll };
         render(); scrollAfterHole();
       };
@@ -203,7 +204,7 @@ async function act(a, el) {
     case 'toggleall': VIEW.all = !VIEW.all; render(); break;
     case 'toggleall2': VIEW.all = !VIEW.all; render(); break;
     case 'finish': if (S.cur && S.cur.phase === 'cut') { const c = S.cur; if (!S.one && (!c.made || c.sw) && c.r === 0) { c.r = 1; simAIRound(1); aiFill(18, true); if (teeCur(c)) c.tx = 999; }   /* v314 : une égalité après la ronde 2 simulée d'un coup mène aussi à la page de prolongation */
-      if (!poStart(c)) finishTournament(); } else finishSimRound(); render(); window.scrollTo(0, 0); break;
+      if (!poStart(c)) finishTournament(); } else holdRound(); render(); window.scrollTo(0, 0); break;
     case 'endseason': doSeasonEnd(); render(); window.scrollTo(0, 0); autoBackup(); break;
     case 'offgo': VIEW = { name: 'off', s: d.s ? +d.s : (VIEW.s || S.season - 1), i: +d.i || 0 }; if (S.off) persist(); render(); window.scrollTo(0, 0); break;
     case 'offdone': S.off = null; persist(); go('home'); window.scrollTo(0, 0); break;
@@ -237,6 +238,7 @@ async function act(a, el) {
     case 'pv': S.ui.pv = d.v; persist(); render(); break;
     case 'gv': VIEW.gv = d.v; render(); break;
     case 'mgrgo': mgrGo(); break;
+    case 'emgo': emGo(); break;
     case 'nftee': { newFormSave(); const f = nfCrf(), all = [...new Set(BANK.map(b => b.tee))]; let s = new Set(Array.isArray(f.tees) ? f.tees : []);
       if (d.v === '*') s = new Set(); else if (s.has(d.v)) s.delete(d.v); else s.add(d.v);
       f.tees = s.size && s.size < all.length ? [...s] : null; VIEW.nfOpen = true; render(); newFormLoad(); break; }
@@ -255,6 +257,8 @@ async function act(a, el) {
     case 'advrst': advReset(d.v); break;
     case 'advtest': advTest(); break;
     case 'skin': SKIN = d.v; try { localStorage.setItem('golf-skin', SKIN); } catch (e) { } render(); break;
+    case 'fullscr': fsToggle(); break;
+    case 'zoom': { const z = parseFloat(d.v); if (ZOOMS.includes(z)) { ZOOM = z; try { localStorage.setItem('igc-zoom', String(z)); } catch (e) { } render(); } break; }
     case 'layout': LAYOUT = d.v; try { localStorage.setItem('golf-layout', LAYOUT); } catch (e) { } render(); break;
     case 'allmode': VIEW.all = d.v === '1'; render(); break;
     case 'lbmode': S.ui.lbmode = d.v; persist(); render(); break;
@@ -268,6 +272,7 @@ async function act(a, el) {
     case 'poall': if (S.cur && S.cur.po) { poRun(true); render(); } break;
     case 'poh': if (S.cur && S.cur.po && poMine(S.cur) && !S.cur.po.pend) { poPend(+d.v); persist(); render(); } break;
     case 'poone': if (S.cur && S.cur.po) { poOne(); render(); } break;
+    case 'poback': poBack(); render(); window.scrollTo(0, 0); break;
     case 'pofin': if (S.cur && S.cur.po && S.cur.po.w != null) { finishTournament(); render(); window.scrollTo(0, 0); } break;
     case 'poview': VIEW = { name: 'po' }; render(); window.scrollTo(0, 0); break;
     case 'tournleague': VIEW.l = +d.v; render(); break;
@@ -347,7 +352,7 @@ async function act(a, el) {
       P.list.forEach(y => { if (y.at === i) y.at = null; }); x.at = i; persist(); render(); toast(x.name + ' ajouté au tournoi ' + (i + 1)); break;
     }
     case 'clock': { const i = +d.i; if (!S || courseFixed(i)) break; const c = S.courses[i]; c.lk = !c.lk; if (!c.lk) delete c.lk; persist(); render(); toast('Tournoi ' + (i + 1) + (c.lk ? ' barré' : ' débarré')); break; }
-    case 'voyage': pushNav(); VOY_ROT = null; go('voyage', { s: S.season }); break;
+    case 'voyage': { const fs = VIEW.name === 'courses' && (VIEW.csub || 'season') === 'season' && VIEW.cyr > 0 ? S.season + VIEW.cyr : S.season; pushNav(); VOY_ROT = null; go('voyage', { s: fs }); break; }   // v405 : depuis une saison future, son voyage
     case 'voysort': { if (voySortApply(false)) render(); break; }
     case 'voyfind': { geoEnqueue(voyStops(VIEW.s || S.season).filter(x => x.name && !geoTried(x.name)).map(x => x.name)); render(); break; }
     case 'voyall': { const L = (S.courseBank || []).map(b => b.name).concat(S.courses.map(c => c && c.name)).filter(n => n && !geoTried(n)); if (!L.length) { toast('Tous les terrains de ta liste ont déjà été cherchés'); break; } toast(L.length + ' terrains à chercher : environ ' + Math.ceil(L.length * 1.2 / 60) + ' min'); geoEnqueue(L); render(); break; }
@@ -573,6 +578,7 @@ document.addEventListener('change', e => {
   if (c === 'phon') { GFX.on = el.checked; try { localStorage.setItem('igc-photos', el.checked ? '1' : '0'); } catch (e) { } render(); return; }
   if (c === 'gfxfaces' || c === 'gfxbgs') { const fs = [...(el.files || [])]; el.value = ''; if (fs.length) gfxRun(fs, c === 'gfxfaces' ? 'faces' : 'bgs'); return; }
   if (c === 'rcyr') { VIEW.s = +el.value; render(); window.scrollTo(0, 0); return; }
+  if (c === 'futyr') { VIEW.cyr = +el.value || 0; VIEW.open = null; render(); return; }   // v413 : saison future à préparer (Terrains)
   if (c === 'pgflt') { pigeState().flt = el.checked; persist(); if (inPN()) pnSave(); return; }
   if (c === 'pgto') return;
   if (c === 'tejump') { if (REVEAL) { clearInterval(REVEAL.timer); REVEAL = null; } teeJump(el.value); return; }
@@ -659,9 +665,9 @@ let MW_EL = null;
 function mwShow(el) {
   let t = document.getElementById('mwtip'); if (!t) { t = document.createElement('div'); t.id = 'mwtip'; t.setAttribute('role', 'tooltip'); document.body.appendChild(t); }
   t.textContent = el.dataset.mw; t.hidden = false; MW_EL = el;
-  const r = el.getBoundingClientRect(), w = t.offsetWidth, h = t.offsetHeight;
-  let x = Math.min(window.innerWidth - w - 12, Math.max(12, r.left + r.width / 2 - w / 2)), y = r.bottom + 8;
-  if (y + h > window.innerHeight - 8) y = Math.max(8, r.top - h - 8);
+  const z = zf(), R = el.getBoundingClientRect(), r = { left: R.left / z, width: R.width / z, top: R.top / z, bottom: R.bottom / z }, W = window.innerWidth / z, H = window.innerHeight / z, w = t.offsetWidth, h = t.offsetHeight;   // v416 : zoom
+  let x = Math.min(W - w - 12, Math.max(12, r.left + r.width / 2 - w / 2)), y = r.bottom + 8;
+  if (y + h > H - 8) y = Math.max(8, r.top - h - 8);
   t.style.left = x + 'px'; t.style.top = y + 'px';
 }
 function mwHide() { const t = document.getElementById('mwtip'); if (t) t.hidden = true; MW_EL = null; }

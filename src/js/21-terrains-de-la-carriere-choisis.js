@@ -193,12 +193,12 @@ function vPlay() {
   const A = h; h = '';
   h += '<h2>Ta ronde</h2><p style="margin:-2px 0 8px"><span class="sans" style="font-size:26px;font-weight:600">' + posLbl(me) + '</span>' + (S.duo ? ' ' + duoLiveTag(duoLiveEst(rows)) : '') + ' <span class="mute">au classement, </span><span class="sans ' + cls(me.tot) + '" style="font-size:26px;font-weight:600">' + fmt(me.tot) + '</span>' +
     (c.r === 0 && !c.rc ? '<span class="mute small"> \u00b7 ' + (S.one ? 'ligne de paye (top ' + S.settings.cut + ')' : 'coupure actuelle') + ' : ' + fmt(cutScoreOf(rows.map(r => r.tot), S.settings.cut)) + '</span>' : '') + '</p>';
-  h += '<p class="small mute" style="margin:8px 0 2px">R\u00e9v\u00e9lation des scores adverses</p>' + chipRow([['instant', 'Tous les scores d\u2019un coup'], ['seq', 'Par s\u00e9quence']], S.ui.reveal || 'instant', 'revealmode');
+  h += '<p class="small mute" style="margin:8px 0 2px">R\u00e9v\u00e9lation des scores adverses</p>' + chipRow([['instant', 'Tous les scores d\u2019un coup'], ['seq', 'Par s\u00e9quence'], ['gbg', 'Golfeur par golfeur']], S.ui.reveal || 'instant', 'revealmode');
   h += '<div id="boardTop"></div>' + roundBlock(k);
   const B = h; h = '';
   h += fanHTML(c);
   if (c.feed.length) h += '<h2>Journal</h2><ol class="log" reversed>' + c.feed.slice(0, 8).map(f => '<li><span class="n">' + f.n + '</span><div class="t">' + esc(f.t) + f.ev.map(e => '<div class="ev">' + esc(e) + '</div>').join('') + '</div></li>').join('') + '</ol>';
-  return cols(A, isMgr() ? mgrPanels(B, 'plp') : B, isMgr() ? mgrPanels(h, 'plp') : h, 'play');
+  return cols(A, isMgr() ? mgrPanels(B, 'plp') : B, isMgr() ? '' : h, 'play');
 }
 
 
@@ -231,23 +231,37 @@ function twlBlock(k) {
     const r = R[id], h = c.ai[id] || [], n = r ? (r.n != null ? r.n : (r.pending ? k - 1 : k)) : 0;
     return { id, r, h, n, cut: !r };
   }).sort((a, b) => (a.cut - b.cut) || (a.cut ? 0 : a.r.tot - b.r.tot) || (b.n - a.n));
+  const mg = isMgr(), NL = mg ? (r2 ? 4 : 5) : 3;   // v407 : sur PC (colonne de gauche), nom de famille seul et le plus de trous possible
   const line = x => {
     const today = x.n ? relTo(x.h, c.pars, x.n) : null, last = [];
-    for (let i = Math.max(0, x.n - 3); i < x.n; i++) last.push(i);
-    const lc = '<td class="tl"></td>'.repeat(3 - last.length) + last.map(i => holeCell(x.h[i], c.pars[i]).replace('<td class="', '<td class="tl ')).join('');
-    return '<tr><td class="gnm"><span class="nmr"><span class="flg">' + flagOf(x.id, 18) + '</span><a class="nmt" data-a="golfer" data-id="' + x.id + '">' + esc(shortNm(nameOf(x.id))) + '</a>' + twBtn(x.id) + '</span></td>' +
-      '<td class="gh">' + (x.cut ? '' : x.n >= 18 ? 'F' : x.n ? x.n : '\u2013') + '</td>' +
-      '<td class="gt ' + (today == null ? '' : cls(today)) + '">' + (x.cut ? '' : today == null ? '\u2013' : fmt(today)) + '</td>' +
+    for (let i = Math.max(0, x.n - NL); i < x.n; i++) last.push(i);
+    const lc = '<td class="tl"></td>'.repeat(NL - last.length) + last.map(i => holeCell(x.h[i], c.pars[i]).replace('<td class="', '<td class="tl ')).join('');
+    const nm = '<td class="gnm"><span class="nmr"><span class="flg">' + flagOf(x.id, 18) + '</span><a class="nmt" data-a="golfer" data-id="' + x.id + '"' + (mg ? ' title="' + esc(nameOf(x.id)) + '"' : '') + '>' + esc(mg ? lastNm(nameOf(x.id)) : shortNm(nameOf(x.id))) + '</a>' + twBtn(x.id) + '</span></td>';
+    const gh = '<td class="gh">' + (x.cut ? '' : x.n >= 18 ? 'F' : x.n ? x.n : '\u2013') + '</td>';
+    const sc = '<td class="gt ' + (today == null ? '' : cls(today)) + '">' + (x.cut ? '' : today == null ? '\u2013' : fmt(today)) + '</td>' +
       (r2 ? '<td class="gt ' + (x.cut ? '' : cls(x.r.tot)) + '">' + (x.cut ? '' : fmt(x.r.tot)) + '</td>' : '') +
-      '<td class="gp">' + (x.cut ? 'CUT' : posLbl(x.r)) + '</td>' + lc + '</tr>';
+      '<td class="gp">' + (x.cut ? 'CUT' : posLbl(x.r)) + '</td>';
+    return '<tr>' + nm + gh + (mg ? lc + sc : sc + lc) + '</tr>';
   };
-  const hdr = '<tr class="hn"><th class="gnm">Golfeur</th><th class="gh">Trou</th><th class="gt">Auj.</th>' + (r2 ? '<th class="gt">Tot</th>' : '') + '<th class="gp">Pos.</th><th colspan="3">3 derniers</th></tr>';
+  const hL = '<th colspan="' + NL + '"' + (mg ? ' style="width:' + NL * 25 + 'px"' : '') + '>' + NL + ' derniers</th>', hS = '<th class="gt">Auj.</th>' + (r2 ? '<th class="gt">Tot</th>' : '') + '<th class="gp">Pos.</th>';
+  const hdr = '<tr class="hn"><th class="gnm">Golfeur</th><th class="gh">Trou</th>' + (mg ? hL + hS : hS + hL) + '</tr>';
   return '<div class="block grp grptw"><div class="grph"><h3>\u2605 Watchlist du tournoi</h3><span class="small mute"><span>' + ids.length + ' golfeur' + (ids.length > 1 ? 's' : '') + '</span></span></div>' +
     '<div class="grpw"><table class="cards grpt twt"><thead>' + hdr + '</thead><tbody>' + L.map(line).join('') + '</tbody></table></div></div>';
 }
 /* v316 : suivre un groupe (2 au plus) — il s'affiche pendant la ronde comme ton groupe */
 const folBtn = (gi, fol) => '<button class="tfol' + (fol.includes(gi) ? ' on' : '') + '" data-a="tfol" data-g="' + gi + '" aria-pressed="' + fol.includes(gi) + '">' + (fol.includes(gi) ? '\u2605 <span>Suivi</span>' : '\u2606 <span>Suivre</span>') + '</button>';
 /* Ordre des départs : avant chaque ronde (gate = bouton pour commencer), ou consulté pendant la ronde */
+/* v397 : page des départs › classement de la saison de la ligue jouée : rang, points et nombre de tournois joués
+   dans cette ligue cette saison, avec l'étoile de la watchlist du tournoi (comme dans les groupes). */
+function teeStandHTML(c) {
+  const L = c.fin ? 0 : c.pl; if (!(L >= 0 && L <= 3) || !S.L[L]) return '';
+  const H = S.hist[S.season - 1], n = {};
+  if (H) H.t.forEach(t => { if (t && t.lg && t.lg[L]) t.lg[L].rows.forEach(r => { n[r[0]] = (n[r[0]] || 0) + 1; }); });
+  const R = rankAll(L), played = H ? H.t.filter(t => t && t.lg && t.lg[L]).length : 0;
+  const row = (r, i) => '<tr' + (r.id === 0 ? ' class="me"' : '') + '><td class="r">' + (i + 1) + '</td><td class="tstn"><span class="flg">' + flagOf(r.id, 16) + '</span><a href="#" class="nmt" data-a="golfer" data-id="' + r.id + '">' + esc(nameOf(r.id)) + '</a>' + (r.id !== 0 ? twBtn(r.id) : '') + '</td><td class="r">' + (n[r.id] || 0) + '</td><td class="r"><b>' + r.pts + '</b></td></tr>';
+  return '<div class="block tstand"><h3 style="margin-top:0"><span>Classement de la saison</span> · ' + esc(LEAGUE_NAMES[L]) + '</h3><p class="small mute" style="margin:0 0 6px"><span>Après</span> ' + played + ' <span>' + (played > 1 ? 'tournois' : 'tournoi') + '</span> · <span>Touche ☆ pour suivre un golfeur pendant ce tournoi.</span></p>' +
+    '<div class="tstw"><table class="plain tstt"><thead><tr><th class="r">#</th><th>Golfeur</th><th class="r" title="Tournois joués dans cette ligue cette saison">Tourn.</th><th class="r">Pts</th></tr></thead><tbody>' + R.map(row).join('') + '</tbody></table></div></div>';
+}
 function vTees(gate) {
   const c = S.cur, tr = teeCur(c); if (!tr) return vHome();
   const G = [], nG = teeNG(tr), me = teeGrp(tr, 0), inF = me >= 0, sim = S.mode === 'sim';
@@ -302,6 +316,7 @@ function vTees(gate) {
   }
   const go = c.ps.length ? 'Retour \u00e0 la ronde' : null;
   A += gate ? '<button class="btn" data-a="teego">' + (inF && !sim ? (S.one || c.fin ? 'Jouer la ronde' : 'Jouer la ronde ' + (c.r + 1)) : 'Commencer la ronde') + '</button>' : '<button class="btn" data-a="teeback">' + (go || 'Retour \u00e0 la ronde') + '</button>';
+  A += teeStandHTML(c);   // v397 : classement de la saison de la ligue, dans la colonne de gauche
   const nm = id => '<a href="#" data-a="golfer" data-id="' + id + '" class="tsn' + (id === 0 ? ' me' : '') + (id === f.rv ? ' rv' : '') + '">' + flagOf(id, 16) + '<span>' + esc(id === 0 ? nameOf(0) : shortNm(nameOf(id))) + (c.r === 1 && c.r1[id] != null ? ' <small class="' + cls(c.r1[id]) + '">' + fmt(c.r1[id]) + '</small>' : '') + '</span></a>';
   const nmT = id => id === 0 || !twCan(id) ? nm(id) : '<span class="tsc">' + nm(id) + twBtn(id) + '</span>';
   const B = '<h2>Les ' + nG + ' groupes</h2><p class="small mute" style="margin:-4px 0 8px">Tu peux suivre jusqu\u2019\u00e0 2 groupes : ils s\u2019affichent pendant la ronde, comme ton groupe.</p><p class="small mute" style="margin:-4px 0 8px">Touche \u2606 à côté d’un nom pour l’ajouter à ta watchlist du tournoi.</p><div class="tsgrid">' + G.map((g, i) => '<div class="tsg' + (i === me ? ' mine' : '') + (FG.has(i) ? ' feat' : '') + (fol.includes(i) ? ' fol' : '') + '"><div class="tst">' + teeTime(i) + '<small>Gr. ' + (i + 1) + (FG.has(i) ? ' \u00b7 \u2b50' : '') + (i === me ? ' \u00b7 toi' : '') + '</small>' + (i !== me ? folBtn(i, fol) : '') + '</div><div class="tsp">' + g.map(nmT).join('') + '</div></div>').join('') + '</div>';
@@ -319,18 +334,20 @@ function grpBlock(k) {
   });
   return out + twlBlock(k);
 }
+/* nom de famille seul (« Pepijn de Vries » → « de Vries ») pour les tableaux étroits de la colonne de gauche */
+function lastNm(n) { const p = String(n || '').trim().split(/\s+/); return p.length > 1 ? p.slice(1).join(' ') : p[0] || ''; }
 function grpOne(c, ids, gi, k, R, rows, mine, feat) {
-  const W = isPC() ? 6 : 4, n0 = Math.max(0, Math.min(k, 18) - W);
+  const mg = isMgr(), W = mg ? 7 : isPC() ? 6 : 4, n0 = Math.max(0, Math.min(k, 18) - W + (mg ? 1 : 0));   // v407 : PC = 7 trous, jusqu'au prochain trou
   const cols = range(n0, Math.max(n0, Math.min(18, n0 + W) - 1)).filter(i => i < 18);
   const line = id => {
     const r = R[id] || { n: 0 }, h = id === 0 ? myHoles(c) || [] : c.ai[id] || [], n = r.n != null ? r.n : k, t = relTo(h, c.pars, n);
-    return '<tr' + (id === 0 ? ' class="me"' : '') + '><td class="gnm"><span class="nmr"><span class="flg">' + flagOf(id, 18) + '</span><a class="nmt" data-a="golfer" data-id="' + id + '">' + esc(id === 0 ? nameOf(0) : shortNm(nameOf(id))) + '</a>' + twBtn(id) + '</span></td>' +
+    return '<tr' + (id === 0 ? ' class="me"' : '') + '><td class="gnm"><span class="nmr"><span class="flg">' + flagOf(id, 18) + '</span><a class="nmt" data-a="golfer" data-id="' + id + '"' + (mg ? ' title="' + esc(nameOf(id)) + '"' : '') + '>' + esc(mg ? lastNm(nameOf(id)) : id === 0 ? nameOf(0) : shortNm(nameOf(id))) + '</a>' + twBtn(id) + '</span></td>' +
       cols.map(i => i < n ? holeCell(h[i], c.pars[i]) : '<td class="h"></td>').join('') + '<td class="gt ' + (n ? cls(t) : '') + '">' + (n ? fmt(t) : '–') + '</td><td class="gp">' + (R[id] ? posLbl(R[id]) : '') + '</td></tr>';
   };
   const hdr = '<tr class="hn"><th class="gnm">' + (k ? 'Trou' : 'Golfeur') + '</th>' + cols.map(i => '<th' + (i === k ? ' class="nx"' : '') + '>' + (i + 1) + '</th>').join('') + '<th class="gt">Auj.</th><th class="gp">Pos.</th></tr>';
   const tt = ids.map(id => { const r = R[id], h = id === 0 ? myHoles(c) || [] : c.ai[id] || []; return [id, r && r.n ? relTo(h, c.pars, r.n) : null]; }).filter(x => x[1] != null).sort((a, b) => a[1] - b[1]);
   const notes = [];
-  if (tt.length && k >= 3 && (tt.length < 2 || tt[0][1] < tt[1][1])) notes.push('Meilleur du groupe aujourd’hui : <b>' + esc(nameOf(tt[0][0])) + '</b> (' + fmt(tt[0][1]) + ').');
+  if (!mg && tt.length && k >= 3 && (tt.length < 2 || tt[0][1] < tt[1][1])) notes.push('Meilleur du groupe aujourd’hui : <b>' + esc(nameOf(tt[0][0])) + '</b> (' + fmt(tt[0][1]) + ').');
   if (mine) { const done = rows.filter(r => r.n >= 18 && r.id !== 0)[0]; if (done) notes.push('🏠 Au chalet : <b>' + esc(nameOf(done.id)) + '</b> a terminé à ' + fmt(done.tot) + '.'); }
   else if (!k) notes.push('Pas encore parti.');
   else if (k >= 18) notes.push('🏠 Groupe au chalet.');
@@ -354,10 +371,10 @@ function vPreTee() {
   h += '<button class="btn" data-a="prestep">Avancer d’un trou</button><button class="btn sec" data-a="preall">' + (noMe ? 'Simuler jusqu’au dernier départ' : 'Simuler jusqu’à mon départ') + '</button>' + (teeSim(c) ? '<button class="btn sec sm" data-a="finish" style="width:100%;margin-top:4px">Simuler le reste de la ronde</button>' : '') + teeJumpHTML(c, tr);
   h += grpBlock(0);
   const A = h; h = '';
-  const B = '<h2>Classement</h2>' + '<p class="small mute" style="margin:0 0 2px">R\u00e9v\u00e9lation des scores adverses</p>' + chipRow([['instant', 'Tous les scores d\u2019un coup'], ['seq', 'Par s\u00e9quence']], S.ui.reveal || 'instant', 'revealmode') + '<div id="boardTop"></div>' + roundBlock(0);
+  const B = '<h2>Classement</h2>' + '<p class="small mute" style="margin:0 0 2px">R\u00e9v\u00e9lation des scores adverses</p>' + chipRow([['instant', 'Tous les scores d\u2019un coup'], ['seq', 'Par s\u00e9quence'], ['gbg', 'Golfeur par golfeur']], S.ui.reveal || 'instant', 'revealmode') + '<div id="boardTop"></div>' + roundBlock(0);
   h += fanHTML(c);
   if (c.feed.length) h += '<h2>Journal</h2><ol class="log" reversed>' + c.feed.slice(0, 8).map(f => '<li><span class="n">' + f.n + '</span><div class="t">' + esc(f.t) + f.ev.map(e => '<div class="ev">' + esc(e) + '</div>').join('') + '</div></li>').join('') + '</ol>';
-  return cols(A, isMgr() ? mgrPanels(B, 'plp') : B, isMgr() ? mgrPanels(h, 'plp') : h, 'play');
+  return cols(A, isMgr() ? mgrPanels(B, 'plp') : B, isMgr() ? '' : h, 'play');
 }
 function preTeeAdv(all, to) {
   const c = S.cur, tr = teeCur(c); if (!tr || c.pw == null) return;
@@ -373,18 +390,26 @@ function vWait() {
   const today = me ? relTo(myHoles(c), c.pars, 18) : null, low = left.length ? Math.min.apply(null, left.map(r => r.n)) : 18, lastG = left.length ? Math.max.apply(null, left.map(r => r.g)) : 0;
   let h = '<div class="top"><div><div class="ctx">' + esc(c.name) + ' \u00b7 ' + teeRoundLbl(c) + '</div>' + roundMeta(c) + '</div>' + teeLinks() + '</div>';
   if (me) h += '<div class="block hero"><div class="ctx">' + (S.mode === 'sim' ? 'Ronde de ton golfeur termin\u00e9e' : 'Ta ronde est termin\u00e9e') + '</div><div class="big ' + cls(today) + '">' + fmt(today) + '</div><p class="mute" style="margin:6px 0 0"><span>' + posLbl(me) + ' au classement</span>' + (c.r === 1 ? ' \u00b7 <span>total ' + fmt(me.tot) + '</span>' : '') + ' \u00b7 <span>' + sum(myHoles(c)) + ' coups</span></p></div>';
+  if (!left.length) {   // v391 : tout le monde a terminé ; on reste ici jusqu'à ce que le joueur passe à la suite
+    const cutNext = c.r === 0 && !S.one, P = c.po, poDone = P && P.w != null;
+    const tie = !cutNext && !P && rows.length > 1 && rows[0].tot === rows[1].tot;   // v394 : égalité en tête → la suite est la prolongation
+    if (poDone) h += '<div class="block" style="padding:10px 14px"><b><span>Prolongation :</span> <a href="#" data-a="golfer" data-id="' + P.w + '">' + esc(nameOf(P.w)) + '</a> l\u2019emporte</b><p class="small mute" style="margin:2px 0 0"><span>Au trou de prolongation</span> <span>' + P.h.length + '</span>. <a href="#" data-a="poview">Revoir la prolongation</a></p></div>';
+    else h += '<div class="block" style="padding:10px 14px"><b>Tout le monde a termin\u00e9</b><p class="small mute" style="margin:2px 0 0">' + (cutNext ? 'La ronde 1 est compl\u00e8te : regarde le classement, puis passe \u00e0 la coupure.' : tie ? '\u00c9galit\u00e9 en t\u00eate : regarde le classement, puis passe \u00e0 la prolongation.' : 'Le tournoi est termin\u00e9 : regarde le classement final, puis passe \u00e0 la cl\u00f4ture.') + '</p></div>';
+    h += '<button class="btn" data-a="holdgo">' + (cutNext ? 'Voir la coupure' : tie ? 'Aller \u00e0 la prolongation' : 'Voir la cl\u00f4ture du tournoi') + '</button>';
+  } else {
   h += '<div class="block" style="padding:10px 14px"><b>' + left.length + ' golfeur' + (left.length > 1 ? 's' : '') + ' encore sur le terrain</b><p class="small mute" style="margin:2px 0 0">Le dernier groupe (' + teeTime(lastG) + ') ' + (low === 0 ? 'n\u2019est pas encore parti' : 'en est au trou ' + (low + 1)) + '.</p></div>';
   h += '<button class="btn" data-a="teestep">Avancer d\u2019un trou</button><button class="btn sec" data-a="teeall">Tout terminer d\u2019un coup</button>';
+  }
   { const tr = teeCur(c);   // v385 : sauter plusieurs trous d'un coup après ta ronde
     if (tr && left.length && low < 17) { const o = []; for (let k = low + 1; k <= 17; k++) o.push('<option value="w:' + (k - low) + '">' + teeClock(tr.anc + 18 + (c.tx || 0) + (k - low)) + ' · trou ' + (k + 1) + ' du dernier groupe</option>');
       h += '<label for="tejump" class="small mute" style="display:block;margin:10px 0 4px">Aller directement à…</label><select id="tejump" data-c="tejump"><option value="">Choisir un moment…</option>' + o.join('') + '</select>'; } }
   if (!sim) h += '<button class="btn sec sm" data-a="undo" style="width:100%;margin-top:4px">Corriger le trou 18</button>';
   h += grpBlock(18);
   const A = h; h = '';
-  const B = '<h2>' + (sim ? 'Classement' : 'Ta ronde') + '</h2>' + '<p class="small mute" style="margin:0 0 2px">R\u00e9v\u00e9lation des scores adverses</p>' + chipRow([['instant', 'Tous les scores d\u2019un coup'], ['seq', 'Par s\u00e9quence']], S.ui.reveal || 'instant', 'revealmode') + '<div id="boardTop"></div>' + roundBlock(18);
+  const B = '<h2>' + (sim ? 'Classement' : 'Ta ronde') + '</h2>' + '<p class="small mute" style="margin:0 0 2px">R\u00e9v\u00e9lation des scores adverses</p>' + chipRow([['instant', 'Tous les scores d\u2019un coup'], ['seq', 'Par s\u00e9quence'], ['gbg', 'Golfeur par golfeur']], S.ui.reveal || 'instant', 'revealmode') + '<div id="boardTop"></div>' + roundBlock(18);
   h += fanHTML(c);
   if (c.feed.length) h += '<h2>Journal</h2><ol class="log" reversed>' + c.feed.slice(0, 8).map(f => '<li><span class="n">' + f.n + '</span><div class="t">' + esc(f.t) + f.ev.map(e => '<div class="ev">' + esc(e) + '</div>').join('') + '</div></li>').join('') + '</ol>';
-  return cols(A, isMgr() ? mgrPanels(B, 'plp') : B, isMgr() ? mgrPanels(h, 'plp') : h, 'play');
+  return cols(A, isMgr() ? mgrPanels(B, 'plp') : B, isMgr() ? '' : h, 'play');
 }
 
 /* ---- Ronde 2 simulée (coupure ratée) ---- */
@@ -403,10 +428,10 @@ function vSpec() {
   else h += '<div class="block" style="background:var(--meBg);border:1.5px solid var(--me);margin-top:12px;padding:10px 14px"><b>Tu es ' + posLbl(me) + ' \u00e0 ' + fmt(me.tot) + '</b>. ' + (k ? 'En t\u00eate : ' + esc(nameOf(lead.id)) + ' (' + fmt(lead.tot) + ').' : (c.r === 0 ? fld(c).length : c.alive.length) + ' joueurs en lice.') + '</div>';
   h += grpBlock(k);
   const A = h; h = '';
-  const B = '<h2>Classement</h2><p class="small mute" style="margin:0 0 2px">R\u00e9v\u00e9lation des scores adverses</p>' + chipRow([['instant', 'Tous les scores d\u2019un coup'], ['seq', 'Par s\u00e9quence']], S.ui.reveal || 'instant', 'revealmode') + '<div id="boardTop"></div>' + roundBlock(k);
+  const B = '<h2>Classement</h2><p class="small mute" style="margin:0 0 2px">R\u00e9v\u00e9lation des scores adverses</p>' + chipRow([['instant', 'Tous les scores d\u2019un coup'], ['seq', 'Par s\u00e9quence'], ['gbg', 'Golfeur par golfeur']], S.ui.reveal || 'instant', 'revealmode') + '<div id="boardTop"></div>' + roundBlock(k);
   h += fanHTML(c);
   if (c.feed.length) h += '<h2>Journal</h2><ol class="log" reversed>' + c.feed.slice(0, 8).map(f => '<li><span class="n">' + f.n + '</span><div class="t">' + esc(f.t) + f.ev.map(e => '<div class="ev">' + esc(e) + '</div>').join('') + '</div></li>').join('') + '</ol>';
-  return cols(A, isMgr() ? mgrPanels(B, 'plp') : B, isMgr() ? mgrPanels(h, 'plp') : h, 'play');
+  return cols(A, isMgr() ? mgrPanels(B, 'plp') : B, isMgr() ? '' : h, 'play');
 }
 
 /* ---- Fin de la ronde 1 ---- */

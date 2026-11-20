@@ -1,0 +1,33 @@
+/* ============ PROFIL D'UN GOLFEUR SUR TÉLÉPHONE (v388) ============
+   Sur téléphone, l'en-tête du profil n'est plus coincé en deux colonnes (carte + colonne des trophées) :
+   - la carte prend toute la largeur, pour que le nom tienne sans être coupé en morceaux ;
+   - les trophées passent en bande sous la carte : bannières de saison (5 au plus), coupe et nombre de victoires,
+     gains en carrière ; la bande reste un bouton qui ouvre la vitrine complète ;
+   - version compacte : Sommet en carrière sur une ligne, ville, taille, poids et côté sur une seule rangée
+     (la ville prend la place qui reste et passe sur deux lignes si besoin, jamais coupée ;
+     en anglais, le côté s'écrit RH ou LH pour tenir en entier : voir lcBioHTML).
+   Rien ne change sur ordinateur (html.pc). */
+html:not(.pc) .tzhead{flex-direction:column!important;gap:0!important}
+html:not(.pc) .tzhead>.lcard{flex:none!important;width:100%;max-width:none;margin:0 0 10px!important}
+html:not(.pc) .tzhead .lcname{white-space:normal;overflow-wrap:normal;word-break:normal}
+html:not(.pc) .tzhead>.tzside{flex:none!important;width:100%;margin:0 0 14px;display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:auto auto;align-items:center;column-gap:14px;padding:10px 14px;border-radius:14px}
+html:not(.pc) .tzhead .tzsrail{grid-row:1/3;grid-column:1;display:flex;flex-wrap:nowrap;gap:4px;border-top:0;margin:0;padding:0;width:auto;overflow:hidden}
+html:not(.pc) .tzhead .tzsbn{flex:0 0 38px;border-top-width:3px}
+html:not(.pc) .tzhead .tzsmore{flex:none;padding-left:4px}
+html:not(.pc) .tzhead .tzscup{grid-column:2;grid-row:1;margin:0;border:0;padding:0}
+html:not(.pc) .tzhead .tzslg{grid-column:2;grid-row:2;margin:0;text-align:center}
+html:not(.pc) .tzhead .tznone{grid-row:1/3;grid-column:1/3;margin:0;flex-direction:row;gap:10px}
+html:not(.pc) .tzhead .tzsmon{grid-column:3;grid-row:1/3;margin:0;padding:0 0 0 14px;border-left:1px solid rgba(255,255,255,.15)}
+html:not(.pc) .tzhead .tzsmon b{font-size:22px}
+html:not(.pc) .tzhead .lcin{padding:14px 16px 14px}
+html:not(.pc) .tzhead .lcname{font-size:30px!important}
+html:not(.pc) .tzhead .lctier{font-size:28px;margin-top:2px}
+html:not(.pc) .tzhead .lcbox{margin-top:10px;padding:6px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+html:not(.pc) .tzhead .lcbox .lcpot{font-size:20px}
+html:not(.pc) .tzhead .lcbio{grid-template-columns:minmax(0,1fr) auto auto auto!important;gap:6px 8px!important;margin-top:10px;padding-top:10px}
+html:not(.pc) .tzhead .lcbio span{font-size:10px!important;letter-spacing:.06em}
+html:not(.pc) .tzhead .lcbio b{font-size:15px!important;white-space:nowrap}
+html:not(.pc) .tzhead .lcbio>div:first-child b{white-space:normal;overflow-wrap:anywhere;line-height:1.15}
+html:not(.pc) .tzhead .lcpm{margin-top:10px}
+html:not(.pc) .tzhead .tzsbn{flex:0 0 34px}
+html:not(.pc) .tzhead .tzsrail>:nth-child(n+6){display:none}

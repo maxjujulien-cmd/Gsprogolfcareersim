@@ -675,3 +675,25 @@ html:not(.pc) .rvm,html:not(.pc) .rvmh{grid-template-columns:54px 1fr 92px;}html
 .tzbn.phof{background:linear-gradient(#2b2410,#7a5f12);border-top:5px solid #E8C24A;padding-bottom:12px;box-shadow:0 0 0 2px rgba(232,194,74,.45)}.tzbn.phof .tzbt{color:#FFE9A6}.tzsbn.phof{background:linear-gradient(#2b2410,#7a5f12);border-top:3px solid #E8C24A}
 .tzbn.proy{background:linear-gradient(#7a5a06,#4d3904);border-top:5px solid #F0C419;padding-bottom:12px}.tzbn.proy .tzbt{color:#F0C419}.tzsbn.proy{background:linear-gradient(#7a5a06,#4d3904);border-top:3px solid #F0C419}
 .rcverd{font-size:13px;font-weight:700;border-radius:999px;padding:3px 10px}.rcverd.up{background:#DDEFD6;color:#2F6B1A}.rcverd.dn{background:#F6DCD8;color:#A3291C}.rcverd.eq{background:#E7EBE3;color:#46523f}
+
+/* v413 : Terrains › menu de la saison à préparer ; Almanac › Scoring sur une colonne pleine largeur */
+.futsel{display:flex;flex-direction:column;gap:4px;margin:0 0 10px;max-width:360px}.futsel select{min-height:42px;font-size:16px}
+.almwide{display:flex;flex-direction:column;gap:14px}.almwide>.block{margin:0}.almwide>.chips{margin:4px 0 0}
+
+/* v414 : classe de recrues › barème de placement en règle graduée */
+.rcrule{margin:8px 0 12px}
+.rcrt{font:700 15px Inter,Arimo,sans-serif;color:var(--ink)}.rcrt span{font-weight:400;color:var(--mute);font-size:13px}
+.rctrack{position:relative;height:74px;margin:24px 0 8px}
+.rcz{position:absolute;top:0;height:34px;background:color-mix(in srgb,var(--c) 30%,transparent);border-top:4px solid var(--c);display:flex;align-items:center;justify-content:flex-start;padding-left:8px;font:700 13px Arimo,sans-serif;color:var(--ink);overflow:hidden;white-space:nowrap}
+.rck{position:absolute;top:-20px;height:58px;border-left:1px dashed color-mix(in srgb,var(--ink) 55%,transparent);font-size:12px;color:var(--ink)}
+.rck b{position:relative;display:inline-block;transform:translateX(-50%);background:var(--paper);padding:0 4px;border-radius:4px}
+.rcd{position:absolute;top:44px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--mute);opacity:.75}
+.rcd.me{width:14px;height:14px;margin-left:-7px;top:41px;background:#f0b429;opacity:1;box-shadow:0 0 0 3px rgba(240,180,41,.3);z-index:2}
+.rcme{position:absolute;top:58px;transform:translateX(-50%);font:700 12px Arimo,sans-serif;color:#d99a00;white-space:nowrap}
+html.mgr .rcme{color:#f5c451}
+.rcrn{margin:0;line-height:1.4}
+
+/* v415 : ligne de coupure dans le classement de la ronde */
+tr.cutln>td{height:16px;padding:0!important;border:0!important;background:linear-gradient(transparent 7px,var(--bad) 7px,var(--bad) 9px,transparent 9px)!important;text-align:left}
+.cutlb{position:sticky;left:6px;display:inline-block;padding:0 7px;border-radius:4px;background:var(--bad);color:#fff;font:800 10px/15px Arimo,Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;vertical-align:middle}
+tr.cutgap>td{color:var(--bad)}

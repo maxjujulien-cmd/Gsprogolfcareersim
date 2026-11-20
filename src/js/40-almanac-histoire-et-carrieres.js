@@ -142,15 +142,28 @@ function vAlmanac() {
   if (S.almv !== 1) almBackfill();
   const sub = ALM_SECS.some(x => x[0] === VIEW.av) ? VIEW.av : 'score', l = VIEW.al != null ? VIEW.al : vLg();
   const h = (isPC() ? '<div class="top"><h1>Almanac</h1></div>' : '<div class="top"><h1>Historique</h1></div>' + chipRow([['records', 'Records'], ['rc', 'Cuvées'], ['arch', 'Archives des entre-saisons'], ['alm', 'Almanac']], 'alm', 'rv')) + chipRow(ALM_SECS, sub, 'almV');
-  if (!almX().ss.length) return h + '<p class="mute">L’Almanac se remplit dès le premier tournoi joué.</p>';
+  if (!almX().ss.length) return h + emptyCard('📖', 'L’Almanac est encore vierge', 'Il raconte l’histoire du circuit : records, champions, nations, cohortes. Joue ton premier tournoi pour écrire la première page.', true);
   const P = { hist: almHistHTML, car: almCareerHTML, score: almScoringHTML, tal: almTalentHTML, coh: almCohortsHTML, par: almParityHTML, mov: almMovesHTML, nat: almNationsHTML, crs: almCoursesHTML, arg: almMoneyHTML }[sub](l);
+  if (sub === 'score' && isPC()) return h + '<div class="almwide">' + P[0] + P[1] + '</div>';   // v413 : Scoring sur une colonne pleine largeur (place pour d'autres stats)
   return h + cols(P[0], P[1]);
 }
 
 /* ---- Rendu ---- */
 let LAYOUT = 'auto';
 try { LAYOUT = localStorage.getItem('golf-layout') || 'auto'; } catch (e) { }
+/* v416 : zoom du jeu sur ordinateur (Options › Affichage), retenu sur cet ordinateur, hors de la sauvegarde */
+const ZOOMS = [0.8, 0.9, 1, 1.1, 1.25];
+let ZOOM = 1; try { const z = parseFloat(localStorage.getItem('igc-zoom')); if (ZOOMS.includes(z)) ZOOM = z; } catch (e) { }
+/* facteur de zoom en cours : les mesures à l'écran (getBoundingClientRect, innerWidth) sont zoomées, les longueurs
+   écrites dans les styles ne le sont pas ; on divise une mesure par zf() avant de l'écrire dans un style */
+function zf() { return parseFloat(document.documentElement.style.zoom) || 1; }
+function fsOn() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+function fsToggle() {
+  const de = document.documentElement;
+  try { if (fsOn()) (document.exitFullscreen || document.webkitExitFullscreen).call(document); else { const r = (de.requestFullscreen || de.webkitRequestFullscreen).call(de); if (r && r.catch) r.catch(() => toast('Plein écran refusé par le navigateur')); } } catch (e) { toast('Plein écran indisponible dans ce navigateur'); }
+}
+document.addEventListener('fullscreenchange', () => { try { if (VIEW && VIEW.name === 'more') render(); } catch (e) { } });
 function isPC() { return LAYOUT === 'pc' || (LAYOUT === 'auto' && window.innerWidth >= 900); }
-function applyLayout() { const de = document.documentElement; de.classList.toggle('pc', isPC()); de.classList.toggle('menud', typeof isMgr === 'function' && isMgr() && (!S || (VIEW && (VIEW.name === 'new' || /^pn[A-Z]/.test(VIEW.name || ''))))); de.classList.toggle('mgr', typeof isMgr === 'function' && isMgr() && !!S && !S.presim && !(VIEW && (/^pn[A-Z]/.test(VIEW.name || '') || VIEW.name === 'new'))); if (!de.classList.contains('mgr')) { const t = document.getElementById('mtop'); if (t) t.hidden = true; } }
+function applyLayout() { const de = document.documentElement; de.classList.toggle('pc', isPC()); de.style.zoom = isPC() && ZOOM !== 1 ? String(ZOOM) : ''; de.style.setProperty('--lz', isPC() && ZOOM < 1 ? String(Math.round(1 / ZOOM * 1000) / 1000) : '1'); de.classList.toggle('menud', typeof isMgr === 'function' && isMgr() && (!S || (VIEW && (VIEW.name === 'new' || /^pn[A-Z]/.test(VIEW.name || ''))))); de.classList.toggle('mgr', typeof isMgr === 'function' && isMgr() && !!S && !S.presim && !(VIEW && (/^pn[A-Z]/.test(VIEW.name || '') || VIEW.name === 'new'))); if (!de.classList.contains('mgr')) { const t = document.getElementById('mtop'); if (t) t.hidden = true; } }
 const TABS = [['home', 'Saison'], ['leagues', 'Ligues'], ['records', 'Historique'], ['almanac', 'Almanac'], ['golfers', 'Golfeurs'], ['courses', 'Terrains'], ['watch', 'Watchlist'], ['more', 'Options']];
 const TAB_OF = { voyage: 'courses', off: 'home', hofCer: 'home', cres: 'courses', rclass: 'home', home: 'home', spec: 'home', roundEnd: 'home', tournEnd: 'home', seasonEnd: 'home', journal: 'home', playerCreate: 'home', leagues: 'leagues', tourn: 'leagues', golfers: 'golfers', golfer: 'golfers', records: 'records', almanac: 'almanac', courses: 'courses', watch: 'watch', more: 'more', inbox: 'home' };

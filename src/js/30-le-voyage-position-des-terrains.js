@@ -43,6 +43,12 @@ async function geoRun() {
 }
 /* les arrêts d'une saison : 10 tournois + la Finale */
 function voyStops(s) {
+  if (s > S.season) {   // v405 : saison future planifiée (Terrains › Saison › 2001…) ; une case « à tirer » n'a pas de lieu
+    const P = S.fut && S.fut[s]; if (!P) return [];
+    const L = P.slice(0, N_TOURN).map((c, i) => ({ i, name: (c && c.name) || null, maj: isMajorT(i), done: 0 }));
+    if (finOn() && P[N_TOURN]) L.push({ i: N_TOURN, name: P[N_TOURN].name || null, fin: 1, done: 0 });
+    return L;
+  }
   if (s === S.season) { const L = S.courses.slice(0, N_TOURN).map((c, i) => ({ i, name: c && c.name, maj: isMajorT(i), done: i < S.t })); if (finOn()) { const f = finCourse(); L.push({ i: N_TOURN, name: f && f.name, fin: 1, done: !!(seasonHist() && seasonHist().fin) }); } return L; }
   const H = S.hist[s - 1]; if (!H) return [];
   const L = (H.t || []).map((t, i) => ({ i, name: t && t.name, maj: !!(t && t.maj), done: 1 })); if (H.fin) L.push({ i: N_TOURN, name: H.fin.name, fin: 1, done: 1 }); return L;
@@ -51,17 +57,24 @@ function voyKm(stops) { let km = 0, legs = [], prev = null; stops.forEach(st => 
 const fmtKm = v => Math.round(v).toLocaleString(LANG === 'en' ? 'en-US' : 'fr-CA') + ' km';
 /* tri : l'ordre qui parcourt le moins de kilomètres. Les Majeurs, les tournois joués (ou en cours) et la Finale restent à leur place ;
    les terrains barrés bougent aussi (le cadenas protège le terrain, pas sa place dans le calendrier). */
-function voySortPlan() {
+function voySortPlan(budget) {   // v403 : budget = nombre maximal d'étapes de recherche (histoire présimulée)
   const n = N_TOURN, free = [], miss = [];
   for (let i = 0; i < n; i++) { const c = S.courses[i]; if (!c || !c.name) continue; if (!geoOf(c.name)) { miss.push(c.name); continue; } if (!(courseFixed(i) || (isMajorT(i) && crf().lockMaj))) free.push(i); }   // v375 : un terrain non localisé garde sa place ; les autres sont triés autour
   const fin = finOn() ? finCourse() : null; if (fin && fin.name && !geoOf(fin.name)) miss.push(fin.name);
-  const P = S.hist[S.season - 2], last = P ? (P.fin && P.fin.name) || ((P.t || []).filter(Boolean).slice(-1)[0] || {}).name : null, start = geoOf(last);
+  const P = S.hist[S.season - 2];
+  let last = P ? (P.fin && P.fin.name) || ((P.t || []).filter(Boolean).slice(-1)[0] || {}).name : null;
+  if (FUT) {   // v405 : plan d'une saison future : on part du dernier arrêt de la saison d'avant (en cours ou planifiée)
+    const prev = FUT.k - 1 === S.season ? FUT.real : (S.fut && S.fut[FUT.k - 1]) || [];
+    const f = finOn() && prev[N_TOURN] && prev[N_TOURN].name; last = f || ((prev.slice(0, n).filter(c => c && c.name).slice(-1)[0]) || {}).name || null;
+  }
+  const start = geoOf(last);
   const G = S.courses.slice(0, n).map(c => c && c.name ? geoOf(c.name) : null), gF = fin && fin.name ? geoOf(fin.name) : null;
   const leg = (a, b) => a && b ? geoKm(a, b) : 0;
   let cur = 0, pv = start; G.forEach(g => { cur += leg(pv, g); if (g) pv = g; }); cur += leg(pv, gF);
   const isFree = new Set(free), used = new Set(), asg = {}; let best = cur + 0.001, bestA = null;
+  let steps = 0;
   const dfs = (k, prev, acc) => {
-    if (acc >= best) return;
+    if (acc >= best || (budget && ++steps > budget)) return;
     if (k === n) { const tot = acc + leg(prev, gF); if (tot < best) { best = tot; bestA = Object.assign({}, asg); } return; }
     if (!isFree.has(k)) { const g = G[k]; dfs(k + 1, g || prev, acc + leg(prev, g)); return; }
     free.forEach(ci => { if (used.has(ci)) return; used.add(ci); asg[k] = ci; const g = G[ci]; dfs(k + 1, g, acc + leg(prev, g)); used.delete(ci); });
@@ -69,8 +82,8 @@ function voySortPlan() {
   dfs(0, start, 0);
   return { cur, best: bestA ? best : cur, asg: bestA, free, miss };
 }
-function voySortApply(quiet) {
-  const p = voySortPlan(), mt = p.miss.length ? ' · ' + p.miss.length + ' non localisé' + (p.miss.length > 1 ? 's' : '') + ', laissé' + (p.miss.length > 1 ? 's' : '') + ' en place' : '';
+function voySortApply(quiet, budget) {
+  const p = voySortPlan(budget), mt = p.miss.length ? ' · ' + p.miss.length + ' non localisé' + (p.miss.length > 1 ? 's' : '') + ', laissé' + (p.miss.length > 1 ? 's' : '') + ' en place' : '';
   if (!p.asg || !(p.best < p.cur - 0.5)) { if (!quiet) toast('L’ordre actuel est déjà le plus court (' + fmtKm(p.cur) + ')' + mt); return false; }
   const k0 = voyKm(voyStops(S.season)).km, old = S.courses.slice(); p.free.forEach(slot => { S.courses[slot] = old[p.asg[slot]]; });
   const k1 = voyKm(voyStops(S.season)).km;   // affiché comme partout : la saison seule (le départ depuis la saison passée compte dans le calcul)
@@ -128,9 +141,10 @@ function voyRouteHTML() {   // la route de la saison : arrêts, avion, km parcou
 }
 function vVoyage() {
   const s = VIEW.s || S.season, st = voyStops(s), k = voyKm(st), seasons = S.hist.map(H => H.s).filter(x => voyStops(x).some(y => y.name));
+  const futS = Object.keys(S.fut || {}).map(Number).filter(x => x > S.season && voyStops(x).some(y => y.name)).sort((a, b) => a - b);   // v405 : saisons futures planifiées
   const miss = st.filter(x => x.name && !geoTried(x.name)).map(x => x.name), notFound = st.filter(x => x.name && geoTried(x.name) && !geoOf(x.name)).length;
-  let h = '<div class="top"><div><h1>Le voyage</h1><div class="ctx"><span>Saison</span> ' + yr(s) + ' · <b>' + fmtKm(k.km) + '</b></div></div></div>';
-  h += '<div class="row voyctl" style="gap:8px;flex-wrap:wrap;margin:0 0 10px"><select data-c="voys" aria-label="Saison">' + seasons.slice().reverse().map(x => '<option value="' + x + '"' + (x === s ? ' selected' : '') + '>' + yr(x) + (x === S.season ? ' (en cours)' : '') + '</option>').join('') + '</select>' +
+  let h = '<div class="top"><div><h1>Le voyage</h1><div class="ctx"><span>Saison</span> ' + yr(s) + (s > S.season ? ' <span>(prévue)</span>' : '') + ' · <b>' + fmtKm(k.km) + '</b></div></div></div>';
+  h += '<div class="row voyctl" style="gap:8px;flex-wrap:wrap;margin:0 0 10px"><select data-c="voys" aria-label="Saison">' + futS.concat(seasons).sort((a, b) => b - a).map(x => '<option value="' + x + '"' + (x === s ? ' selected' : '') + '>' + yr(x) + (x === S.season ? ' (en cours)' : x > S.season ? ' (prévue)' : '') + '</option>').join('') + '</select>' +
     (miss.length ? '<button class="btn sm" data-a="voyfind">Localiser ' + miss.length + ' terrain' + (miss.length > 1 ? 's' : '') + '</button>' : '') + '<button class="btn sec sm" data-a="voyall">Localiser toute ma liste</button><button class="btn sec sm" data-a="voyexp">Exporter les lieux</button><label class="btn sec sm filebtn">Importer des lieux<input type="file" class="fileinp" data-c="voyimp" accept=".json,application/json"></label></div>';
   if (GEOQ.busy) h += '<p class="small">🔎 <span>Recherche en cours sur OpenStreetMap…</span> ' + GEOQ.q.length + ' <span>restants</span></p>';
   if (GEOQ.err) h += '<p class="small" style="color:var(--under)">Recherche impossible ici (hors ligne ou version claude.ai) : ouvre le jeu téléchargé sur ton ordinateur, connecté à Internet.</p>';
@@ -159,6 +173,33 @@ function voyMount(st, tries) {
   try { voyMount2(cv, st); } catch (e) { voyMsg(cv, 'Erreur du globe : ' + (e && e.message || e)); }
 }
 function voyMsg(cv, m) { const h = cv.parentElement && cv.parentElement.querySelector('.voyhint'); if (h) { h.textContent = m; h.style.color = 'var(--under)'; } }
+/* v396 : globe plus fluide. voyPrep() calcule une seule fois, pour chaque pays et province, un cercle qui l'englobe
+   (centre et rayon en radians) ; voyVis() ne garde que ce qui touche la partie visible du globe (face avant ET cadre
+   de l'image, plus petit quand on zoome). Le dessin se fait au plus une fois par image (requestAnimationFrame). */
+function voyPrep(F, tol) {
+  if (!F || F._prep) return F;
+  F.features.forEach(f => {
+    let c; try { c = d3.geoCentroid(f); } catch (e) { c = null; }
+    if (!c || !isFinite(c[0])) { const P = f.properties || {}; c = [P.x || 0, P.y || 0]; }
+    let r = 0; const g = f.geometry, polys = !g ? [] : g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
+    polys.forEach(poly => poly.forEach(ring => { const st = Math.max(1, Math.floor(ring.length / 60)); for (let i = 0; i < ring.length; i += st) { const d = d3.geoDistance(c, ring[i]); if (d > r) r = d; } }));
+    f._c = c; f._r = r + 0.02;   // marge pour les sommets non échantillonnés
+  });
+  F._prep = 1;
+  /* version allégée pour les zooms moyens : un sommet n'est gardé que s'il s'éloigne d'au moins tol degrés du précédent */
+  tol = tol || 0.15;
+  const thin = ring => { const out = [ring[0]]; let last = ring[0]; for (let i = 1; i < ring.length - 1; i++) { const q = ring[i]; if (Math.abs(q[0] - last[0]) + Math.abs(q[1] - last[1]) >= tol) { out.push(q); last = q; } } out.push(ring[ring.length - 1]); return out.length >= 4 ? out : ring; };
+  F._lite = { type: 'FeatureCollection', features: F.features.map(f => { const g = f.geometry; if (!g) return f;
+    const geometry = g.type === 'Polygon' ? { type: 'Polygon', coordinates: g.coordinates.map(thin) } : g.type === 'MultiPolygon' ? { type: 'MultiPolygon', coordinates: g.coordinates.map(p => p.map(thin)) } : g;
+    const nf = { type: 'Feature', properties: f.properties, geometry, _c: f._c, _r: f._r };
+    try { const a0 = d3.geoArea(f), a1 = d3.geoArea(nf); if (!(Math.abs(a1 - a0) <= 0.25 * a0 + 1e-5)) return f; } catch (e) { return f; }   // contour retourné ou trop déformé : on garde l'original
+    return nf; }) };
+  return F;
+}
+function voyPrepAll() { if (!window.d3 || !d3.geoCentroid || !window.CG_WORLD) return; voyPrep(window.CG_WORLD); voyPrep(window.CG_WORLD50, 0.15); voyPrep(window.CG_ADM1, 0.3); }
+/* pré-chargement : la préparation se fait en arrière-plan quelques secondes après le démarrage, quand le navigateur est libre */
+setTimeout(() => { const go = () => { try { voyPrepAll(); } catch (e) { } }; if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 4000 }); else go(); }, 4000);
+function voyVis(F, ctr, alpha) { return F.features.filter(f => f._c ? d3.geoDistance(f._c, ctr) - f._r < alpha : true); }
 function voyMount2(cv, st) {
   const box = cv.parentElement, W = Math.max(280, box.clientWidth), H = Math.min(560, Math.round(W * (isPC() ? 0.62 : 1))), dpr = window.devicePixelRatio || 1;
   cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
@@ -167,15 +208,21 @@ function voyMount2(cv, st) {
   if (!VOY_ROT) { if (pts.length) { const c = d3.geoCentroid({ type: 'MultiPoint', coordinates: pts.map(p => [p.g.lo, p.g.la]) }); VOY_ROT = [-c[0], -c[1]]; } else VOY_ROT = [73, -40]; }
   const css = getComputedStyle(document.documentElement), col = n => (css.getPropertyValue(n) || '').trim() || '#888', dark = /^#?(0|1|2)/.test(col('--bg').replace('#', '')), SEA = dark ? '#132b3d' : '#cfe2ef', LAND = dark ? '#2b4632' : '#eae5cf';
   const proj = d3.geoOrthographic().translate([W / 2, H / 2]).clipAngle(90), path = d3.geoPath(proj, ctx), grat = d3.geoGraticule10();
+  voyPrepAll();   // déjà fait en arrière-plan d'habitude (provinces : simple pointillé, allégées davantage)
+  let moving = false;
   const draw = () => {
     proj.scale(Math.min(W, H) / 2.15 * VOY_K).rotate(VOY_ROT);
     ctx.clearRect(0, 0, W, H);
     ctx.beginPath(); path({ type: 'Sphere' }); ctx.fillStyle = SEA; ctx.fill(); ctx.strokeStyle = col('--line'); ctx.lineWidth = 1; ctx.stroke();
     ctx.beginPath(); path(grat); ctx.strokeStyle = col('--line'); ctx.globalAlpha = .5; ctx.stroke(); ctx.globalAlpha = 1;
-    const W50 = VOY_K >= 1.8 && window.CG_WORLD50, A1 = VOY_K >= 2.2 && window.CG_ADM1, ctr0 = [-VOY_ROT[0], -VOY_ROT[1]], vis = (lo, la, m) => d3.geoDistance([lo, la], ctr0) < Math.PI / 2 - (m || 0);
-    ctx.beginPath(); (W50 ? CG_WORLD50 : CG_WORLD).features.forEach(f => path(f)); ctx.fillStyle = LAND; ctx.fill();
-    if (A1) { ctx.beginPath(); CG_ADM1.features.forEach(f => path(f)); ctx.strokeStyle = col('--mute'); ctx.globalAlpha = .28; ctx.lineWidth = .5; ctx.setLineDash([3, 2]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; }   // v376 : provinces et États au zoom
-    ctx.beginPath(); (W50 ? CG_WORLD50 : CG_WORLD).features.forEach(f => path(f)); ctx.strokeStyle = col('--mute'); ctx.globalAlpha = W50 ? .55 : .35; ctx.lineWidth = W50 ? .8 : .6; ctx.stroke(); ctx.globalAlpha = 1;
+    const W50 = VOY_K >= 1.8 && window.CG_WORLD50, A1 = VOY_K >= 2.2 && window.CG_ADM1 && !moving, ctr0 = [-VOY_ROT[0], -VOY_ROT[1]], vis = (lo, la, m) => d3.geoDistance([lo, la], ctr0) < Math.PI / 2 - (m || 0);
+    const sc = proj.scale(), alpha = Math.min(Math.PI / 2, Math.asin(Math.min(1, Math.hypot(W, H) / 2 / sc)));   // v396 : rayon visible (face avant et cadre)
+    const fine = VOY_K >= 3.2, src = F => fine || !F._lite ? F : F._lite;   // v396 : contours allégés jusqu'au zoom 3,2
+    proj.precision(fine ? 0.7 : 1.5);
+    const land = voyVis(W50 ? src(CG_WORLD50) : CG_WORLD, ctr0, alpha), landP = new Path2D(d3.geoPath(proj)({ type: 'FeatureCollection', features: land }) || '');
+    ctx.fillStyle = LAND; ctx.fill(landP);
+    if (A1) { const a1 = voyVis(src(CG_ADM1), ctr0, alpha); ctx.beginPath(); a1.forEach(f => path(f)); ctx.strokeStyle = col('--mute'); ctx.globalAlpha = .28; ctx.lineWidth = .5; ctx.setLineDash([3, 2]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; }   // v376 : provinces et États au zoom
+    ctx.strokeStyle = col('--mute'); ctx.globalAlpha = W50 ? .55 : .35; ctx.lineWidth = W50 ? .8 : .6; ctx.stroke(landP); ctx.globalAlpha = 1;
     if (VOY_K >= 1.4 && window.CG_WORLD50) {   // v376 : noms des pays, puis des provinces, selon le zoom (sans chevauchement)
       const R0 = isPC() ? 12 : 15, boxes = pts.filter(p => vis(p.g.lo, p.g.la)).map(p => { const q = proj([p.g.lo, p.g.la]); return [q[0] - R0, q[1] - R0, q[0] + R0, q[1] + R0]; }).concat([[0, H - (isPC() ? 40 : 66), W, H]]), en = LANG === 'en', lab = (F, thr, font, color, up) => {
         F.features.filter(f => f.properties.r <= thr && vis(f.properties.x, f.properties.y, .08)).sort((a, b) => a.properties.r - b.properties.r).forEach(f => {
@@ -194,13 +241,17 @@ function voyMount2(cv, st) {
       ctx.fillStyle = '#111'; ctx.font = '700 ' + (isPC() ? 12 : 15) + 'px Arimo, Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(p.x.fin ? 'F' : String(p.x.i + 1), x, y + .5); });
   };
   draw();
+  let raf = 0; const ask = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; if (cv.isConnected) draw(); }); };   // v396 : au plus un dessin par image
+  /* v396 : pendant qu'on tourne ou zoome, les lignes de provinces (le tracé le plus coûteux) sont mises de côté ;
+     elles reviennent 150 ms après le dernier mouvement. Pays, frontières et noms restent affichés. */
+  let still = 0; const moved = () => { moving = true; clearTimeout(still); still = setTimeout(() => { moving = false; ask(); }, 150); ask(); };
   let drag = null; const pinch = new Map();
   cv.onpointerdown = e => { cv.setPointerCapture(e.pointerId); pinch.set(e.pointerId, [e.clientX, e.clientY]); drag = [e.clientX, e.clientY, VOY_ROT.slice()]; };
   cv.onpointermove = e => { if (!pinch.has(e.pointerId)) return; const prevP = pinch.get(e.pointerId); pinch.set(e.pointerId, [e.clientX, e.clientY]);
-    if (pinch.size === 2) { const [a, b] = [...pinch.values()], [pa] = [prevP], d1 = Math.hypot(a[0] - b[0], a[1] - b[1]); const other = [...pinch.entries()].find(([k]) => k !== e.pointerId)[1], d0 = Math.hypot(pa[0] - other[0], pa[1] - other[1]); if (d0 > 0) { VOY_K = Math.max(.8, Math.min(14, VOY_K * d1 / d0)); draw(); } return; }
-    if (!drag) return; const s = 0.25 / VOY_K; VOY_ROT = [drag[2][0] + (e.clientX - drag[0]) * s, Math.max(-85, Math.min(85, drag[2][1] - (e.clientY - drag[1]) * s))]; draw(); };
+    if (pinch.size === 2) { const [a, b] = [...pinch.values()], [pa] = [prevP], d1 = Math.hypot(a[0] - b[0], a[1] - b[1]); const other = [...pinch.entries()].find(([k]) => k !== e.pointerId)[1], d0 = Math.hypot(pa[0] - other[0], pa[1] - other[1]); if (d0 > 0) { VOY_K = Math.max(.8, Math.min(14, VOY_K * d1 / d0)); moved(); } return; }
+    if (!drag) return; const s = 0.25 / VOY_K; VOY_ROT = [drag[2][0] + (e.clientX - drag[0]) * s, Math.max(-85, Math.min(85, drag[2][1] - (e.clientY - drag[1]) * s))]; moved(); };
   cv.onpointerup = cv.onpointercancel = e => { pinch.delete(e.pointerId); if (!pinch.size) drag = null; };
-  cv.onwheel = e => { e.preventDefault(); VOY_K = Math.max(.8, Math.min(14, VOY_K * (e.deltaY < 0 ? 1.12 : 1 / 1.12))); draw(); };
+  cv.onwheel = e => { e.preventDefault(); VOY_K = Math.max(.8, Math.min(14, VOY_K * (e.deltaY < 0 ? 1.12 : 1 / 1.12))); moved(); };
 }
 function vCoursesSeason() {
   const f = crf(), hasBank = S.courseBank.length > 0;

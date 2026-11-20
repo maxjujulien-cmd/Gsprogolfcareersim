@@ -159,7 +159,8 @@ function cardsHTML(rows, pars, opts) {
   const cols = 2 + pars.length + 1 + (opts.showR1 ? 2 : 0) + (G ? 1 : 0);
   if (mob) CARDX[ck].cols = cols;
   rows.forEach((r, ri) => {
-    if (r.gap) { h += '<tr class="gap"><td colspan="' + cols + '">\u00b7\u00b7\u00b7</td></tr>'; return; }
+    if (ri && rows[ri - 1].cutAfter) h += cutRowHTML(rows[ri - 1].cutAfter, cols);   // v415 : ligne de coupure
+    if (r.gap) { h += gapRowHTML(r, cols); return; }
     const hs = r.holes || [], played = hs.filter(x => x != null);
     const rowCls = [r.me && 'me', r.pending && 'pending', pinCls(r.pinned)].filter(Boolean).join(' ');
     const pcs = r.pn && r.color ? ' style="--me:' + r.color + ';--meSolid:color-mix(in srgb,' + r.color + ' 34%,var(--paper))"' : '';   // Play Now : chaque joueur manuel dans sa couleur
@@ -169,6 +170,7 @@ function cardsHTML(rows, pars, opts) {
       '<td class="s2 ' + (r.tot === null || r.tot === undefined ? '' : cls(r.tot)) + '">' + (r.tot === null || r.tot === undefined ? '' : fmt(r.tot)) + '</td>' +
       pars.map((p, i) => holeCell(hs[i], p)).join('') + '<td class="cp">' + (played.length ? sum(played) : '') + '</td>' + (opts.showR1 ? '<td class="cp ' + (r.r1 == null ? '' : cls(r.r1)) + '">' + (r.r1 == null ? '' : fmt(r.r1)) + '</td>' + (() => { let r2 = null; hs.forEach((v, i) => { if (v != null) r2 = (r2 || 0) + v - pars[i]; }); return '<td class="cp ' + (r2 === null ? '' : cls(r2)) + '" style="font-weight:700">' + (r2 === null ? '' : fmt(r2)) + '</td>'; })() : '') + '</tr>' + (cxOpen ? cxRow(CARDX[ck], r) : '');
   });
+  if (rows.length && rows[rows.length - 1].cutAfter) h += cutRowHTML(rows[rows.length - 1].cutAfter, cols);
   return h + '</tbody></table></div>' +
     '<div class="legend cl"><span><i class="lg e2"></i>Aigle ou mieux</span><span><i class="lg e1"></i>Birdie</span><span><i class="lg pr"></i>Par</span><span><i class="lg b1"></i>Bogey</span><span><i class="lg b2"></i>Double</span><span><i class="lg b3"></i>Triple ou pire</span></div>';
 }

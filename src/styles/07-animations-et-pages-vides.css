@@ -1,0 +1,36 @@
+/* ============ ANIMATIONS ET PAGES VIDES (v389) ============
+   Flèches ▲▼ des classements en direct (voir animFlip) et cartes des pages vides (voir emptyCard). */
+
+/* Flèche qui apparaît un instant à côté d'un golfeur qui monte ou descend */
+.anmv{display:inline-block;margin-left:5px;font-weight:700;font-size:.85em;vertical-align:1px}
+.anmv.up{color:#5CC796}
+.anmv.dn{color:var(--underB,#FF8A78)}
+
+/* Page vide : grande icône, titre, phrase, bouton */
+.emc{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:46px 20px;border:1px dashed var(--line);border-radius:14px;margin:10px 0}
+.emc b{font-size:22px;line-height:1.2}
+.emc span{color:var(--mute);max-width:520px}
+.emci{font-size:56px;line-height:1}
+.emc .emgo{width:auto;padding:0 26px;margin-top:8px}
+.emc.small1{border:0;padding:26px 14px;margin:0}
+.emc.small1 .emci{font-size:38px}
+.emc.small1 b{font-size:17px}
+/* Record pas encore établi */
+.emrec{display:flex;align-items:center;gap:8px;margin:2px 0 0;color:var(--acc);font-weight:600;font-size:14px}
+/* Forme : premier résultat à venir */
+.emsm{display:block;color:var(--mute);font-size:13px}
+
+/* v411 : golfeur qui change de rang pendant la ronde. La couleur tient 3 secondes puis s'efface ; --mvt (négatif)
+   reprend l'animation là où elle en était quand l'écran est redessiné. Les scores des trous gardent leurs couleurs. */
+@keyframes mvup{0%,75%{background-color:rgba(46,204,113,.38);box-shadow:inset 4px 0 0 #2ecc71}}
+@keyframes mvdn{0%,75%{background-color:rgba(255,107,94,.34);box-shadow:inset 4px 0 0 #ff6b5e}}
+@keyframes mvup2{0%,75%{background-color:rgba(46,204,113,.38)}}
+@keyframes mvdn2{0%,75%{background-color:rgba(255,107,94,.34)}}
+@keyframes mvfade{0%,80%{opacity:1}100%{opacity:0}}
+tr.mvu>td.s1,table.board tr.mvu>td.pos{animation:mvup 4.1s linear var(--mvt,0ms) both}
+tr.mvd>td.s1,table.board tr.mvd>td.pos{animation:mvdn 4.1s linear var(--mvt,0ms) both}
+tr.mvu>td.s2,table.board tr.mvu>td:not(.pos){animation:mvup2 4.1s linear var(--mvt,0ms) both}
+tr.mvd>td.s2,table.board tr.mvd>td:not(.pos){animation:mvdn2 4.1s linear var(--mvt,0ms) both}
+.mvb{flex:none;display:inline-block;margin-left:6px;padding:0 6px;border-radius:9px;font:800 12px/16px Arimo,Arial,sans-serif;vertical-align:middle;white-space:nowrap;animation:mvfade 4.1s linear var(--mvt,0ms) both}
+.mvb.up{background:rgba(46,204,113,.2);color:#2ecc71;box-shadow:inset 0 0 0 1px rgba(46,204,113,.55)}
+.mvb.dn{background:rgba(255,107,94,.18);color:#ff6b5e;box-shadow:inset 0 0 0 1px rgba(255,107,94,.5)}

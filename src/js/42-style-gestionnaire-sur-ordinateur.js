@@ -39,7 +39,7 @@ function mTopHTML(cur) {
   return '<div class="mtnav"><button class="mtar" data-a="backview"' + (NAV.length ? '' : ' disabled') + ' aria-label="Retour">‹</button></div><div class="mtcrumb">' + crumb + '</div>' +
     '<button class="mtsearch" data-a="tab" data-v="golfers">🔍 Rechercher un golfeur…</button>' +
     '<div class="mtdate"><b>Saison ' + yr(S.season) + ' · ' + (S.t >= N_TOURN ? (finalePending() || (S.cur && S.cur.fin) ? 'Finale' : 'saison terminée') : 'Tournoi ' + tn + '/' + N_TOURN + (isMajorT(S.t) ? ' ★' : '')) + '</b><span>' + (S.duo ? 'Duo · ' : '') + (lgNm(pl) || '') + '</span></div>' +
-    '<button class="mtgo" data-a="mgrgo">Continuer ▶</button>';
+    '<button class="mtfs" data-a="fullscr" aria-label="Plein écran" title="Plein écran">⛶</button><button class="mtgo" data-a="mgrgo">Continuer ▶</button>';
 }
 function mgrSync(cur) {
   let top = document.getElementById('mtop');
@@ -49,6 +49,7 @@ function mgrSync(cur) {
 }
 function mgrGo() {   // « Continuer » : l'action principale de l'accueil (jouer, reprendre, clôturer la saison…)
   if (VIEW.name === 'off') { const nb = document.querySelector('#app .offoot .btn.next'); if (nb) nb.click(); return; }
+  if (VIEW.name === 'po') { const P = S.cur && S.cur.po; if (P && P.w != null) { poBack(); render(); window.scrollTo(0, 0); } return; }   // v394 : « Continuer » ne joue jamais la prolongation à ta place
   if (!/^(home|play|spec|po|roundEnd|tournEnd|seasonEnd|playerCreate|hofCer)$/.test(VIEW.name) || (VIEW.name === 'seasonEnd' && VIEW.arch)) { go('home'); return; }
   const b = document.querySelector('#app .dnext .btn:not(.sec)') || document.querySelector('#app .cols .ca .btn:not(.sec)') || document.querySelector('#app .btn:not(.sec)');
   if (b) b.click();

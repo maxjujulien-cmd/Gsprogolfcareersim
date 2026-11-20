@@ -475,6 +475,15 @@ function undoHole() {
   VIEW = { name: 'play', val: c.pars[c.ps.length] };
   persist();
 }
+/* v391 : termine la ronde pour tout le monde SANS passer à la page suivante : l'écran de la ronde (vWait) reste
+   affiché avec le classement final et le bouton « Voir la coupure » / « Voir la clôture du tournoi » (action holdgo,
+   qui appelle finishRound). */
+function holdRound() {
+  const c = S.cur; if (!c) return;
+  aiFill(18, true); if (teeCur(c)) c.tx = 999;
+  if (/^sim/.test(c.phase)) c.k2 = 18;
+  persist();
+}
 function finishRound() {
   const c = S.cur; aiFill(18, true); if (teeCur(c)) c.tx = 999;
   if (c.r === 0 && c.sw) {   // v292 : ronde 1 suivie sans golfeur
@@ -532,8 +541,28 @@ function simSpectHole() {
 /* Dévoilement séquentiel : révèle les scores des adversaires par groupes de 15, à 1 seconde d'intervalle,
    pour voir le classement bouger. Le golfeur du joueur (id 0) est toujours révélé tout de suite.
    onDone() est appelé une fois tout le monde dévoilé (ou immédiatement si le mode n'est pas activé). */
+/* v411 : « Golfeur par golfeur » (S.ui.reveal = 'gbg') : au plus GBG_MAX mouvements qui comptent sont montrés un à
+   un, du bas du classement vers la tête ; tous les autres golfeurs se placent ensemble à la fin.
+   Qui passe, parmi ceux qui ont joué un trou au-dessus ou en dessous du par et changent de rang : le top 10 (ceux
+   qui y sont, y entrent ou en sortent), puis, dans les 25 premiers rangs, ta watchlist et les groupes affichés, puis
+   les plus gros sauts. Ton golfeur, lui, est toujours dévoilé en premier (son score est déjà connu). */
+const GBG_MAX = 8, GBG_MS = 1300;
+function gbgPick(k, ids) {
+  const c = S.cur, snap = () => { const m = new Map(); try { liveRows(k).forEach(r => m.set(r.id, r)); } catch (e) { } return m; };
+  REVEAL = { k, order: ids, shown: 0, timer: null, set: null }; const pre = snap();
+  REVEAL = null; const post = snap();
+  const star = new Set(c.twl || []), tr = teeCur(c);
+  if (tr) { const G = teeGroups(tr.o, tr.lm); [teeGrp(tr, 0)].concat(tr.fol || []).forEach(gi => { if (gi >= 0 && G[gi]) G[gi].forEach(id => star.add(id)); }); }
+  const mv = ids.map(id => { const a = pre.get(id), b = post.get(id); return a && b && a.pos !== b.pos && a.tot !== b.tot ? { id, a: a.pos, b: b.pos, d: Math.abs(a.pos - b.pos), top: Math.min(a.pos, b.pos) <= 10, st: star.has(id) } : null; }).filter(Boolean);
+  const byD = (x, y) => x.b - y.b || y.d - x.d /* d'abord ceux qui finissent le plus haut (les chutes depuis une grosse égalité sont nombreuses et moins parlantes) */, top = mv.filter(x => x.top).sort(byD).slice(0, 5), ts = new Set(top.map(x => x.id));   // au plus 5 places pour le top 10
+  /* le reste : seulement ceux qui partent du haut du classement ou y arrivent (25 premiers rangs), sinon le mouvement
+     se passe hors de l'écran et on attendrait pour rien */
+  const rest = mv.filter(x => !ts.has(x.id) && Math.min(x.a, x.b) <= 25).sort((x, y) => (y.st - x.st) || byD(x, y));
+  let dn = 0;   // au plus 3 chutes par trou : en début de ronde, des dizaines de golfeurs à égalité en tête tombent en même temps
+  return top.concat(rest).filter(x => x.b < x.a || ++dn <= 3).slice(0, GBG_MAX).sort((x, y) => y.b - x.b || y.a - x.a).map(x => x.id);   // du bas vers le haut : la tête en dernier
+}
 function startReveal(k, onDone, only) {
-  if (S.ui.reveal !== 'seq') { onDone(); return; }
+  if (S.ui.reveal !== 'seq' && S.ui.reveal !== 'gbg') { onDone(); return; }
   const c = S.cur;
   const ids = (only || (c.r === 0 ? fld(c) : c.alive)).filter(id => id !== 0);
   /* v312 : on ne « dévoile » que ceux dont la ligne change (les golfeurs qui ont terminé ou pas encore partis sont sautés) */
@@ -545,6 +574,17 @@ function startReveal(k, onDone, only) {
     if (pre.size && post.size) { const mv = ids.filter(id => pre.get(id) !== post.get(id)); ids.length = 0; mv.forEach(id => ids.push(id)); }
   }
   if (!ids.length) { onDone(); return; }
+  if (S.ui.reveal === 'gbg') {
+    const feat = gbgPick(k, ids), fs = new Set(feat), order = feat.concat(ids.filter(id => !fs.has(id)));
+    REVEAL = { k, order, shown: 0, timer: null, set: only ? new Set(ids) : null, gbg: 1, nf: feat.length, cur: null };
+    render(); scrollAfterHole();
+    REVEAL.timer = setInterval(function () {
+      if (!S.cur || (VIEW.name !== 'play' && VIEW.name !== 'spec')) { clearInterval(REVEAL.timer); REVEAL = null; return; }
+      if (REVEAL.shown < REVEAL.nf) { REVEAL.cur = REVEAL.order[REVEAL.shown]; REVEAL.shown++; render(); return; }
+      clearInterval(REVEAL.timer); REVEAL = null; onDone();
+    }, GBG_MS);
+    return;
+  }
   /* v310 : peu de golfeurs (quelques groupes) → un groupe à la fois, dans l'ordre des départs ; beaucoup → par paquets de 15 */
   const tr = teeCur(c), few = ids.length <= 40, st = tr ? (tr._st || teeStarts(tr.o, null, tr.lm)) : null;
   const order = few && st ? ids.slice().sort((a, b) => (st[a] || 0) - (st[b] || 0) || a - b) : shuffled(ids);
@@ -557,7 +597,7 @@ function startReveal(k, onDone, only) {
     if (REVEAL.bd) { const nx = REVEAL.bd.find(x => x > REVEAL.shown); REVEAL.shown = nx == null ? REVEAL.order.length : nx; } else REVEAL.shown += step;
     if (REVEAL.shown >= REVEAL.order.length) { clearInterval(REVEAL.timer); REVEAL = null; onDone(); }
     else render();
-  }, few ? 750 : 1000);
+  }, few ? 1000 : 1200);   // v411 : un peu plus lent, pour laisser voir les mouvements
 }
 
 /* ---- v294 : prolongation en direct (trou 18 rejoué jusqu'à un seul golfeur) ---- */
@@ -570,6 +610,13 @@ function poTiedLive(c) {
   if (ids.length < 2) return null;
   const m = Math.min.apply(null, ids.map(tot)), t = ids.filter(id => tot(id) === m);
   return t.length > 1 ? t : null;
+}
+/* v394 : prolongation terminée → retour à l'écran de la ronde (vWait), qui montre le vainqueur et le bouton
+   « Voir la clôture du tournoi » (holdgo → finishRound, qui ne relance pas la prolongation puisque c.po existe). */
+function poBack() {
+  const c = S.cur; if (!c || !c.po || c.po.w == null) return;
+  VIEW = S.mode === 'sim' || c.sw || !c.made || c.phase === 'sim2' || (c.k2 || 0) >= 18 && c.ps.length < 18 ? { name: 'spec' } : { name: 'play' };
+  persist();
 }
 function poStart(c) {
   if (PO_FAST || c.po) return false;
@@ -641,7 +688,7 @@ function vPO() {
   }
   const tb = (n || pd) ? '<h2>Carte de la prolongation</h2>' + poCardHTML(P, c.pars, c.index, P.w, P.live, pd) : '<div class="block"><p class="mute" style="margin:0"><span>La prolongation repart du trou 1 et suit la carte jusqu’au bris d’égalité.</span> <span>En lice :</span> ' + P.ids.map(id => '<a href="#" data-a="golfer" data-id="' + id + '">' + esc(nameOf(id)) + '</a>').join(', ') + '</p></div>';
   let F = '';
-  if (P.w != null) F = '<button class="btn" data-a="pofin">Voir les résultats ›</button>';
+  if (P.w != null) F = '<button class="btn" data-a="poback">Retour au classement</button>';   // v394 : on revient à la ronde, puis « Voir la clôture du tournoi »
   else if (pd) { const nx = pd.o[pd.n]; F = '<button class="btn" data-a="poone" style="margin-top:14px">' + (pd.n === pd.o.length - 1 ? '<span>Dernier golfeur :</span> ' : '<span>Golfeur suivant :</span> ') + esc(nameOf(nx)) + '</button><button class="btn sec" data-a="pos">Dévoiler le reste du trou</button><button class="btn sec" data-a="poall">Simuler toute la prolongation</button>'; }
   else if (poMine(c)) { const r = holeRange(par); F = '<p style="margin:14px 0 6px"><b>Ton score au trou ' + (jn + 1) + '</b></p><div class="row" style="gap:6px;flex-wrap:wrap">' + range(r[0], Math.min(r[1], par + 3)).map(v => '<button class="btn ' + (v === par ? '' : 'sec ') + 'sm" data-a="poh" data-v="' + v + '" style="flex:1 0 54px;margin:0">' + v + '</button>').join('') + '</div>'; }
   else F = '<button class="btn" data-a="poone" style="margin-top:14px">Golfeur par golfeur</button><button class="btn sec" data-a="pos">Simuler le trou de prolongation</button><button class="btn sec" data-a="poall">Simuler toute la prolongation</button>';
@@ -854,6 +901,9 @@ function presimTournament() {
 }
 function presimSeason() {
   if (S.t === 0) { if (BANK.length && crfPool().length) drawSeasonCourses(); else randomizeSeasonCourses(); }   // histoire : terrains tirés dans ta liste selon tes filtres (sinon terrains fictifs)
+  /* v403 : les saisons d'histoire suivent aussi « Trier automatiquement à chaque nouvelle saison » (trajet le plus court),
+     comme les saisons jouées ; pas pendant les saisons cachées, effacées ensuite. */
+  if (S.t === 0 && !(S.presim && S.presim.w) && BANK.length) { try { if (crf().autoKm) voySortApply(true, 400000); } catch (e) { } }
   while (S.t < N_TOURN) presimTournament();
   doSeasonEnd();
 }

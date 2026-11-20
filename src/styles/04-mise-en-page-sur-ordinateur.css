@@ -1,0 +1,23 @@
+/* ============ MISE EN PAGE SUR ORDINATEUR SANS ESPACES VIDES (v386) ============
+   Retouches du style « Gestionnaire » :
+   1. Moins de vide : les panneaux de l'accueil et des Terrains épousent leur contenu et s'emboîtent
+      en « maçonnerie » (voir lkMasonry() dans le script), et les tableaux prennent toute la largeur disponible.
+   2. Moins de vert : l'accent est réservé aux actions (boutons, onglets, liens d'en-tête de panneau) ;
+      les noms de golfeurs prennent la couleur du texte et ne s'accentuent qu'au survol.
+      Les autres liens de texte restent repérables grâce à un soulignement discret. */
+
+/* ---- 2. L'accent est réservé aux actions ---- */
+html.mgr.pc #app a:not([class]),html.mgr.pc #app a.nmt,html.mgr.pc #app a.tsn,html.mgr.pc #app a.tsl,
+html.mgr.pc #app a.nlink,html.mgr.pc #app a[data-a="golfer"]{color:inherit;text-decoration:none}
+html.mgr.pc #app a:not([class]):hover,html.mgr.pc #app a.nmt:hover,html.mgr.pc #app a.tsn:hover,html.mgr.pc #app a.tsl:hover,
+html.mgr.pc #app a.nlink:hover,html.mgr.pc #app a[data-a="golfer"]:hover{color:var(--acc);text-decoration:underline;text-underline-offset:3px}
+html.mgr.pc #app a:not([class]):not([data-a="golfer"]){text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--acc) 55%,transparent);text-underline-offset:3px}
+html.mgr.pc #app .dpn>header a,html.mgr.pc #app .dpn>header a:not([class]):not([data-a="golfer"]){color:var(--acc);text-decoration:none}
+
+/* ---- 1. Moins de vide ---- */
+/* Panneaux qui épousent leur contenu, en maçonnerie : lignes de 1 px, hauteur de chaque panneau calculée par lkMasonry() */
+html.mgr.pc .lkmas{grid-auto-rows:1px;row-gap:0!important;align-items:start}
+html.mgr.pc .lkmas>*{align-self:start}
+/* Tableaux et listes : toute la largeur de leur panneau */
+html.mgr.pc #gsblk,html.mgr.pc .dpn .boardwrap,html.mgr.pc .cols .boardwrap{max-width:none}
+html.mgr.pc .crfrow{grid-template-columns:repeat(2,minmax(0,1fr))}

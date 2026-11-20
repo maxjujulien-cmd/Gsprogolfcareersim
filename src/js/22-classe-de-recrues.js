@@ -13,6 +13,24 @@ function rcCutThr(xs, avg) {
   return fails.length <= K ? base : fails[K];   // ceux au-dessus de fails[K] (les K pires) sont retranchés
 }
 function rcThrNow(s, avg) { const ids = S.rcl && S.rcl.s === s ? S.rcl.ids.filter(id => id !== 0 && S.G[id]) : []; return rcCutThr(ids.map(id => { const g = S.G[id]; return g.hc && g.hc.x != null ? g.hc.x : 99; }), avg); }
+/* v414 : barème de placement en règle graduée (choix du propriétaire, option B) : zones de couleur par ligue, de
+   l'index le meilleur (à gauche) au moins bon ; au-dessus, les moyennes d'index des ligues et le seuil sans carte
+   (moyenne L4 + CFG.rcNoCard, relevé si plus de CFG.rcNcMax % de la classe le dépasse) ; un point par recrue, toi en or. */
+function rcRuler(rows, avg, thr, done) {
+  const xs = rows.filter(r => r.x != null && r.x < 90), A = [0, 1, 2, 3].map(l => avg[l]);
+  if (A.some(v => v == null)) return '';
+  const T = thr != null && isFinite(thr) ? thr : null, vals = xs.map(r => r.x);
+  const lo = Math.min(A[0] - 2, ...vals) - 0.5, hi = Math.max((T != null ? T : A[3]) + 3, ...vals) + 0.5;
+  const X = v => ((v - lo) / (hi - lo) * 100).toFixed(2) + '%';
+  const Z = [[lo, A[0], 'var(--lg1)', 'L1'], [A[0], A[1], 'var(--lg2)', 'L2'], [A[1], A[2], 'var(--lg3)', 'L3'], [A[2], T != null ? T : hi, 'var(--lg4)', 'L4']].concat(T != null ? [[T, hi, 'var(--bad)', 'Sans carte']] : []);
+  let h = Z.map(([a, b, c, t]) => '<div class="rcz" style="left:' + X(a) + ';width:calc(' + X(b) + ' - ' + X(a) + ');--c:' + c + '"><span>' + t + '</span></div>').join('');
+  h += A.concat(T != null ? [T] : []).map(v => '<div class="rck" style="left:' + X(v) + '"><b>' + fmtHI(Math.round(v * 10) / 10) + '</b></div>').join('');
+  h += xs.map(r => '<i class="rcd' + (r.id === 0 ? ' me' : '') + '" style="left:' + X(r.x) + '" title="' + esc(nameOf(r.id) || '') + ' · ' + fmtHI(r.x) + '"></i>').join('');
+  const me = xs.find(r => r.id === 0);
+  if (me) h += '<div class="rcme" style="left:' + X(me.x) + '"><span>Toi</span> · ' + fmtHI(me.x) + '</div>';
+  return '<div class="rcrule"><div class="rcrt">Barème de placement <span>· meilleur index à gauche</span></div><div class="rctrack">' + h + '</div>' +
+    '<p class="small mute rcrn">' + (done ? 'Chaque point est une recrue, placée selon son index final.' : 'Chaque point est une recrue, placée selon son index actuel.') + ' Les chiffres sont les moyennes d’index des ligues, notées après le dernier tournoi, et le seuil sans carte. Chaque recrue commence dans la meilleure ligue dont la moyenne est moins bonne que son index.</p></div>';
+}
 function rcLgTag(l, proj) { return l == null ? '<span class="mute">–</span>' : '<span class="rclg rl' + (l < 0 ? 'x' : l) + '">' + (l < 0 ? '<span>Sans carte</span>' : 'L' + (l + 1)) + '</span>' + (proj ? '' : ''); }
 function vRcLeague(s) {
   const H = S.hist[s - 1], cur = S.rcl && S.rcl.s === s, done = H && H.end && H.end.rc;
@@ -38,7 +56,7 @@ function vRcLeague(s) {
   let R = '<h2>Tournois</h2>';
   if (!ts.length) R += '<p class="mute">Aucun tournoi joué par la classe pour l’instant.</p>';
   else R += '<div class="scroll"><table class="plain"><tr><th>#</th><th>Terrain</th><th>Meilleur score</th><th class="r">Score</th></tr>' + ts.slice().reverse().map(([t, i]) => { const w = t.rc.rows[0]; return '<tr><td>' + (i + 1) + '</td><td><a href="#" data-a="tourn" data-s="' + s + '" data-t="' + i + '" data-l="4">' + esc(t.name) + '</a></td><td>' + esc(nameOf(w[0]) || '') + '</td><td class="r ' + cls(w[2] + (w[3] || 0)) + '">' + fmt(w[2] + (w[3] || 0)) + '</td></tr>'; }).join('') + '</table></div>';
-  const L = bar + thr + sum + tbl;
+  const L = bar + rcRuler(rows, avg, done ? rcCutThr(rows.filter(r => r.id !== 0).map(r => r.x == null ? 99 : r.x), avg) : thrN, done) + tbl;   // v414 : le barème en règle graduée remplace le texte et les compteurs
   if (isMgr()) return top + '<div class="gdash rcdash">' + dPanel('Classement de la classe', '<div style="padding:10px 14px">' + L + '</div>', '', 'rc-a') + dPanel('Tournois de la classe', '<div style="padding:4px 14px 12px">' + R.replace('<h2>Tournois</h2>', '') + '</div>', '', 'rc-b') + '</div>';
   return top + cols(L, R, '', 'lg');
 }
