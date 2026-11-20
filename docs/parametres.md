@@ -2,7 +2,7 @@
 
 Ce document résume les paramètres qui décident du niveau des golfeurs et de leurs scores : ce qu'ils font, où ils se trouvent et pourquoi ils ont ces valeurs. Il sert de mémoire entre les sessions, parce que les conversations précédentes ne suivent pas d'une session à l'autre.
 
-> **Source** : code de la branche `claude/golf-career-simulator-improvements-ff32jf` (10 novembre 2026). Si l'artifact publié a été modifié depuis, certaines valeurs peuvent être différentes. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
+> **Source** : version v385 du jeu. Le 20 novembre 2026, l'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) a été réimporté avec `tools/importer.mjs` : il est identique au code de `src/`, à l'enveloppe de publication près. Si l'artifact change de nouveau, il faut le réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
 
 Échelle utilisée partout : **coups par rapport au par**, sur une ronde de 18 trous.
 
