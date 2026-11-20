@@ -64,8 +64,10 @@ Publier `dist/index.html` comme page, avec `ootp-names.js`, `ootp-names-extra.js
 comme fichiers à côté.
 
 Point de départ vérifié : à partir de ce code, `IndoorGolfCareer.html` est identique, octet pour octet, au fichier
-`IndoorGolfCareer-v416.html` (20 novembre 2026). L'artifact publié correspond encore à la v385 (10 novembre 2026) : et `index.html` à la page de l'artifact
-(à une balise `</body></html>` en double près, retirée en fin de fichier).
+`IndoorGolfCareer-v416.html` (20 novembre 2026).
+
+L'artifact publié correspond encore à la v385 (10 novembre 2026). Pour la v385, `index.html` était identique à la page
+de l'artifact, à une balise `</body></html>` en double près, retirée en fin de fichier.
 
 ## Réimporter une version modifiée ailleurs
 
