@@ -272,6 +272,23 @@ Les valeurs par défaut des réglages sont dans `DEFAULT_CFG` (`src/js/02-carrie
 
 **Constat de Max** : les coupures observées sont environ L1 +4, L2 +7, L3 +11 et L4 +18 **après la ronde 1** (18 trous). Les écarts entre ligues sont donc +3, +4, puis **+7**. Le dernier palier est presque deux fois plus grand que les autres.
 
+**Mesure de référence** (20 novembre 2026, v416, réglages par défaut, terrains tirés de la liste intégrée : course rating moyen 69,6, slope 123). 3 mondes de 30 saisons, soit 900 tournois par ligue, après les 20 saisons cachées. Outil : `tools/mesure/` (voir l'en-tête de `mesurer.cjs`).
+
+| Ligue | Golfeurs | Coupure moyenne (écart-type) | Niveau à la coupure | Niveaux 10e / 50e / 90e centile |
+|---|---|---|---|---|
+| L1 | 131 | +3,1 (2,0) | 839 | 727 / 837 / 946 |
+| L2 | 146 | +5,8 (2,1) | 687 | 583 / 683 / 787 |
+| L3 | 164 | +8,2 (2,2) | 558 | 447 / 549 / 653 |
+| L4 | 146 | +13,6 (2,6) | 364 | 167 / 360 / 517 |
+
+- **Écarts de coupure** : +2,7 / +2,3 / **+5,5**. Le palier L3 → L4 est bien environ deux fois plus grand que les autres.
+- **Écarts de niveau à la coupure** : 152 / 129 / **195** points. Il y a plus de talent entre la L3 et la L4, et ces points coûtent plus cher en bas de la courbe : environ 2,8 coups par 100 points, contre 1,8 entre les autres ligues.
+- **Le vent n'y est presque pour rien** : l'écart L3 → L4 vaut +5,4 sans vent et +5,7 par vent fort.
+- **La L4 est très étalée** : son 10e centile est à 167, contre 447 en L3, et son golfeur le plus faible à 24 en moyenne.
+- **Part des victoires gagnée par le top 5 du champ** : L1 17 %, L2 24 %, L3 30 %, L4 41 %.
+- **Montée L4 → L3** : les promus passent 40 % des coupures en L3 à leur première saison, contre 45 % pour les promus en L2 et en L1. 79 % restent en L3 ou montent la saison suivante. **La montée n'est donc pas brutale** : l'écart vient de la moitié faible de la L4, qui tire la coupure vers le bas, pas d'un mur pour les meilleurs de la L4.
+- Les chiffres observés par Max dans sa partie (+4 / +7 / +11 / +18) sont environ 1,3 fois plus élevés partout. Ça laisse penser à des réglages différents dans sa sauvegarde : écart (`gap`) au-dessus de 1, ou des terrains plus durs ou au slope plus élevé. Les proportions entre les ligues restent les mêmes.
+
 **Causes probables, trouvées dans le code** :
 
 1. `MU.GAM = 1,25` : 100 points de talent valent environ 2,5 coups en bas de l'échelle contre 1,8 en haut.
