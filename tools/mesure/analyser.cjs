@@ -1,7 +1,7 @@
 const W = JSON.parse(require('fs').readFileSync(process.argv[2]));
 const m = a => a.reduce((x, y) => x + y, 0) / a.length, sd = a => { const u = m(a); return Math.sqrt(m(a.map(x => (x - u) ** 2))); };
 const f1 = x => (x >= 0 ? '+' : '') + x.toFixed(1), f0 = x => Math.round(x);
-const T = W.flatMap(w => w.t), L = [0, 1, 2, 3];
+const T = W.flatMap(w => w.t).filter(x => !x.rc), L = [0, 1, 2, 3];
 console.log('Tournois mesurés par ligue :', T.filter(x => x.l === 0).length, '\n');
 console.log('Ligue | golfeurs | coupure moy (écart-type) | min..max | score moy champ | niveau à la coupure | 65e niveau | médiane niveau | plus faible');
 L.forEach(l => { const t = T.filter(x => x.l === l), c = t.map(x => x.cut);
@@ -17,3 +17,8 @@ console.log('Promus encore dans la ligue (ou plus haut) au début de la saison s
 const F = W.flatMap(w => w.fields);
 console.log('\nNiveaux dans chaque ligue (début de saison, 10e / 50e / 90e centile) :');
 L.forEach(l => console.log(`  L${l + 1} : ${f0(m(F.map(x => x[l].n)))} golfeurs, ${f0(m(F.map(x => x[l].p10)))} / ${f0(m(F.map(x => x[l].p50)))} / ${f0(m(F.map(x => x[l].p90)))}`));
+
+const RC = W.flatMap(w => w.t).filter(x => x.rc);
+if (RC.length) console.log('\nClasse de recrues :', RC.length, 'tournois,', f0(m(RC.map(x => x.n))), 'recrues, score moyen par ronde 1', f1(m(RC.map(x => x.mean))), ', niveau médian', f0(m(RC.map(x => x.oMed))));
+const A = W.flatMap(w => w.arr || []);
+if (A.length) console.log('Nouveaux arrivants placés (par saison) :', [0, 1, 2, 3].map(l => `L${l + 1} ${(A.filter(x => x.l === l).length / W.reduce((a, w) => a + (w.fields.length - 1), 0)).toFixed(1)}`).join(' | '), '| niveau médian', f0(A.map(x => x.o).sort((a, b) => a - b)[Math.floor(A.length / 2)]));

@@ -288,6 +288,35 @@ Les valeurs par défaut des réglages sont dans `DEFAULT_CFG` (`src/js/02-carrie
 
 Le réglage à 100 % redonne la v416 (à la marge de hasard près), et 70 % donne le même résultat que le banc d'essai. Le reste de cette section garde l'historique de l'analyse.
 
+**⚠️ Effet secondaire découvert après la v417 (22 novembre 2026)** : avec `lowK` = 0,70, **la L4 passe d'environ 150 à environ 193 golfeurs**, et le circuit de 590 à 630.
+
+- **Cause** : les recrues faibles améliorent leur index plus que la moyenne de la L4. Avec le seuil « Pas de carte au-delà de la moyenne L4 + 5 » (`rcNoCard`), seulement environ 5 % des recrues restent sans carte, au lieu d'environ 13 %. Il y a 55 recrues placées par saison au lieu de 46.
+- **Conséquence** : la coupure reste fixée à 65 golfeurs. Dans une L4 de 193 golfeurs, seulement 34 % passent, au lieu de 44 %. **Une bonne partie de la baisse de la coupure L4 venait de cette L4 plus grosse**, pas de la courbe.
+- Le golfeur à la coupure de la L4 reste vers 360-370 de niveau dans tous les cas : c'est le 65e meilleur de la L4.
+
+Recalibrage du seuil de carte, avec `lowK` = 0,70 (v417, 3 mondes × 30 saisons) :
+
+| Essai | Taille de la L4 | Coupures L1 / L2 / L3 / L4 | Écart L3 → L4 | Recrues placées par saison |
+|---|---|---|---|---|
+| `lowK` 100 %, seuil +5 (comme la v416) | 146 | +3,4 / +5,9 / +8,4 / +13,9 | +5,4 | 46 |
+| `lowK` 70 %, seuil +5 (v417 actuelle) | 191 | +3,3 / +5,6 / +7,8 / +11,5 | +3,7 | 55 |
+| `lowK` 70 %, seuil +4 | 170 | +3,2 / +5,6 / +7,8 / +11,9 | +4,1 | 50 |
+| **`lowK` 70 %, seuil +3,5** | **153** | +3,3 / +5,8 / +8,2 / +12,6 | **+4,4** | 47 |
+| `lowK` 70 %, seuil +3 | 137 | +3,3 / +6,0 / +8,5 / +13,7 | +5,1 | 44 |
+
+**À la même taille de L4, l'effet réel de `lowK` = 0,70 est d'environ 1 coup** (+5,4 → +4,4), pas 2. La taille de la L4 pèse aussi lourd que la courbe sur la coupure. Décision en attente : recalibrer le seuil (≈ +3,5) et revoir `lowK` à la même taille de L4.
+
+**Recrues plus prêtes** (`ROOK.f0` augmenté, v417 avec seuil +5, donc L4 ≈ 190) :
+
+| Essai | Classe de recrues : score moyen R1 / niveau médian | Placées par saison L1 / L2 / L3 / L4 | Médiane L3 | Coupures L1 / L2 / L3 / L4 |
+|---|---|---|---|---|
+| Actuel | +16,0 / 234 | 0,1 / 0,5 / 1,4 / 53 | 570 | +3,3 / +5,6 / +7,8 / +11,5 |
+| +0,05 | +15,5 / 257 | 0,0 / 0,6 / 2,5 / 52 | 574 | +3,1 / +5,5 / +7,6 / +11,3 |
+| +0,10 | +15,0 / 285 | 0,1 / 0,9 / 3,3 / 52 | 583 | +3,0 / +5,2 / +7,4 / +11,2 |
+| +0,15 | +14,4 / 315 | 0,3 / 1,3 / 4,2 / 50 | 587 | +3,0 / +5,1 / +7,2 / +11,2 |
+
+Des recrues plus prêtes rapprochent la classe de recrues de la L4 et placent plus de recrues directement en L3 et en L2. Mais elles remontent tout le circuit, et l'écart L3 → L4 ne bouge pas (+3,7 à +4,0).
+
 
 **Constat de Max** : les coupures observées sont environ L1 +4, L2 +7, L3 +11 et L4 +18 **après la ronde 1** (18 trous). Les écarts entre ligues sont donc +3, +4, puis **+7**. Le dernier palier est presque deux fois plus grand que les autres.
 

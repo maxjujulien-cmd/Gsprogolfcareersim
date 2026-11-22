@@ -20,7 +20,7 @@ const PAGE = process.argv[2], WORLDS = +(process.argv[3] || 3), SEASONS = +(proc
     await p.goto('file://' + path.resolve(PAGE), { waitUntil: 'load', timeout: 120000 });
     await p.waitForFunction(() => typeof newGame === 'function' && document.querySelector('#app')?.children.length > 0, null, { timeout: 60000 });
     const res = await p.evaluate(([SEASONS, cfgx]) => {
-      const R = { t: [], prom: [], fields: [] };
+      const R = { t: [], prom: [], fields: [], rc: [], arr: [] };
       let rec = false, startL = null, prevStartL = null, promoted = {};
       const orig = simTournamentAI;
       simTournamentAI = function (model, grid, pars, ids, G, ctx, cutSize, index, one) {
@@ -33,7 +33,8 @@ const PAGE = process.argv[2], WORLDS = +(process.argv[3] || 3), SEASONS = +(proc
           const atCut = ids.filter(id => r1[id] === r.cut).map(id => G[id].o);
           const winner = r.rows[0][0], wo = G[winner].o, wrank = os.indexOf(wo) + 1;
           let pm = 0, pn = 0; ids.forEach(id => { if (promoted[id] === lg) { pn++; if (r1[id] <= r.cut) pm++; } });
-          R.t.push({ l: lg, n: ids.length, cut: r.cut, wind: c.wind || 'none', mean: ids.reduce((a, id) => a + r1[id], 0) / ids.length,
+          const rc = lg < 0 && S.rcl && S.rcl.s === S.season && ids.length > 1 && ids.every(id => S.rcl.ids.includes(id));
+          R.t.push({ rc: rc ? 1 : 0, l: lg, n: ids.length, cut: r.cut, wind: c.wind || 'none', mean: ids.reduce((a, id) => a + r1[id], 0) / ids.length,
             oCut: atCut.reduce((a, x) => a + x, 0) / atCut.length, o65: os[Math.min(64, os.length - 1)], oMed: os[Math.floor(os.length / 2)], oMin: os[os.length - 1], oMax: os[0], wrank, pm, pn });
         }
         return r;
@@ -46,6 +47,7 @@ const PAGE = process.argv[2], WORLDS = +(process.argv[3] || 3), SEASONS = +(proc
           promoted = {};
           if (startL) Object.keys(cur).forEach(id => { if (startL[id] != null && cur[id] === startL[id] - 1) promoted[id] = cur[id]; });
           if (prevStartL && startL) Object.keys(startL).forEach(id => { if (prevStartL[id] != null && startL[id] === prevStartL[id] - 1) R.prom.push({ to: startL[id], stay: cur[id] != null && cur[id] <= startL[id] ? 1 : 0, gone: cur[id] == null ? 1 : 0 }); });
+          if (startL) Object.keys(cur).forEach(id => { if (startL[id] == null) R.arr.push({ l: cur[id], o: Math.round(S.G[id].o) }); });   // nouveaux arrivants (recrues placées)
           prevStartL = startL; startL = cur;
           R.fields.push(S.L.map(L => { const os = L.map(id => S.G[id].o).sort((a, b) => a - b); const q = f => os[Math.floor(f * (os.length - 1))]; return { n: L.length, p10: q(0.1), p50: q(0.5), p90: q(0.9) }; }));
         }
