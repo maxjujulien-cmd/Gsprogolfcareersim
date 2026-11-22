@@ -16,6 +16,16 @@ Jeu de carrière de golf (HTML, une seule page) que Max joue sur un simulateur G
 - Max joue sur un écran **1920 × 1080**. Pour un changement visible, vérifier par des captures (Playwright) à cette taille.
 - Max aime un **monde varié et vivant** : des carrières toutes différentes, des recrues brutes ou prêtes à jouer, des éclosions tardives, des golfeurs qui plafonnent. Comme dans le vrai golf.
 
+## Ce que Max aime (à enrichir à chaque session)
+
+Ce fichier sert à mieux connaître Max d'une session à l'autre. **À la fin d'une session, ajouter ici ce qu'on a appris de nouveau sur ses goûts et sa façon de décider**, en quelques lignes, puis faire un commit. Ne pas répéter ce qui est déjà noté.
+
+- Il aime comprendre le pourquoi : un constat chiffré, la cause trouvée dans le code, puis des options comparées dans un tableau.
+- Il tranche vite une fois les chiffres en main (« Option A », « environ 4, c'est bon »), et il refuse ce qui touche à ce qu'il trouve déjà réussi (par exemple les écarts du milieu).
+- Le réalisme compte, mais d'abord le plaisir de jeu : un monde imprévisible, des histoires de carrière (le golfeur qui plafonne en L2, l'éclosion tardive qui finit en L1, le phénomène rare).
+- Il joue lui-même dans sa carrière (handicap 4, défi « L2 · Aspirant », partie commencée en v417), sur GSPro.
+- Il veut que tout soit au même endroit : un seul dépôt GitHub, tout y est enregistré à chaque changement.
+
 ## Décisions d'équilibre à respecter (novembre 2026)
 
 Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant toute discussion d'équilibre**, et le tenir à jour après chaque changement.
