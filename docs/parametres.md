@@ -307,6 +307,19 @@ Ce qu'on en retient :
 - Combiner les deux (D, E) fait moins bien que C seul, parce que les recrues remontent aussi la L3.
 - D'un monde à l'autre, l'écart ne varie que de 0,1 à 0,4 coup : les différences entre les essais sont réelles.
 
+**Essais de k plus bas** (22 novembre 2026, coude à 450). Un 2e tirage de la référence et de k = 0,75 mesure le hasard entre deux séries.
+
+| Essai | Coupures L1 / L2 / L3 / L4 | Écart L3 → L4 (par monde) | L4 10e / 50e centile | Top 5 gagne (L1 / L4) | Promus en L3 : coupures / restés |
+|---|---|---|---|---|---|
+| Référence, 2e tirage | +3,5 / +6,0 / +8,5 / +13,9 | +5,5 (5,5 / 5,8 / 5,1) | 163 / 353 | 20 % / 36 % | 40 % / 79 % |
+| k = 0,75, 2e tirage | +3,2 / +5,7 / +7,8 / +11,7 | +3,9 (4,0 / 4,0 / 3,7) | 137 / 343 | 15 % / 40 % | 41 % / 81 % |
+| k = 0,70 | +3,3 / +5,6 / +7,9 / +11,5 | +3,6 (3,6 / 3,6 / 3,7) | 139 / 349 | 16 % / 38 % | 42 % / 81 % |
+| k = 0,65 | +3,3 / +5,7 / +7,9 / +11,4 | +3,4 (3,5 / 3,5 / 3,3) | 131 / 344 | 17 % / 36 % | 42 % / 82 % |
+
+- **Le gain ralentit** : passer de 0,75 à 0,65 ne fait gagner qu'environ 0,4 coup. Avec un coude à 450, l'écart descend difficilement sous +3,4. Le golfeur de L4 à la coupure (≈ 360) n'est qu'à 90 points sous le coude, donc l'adoucissement ne le touche qu'en partie.
+- **La part du top 5 en L1 varie de 15 % à 20 % d'une série à l'autre**, même sans aucun changement. L'écart vu avec k = 0,75 au premier essai était du hasard.
+- Les coupures de la L1 à la L3 restent stables, à 0,3 coup près.
+
 **Causes probables, trouvées dans le code** :
 
 1. `MU.GAM = 1,25` : 100 points de talent valent environ 2,5 coups en bas de l'échelle contre 1,8 en haut.
