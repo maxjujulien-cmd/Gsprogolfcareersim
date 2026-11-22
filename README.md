@@ -63,8 +63,8 @@ Pour jouer sur le PC du simulateur : ouvrir `dist/IndoorGolfCareer.html`.
 Publier `dist/index.html` comme page, avec `ootp-names.js`, `ootp-names-extra.js` et `terrains-data.js`
 comme fichiers à côté.
 
-Point de départ vérifié : au moment de son import, le code redonnait `IndoorGolfCareer.html` est identique, octet pour octet, au fichier
-`IndoorGolfCareer-v416.html` (20 novembre 2026) octet pour octet. La v417 (22 novembre 2026) a été faite ensuite dans le dépôt : voir `docs/parametres.md`.
+Point de départ vérifié : au moment de son import, le code redonnait le fichier `IndoorGolfCareer-v416.html`
+(20 novembre 2026) octet pour octet. La v417 (22 novembre 2026) a été faite ensuite dans le dépôt : voir `docs/parametres.md`.
 
 L'artifact publié correspond encore à la v385 (10 novembre 2026). Pour la v385, `index.html` était identique à la page
 de l'artifact, à une balise `</body></html>` en double près, retirée en fin de fichier.
