@@ -1,7 +1,7 @@
-name: Tests
-on: [push, pull_request]
+name: Construire et tester
+on: [push, pull_request, workflow_dispatch]
 jobs:
-  tests:
+  construire:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -10,3 +10,8 @@ jobs:
           node-version: 22
       - run: npm run build
       - run: npm test
+      # Le fichier prêt à jouer, téléchargeable depuis la page de l'exécution (onglet Actions)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: IndoorGolfCareer
+          path: dist/IndoorGolfCareer.html

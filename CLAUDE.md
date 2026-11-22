@@ -7,6 +7,13 @@ Jeu de carrière de golf (HTML, une seule page) que Max joue sur un simulateur G
 - **Tout en français**, en langage simple. Max n'est pas programmeur : expliquer en termes de jeu (coupures, ligues, recrues), pas en termes de code.
 - **Mesurer avant de changer.** Pour tout réglage d'équilibre : faire tourner le banc d'essai (`tools/mesure/`), montrer les chiffres dans un tableau, recommander une option, puis **attendre l'accord de Max** avant de l'intégrer au jeu.
 - Être honnête sur les effets secondaires et les erreurs. Exemple : la v417 faisait grossir la L4, et ça a été corrigé en v418.
+- **Proposer des options, puis n'en livrer qu'une.** Quand une amélioration admet plusieurs approches (apparence, disposition, fonctionnement) :
+  1. préparer les options (souvent 4) **en dehors du jeu**, avec des captures d'écran avant / après, une planche par option ;
+  2. les envoyer à Max et le laisser choisir ;
+  3. ne mettre dans le jeu **que l'option choisie**.
+
+  Ne jamais ajouter au jeu un sélecteur ou un réglage pour choisir entre des options d'apparence ou de disposition : Max ne veut pas multiplier les options. Les réglages d'équilibre vont dans les réglages avancés existants, toujours avec la valeur choisie par défaut.
+- Max joue sur un écran **1920 × 1080**. Pour un changement visible, vérifier par des captures (Playwright) à cette taille.
 - Max aime un **monde varié et vivant** : des carrières toutes différentes, des recrues brutes ou prêtes à jouer, des éclosions tardives, des golfeurs qui plafonnent. Comme dans le vrai golf.
 
 ## Décisions d'équilibre à respecter (novembre 2026)
@@ -26,6 +33,9 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 - `tools/importer.mjs` réimporte une version produite ailleurs (voir le README).
 - `tools/mesure/` est le banc d'essai : `mesurer.cjs`, `analyser.cjs`, `comparer.cjs`, `carrieres.cjs`, `elite.cjs`. Le mode d'emploi est en tête de `mesurer.cjs`. La mesure standard est de 3 mondes × 30 saisons, en lançant plusieurs essais en parallèle.
 - Les réglages du jeu sont dans `DEFAULT_CFG` (`src/js/02-*.js`) et `ADV_DEF` (`src/js/41-reglages-avances.js`). Un nouveau réglage avancé demande sa traduction anglaise dans `src/js/01-langue-francais-ou-anglais.js`.
+- Les fichiers `src/js/NN-*.js` sont concaténés dans **un seul** `<script>` : l'ordre compte et tout est global. Un nouveau module commence par un en-tête `/* ============ TITRE ============` et son nom de fichier doit correspondre à ce titre, sinon le test d'aller-retour échoue (il indique le nom attendu).
+- Pour tester avec une carrière remplie : démarrer une partie en mode manuel et jouer quelques tournois automatiquement (« Simuler jusqu'à mon départ », puis saisir des scores et « Valider le trou »).
+- Chaque push sur GitHub construit et teste le jeu (onglet Actions). Le fichier prêt à jouer, `IndoorGolfCareer`, se télécharge depuis la page de l'exécution.
 - **Sauvegardes existantes** : un changement d'équilibre ne doit pas casser une partie en cours. Utiliser un drapeau de migration dans `loadState` (exemples : `lkv`, `rpv`), et indiquer à Max ce qui s'applique tout de suite et ce qui ne vaut que pour les prochaines recrues.
 
 ## À chaque nouvelle version
@@ -40,6 +50,11 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 ## Terrains
 
 Mise à jour depuis Simulator Golf Tour : suivre `docs/terrains.md`. L'environnement cloud « Gsprogolfcareersim » autorise `simulatorgolftour.com`.
+
+## Dépôts GitHub
+
+- **Le seul dépôt du jeu est `maxjujulien-cmd/Gsprogolfcareersim`.** L'ancien dépôt `claude-golf-career-simulator-improvements-ff32jf` (10-11 novembre 2026, jusqu'à environ la v399) est dépassé : tout son contenu est dans la v416, importée ici le 20 novembre. Ne plus y travailler.
+- Fusionner le travail dans `main` par une pull request quand Max le demande.
 
 ## Si Max a modifié le jeu ailleurs
 
