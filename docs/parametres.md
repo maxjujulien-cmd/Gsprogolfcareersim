@@ -2,7 +2,7 @@
 
 Ce document résume les paramètres qui décident du niveau des golfeurs et de leurs scores : ce qu'ils font, où ils se trouvent et pourquoi ils ont ces valeurs. Il sert de mémoire entre les sessions, parce que les conversations précédentes ne suivent pas d'une session à l'autre.
 
-> **Source** : version **v418** du jeu (22 novembre 2026). La v417 et la v418 ont été faites dans le dépôt à partir de la v416 (fichier `IndoorGolfCareer-v416.html` fourni par Max le 20 novembre 2026). v417 : réglage « Écart en bas de l'échelle » (section 2). v418 : seuil de carte des recrues recalibré et profils de départ des recrues (section 6). L'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) est encore en v385. À chaque nouvelle version produite ailleurs, il faut la réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
+> **Source** : version **v418** du jeu (22 novembre 2026). La v417 et la v418 ont été faites dans le dépôt à partir de la v416 (fichier `IndoorGolfCareer-v416.html` fourni par Max le 20 novembre 2026). v417 : réglage « Écart en bas de l'échelle » (section 2). v418 : seuil de carte des recrues recalibré et profils de départ des recrues (section 6). L'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) est en v418 depuis le 22 novembre 2026. À chaque nouvelle version produite ailleurs, il faut la réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
 
 Échelle utilisée partout : **coups par rapport au par**, sur une ronde de 18 trous.
 
