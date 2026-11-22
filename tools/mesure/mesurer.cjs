@@ -8,6 +8,7 @@
 //                               (le vent et la distance suivent la même courbe adoucie)
 //   "_prof": [0.25, 0.50, 0.25]  profil de départ des recrues (brut / standard / prêt), vrai plafond inchangé :
 //                               brut 30-50 % du plafond, standard comme avant +0,05, prêt 75-92 %
+//   "_js": "VL.maxL[2] = 175"   code libre évalué dans la page avant la partie
 //   "_profOpt": { "std": 0, "lbP": 0.5 }  options : ajout au départ standard, chance d'éclosion tardive des bruts
 // Chaque monde joue d'abord les 20 saisons cachées du jeu (non mesurées), puis les saisons demandées.
 const { chromium } = require('playwright');
@@ -57,6 +58,7 @@ const PAGE = process.argv[2], WORLDS = +(process.argv[3] || 3), SEASONS = +(proc
         }
         return origSeason.apply(this, arguments);
       };
+      if (cfgx._js) (0, eval)(cfgx._js);   // essai libre : code évalué dans la page avant la partie (ex. changer VL.minL)
       if (cfgx._f0) ROOK.f0 += cfgx._f0;
       if (cfgx._k != null && cfgx._k !== 1) {
         const mu0 = mu, K = cfgx._coude || 450, k = cfgx._k, mK = mu0(K);
@@ -78,7 +80,7 @@ const PAGE = process.argv[2], WORLDS = +(process.argv[3] || 3), SEASONS = +(proc
           return g;
         };
       }
-      ['_f0', '_coude', '_k', '_prof', '_profOpt'].forEach(x => delete cfgx[x]);
+      ['_f0', '_coude', '_k', '_prof', '_profOpt', '_js'].forEach(x => delete cfgx[x]);
       newGame('Banc', 4, 'manual', 2000, SEASONS, false, true);
       Object.assign(S.cfg || (S.cfg = {}), cfgx); setCfg(S.cfg);
       const P = S.presim;

@@ -324,6 +324,28 @@ Recalibrage du seuil de carte, avec `lowK` = 0,70 (v417, 3 mondes × 30 saisons)
 
 Des recrues plus prêtes rapprochent la classe de recrues de la L4 et placent plus de recrues directement en L3 et en L2. Mais elles remontent tout le circuit, et l'écart L3 → L4 ne bouge pas (+3,7 à +4,0).
 
+### Écart L3 → L4 après la v418 : la courbe ne suffit plus, la taille des ligues décide (22 novembre 2026)
+
+Essais sur la v418 (3 mondes × 30 saisons), avec une L4 gardée autour de 150 golfeurs (seuil de carte ajusté au besoin) :
+
+| Essai | Coupures L1 / L2 / L3 / L4 | Écarts | Tailles L1 / L2 / L3 / L4 | Promus restés en L3 |
+|---|---|---|---|---|
+| v418 (coude 450, 70 %) | +3,2 / +5,7 / +8,2 / +12,9 | +2,5 / +2,6 / **+4,7** | 131 / 147 / 167 / 152 | 81 % |
+| Coude 450, 60 %, carte +3 | +3,2 / +5,8 / +8,4 / +12,9 | +2,5 / +2,6 / +4,6 | 131 / 148 / 166 / 147 | 80 % |
+| Coude 450, 50 %, carte +2,5 | +3,2 / +5,8 / +8,4 / +12,8 | +2,7 / +2,6 / +4,4 | 131 / 148 / 167 / 143 | 79 % |
+| Coude 500, 70 % | +3,1 / +5,6 / +8,0 / +12,6 | +2,4 / +2,5 / +4,5 | 131 / 148 / 166 / 151 | 81 % |
+| Coude 550, 75 % | +3,2 / +5,8 / +8,1 / +12,7 | +2,6 / +2,3 / +4,6 | 131 / 148 / 168 / 147 | 82 % |
+| Golfeurs faibles moins irréguliers (pente de l'écart-type 0,6 au lieu de 1,15) | +3,2 / +5,7 / +8,1 / +13,0 | +2,5 / +2,4 / +4,9 | 131 / 148 / 167 / 151 | 78 % |
+| L3 de 150 à 180 golfeurs (au lieu de 160-190) | +3,1 / +5,5 / +8,2 / +12,5 | +2,4 / +2,7 / +4,3 | 131 / 147 / 155 / 157 | 77 % |
+| L3 de 140 à 170 | +3,2 / +5,6 / +8,5 / +12,2 | +2,4 / +3,0 / +3,7 | 131 / 147 / 145 / 164 | 75 % |
+| **L2 de 135 à 170 et L3 de 140 à 170** | +3,1 / +5,8 / +8,3 / +12,0 | **+2,7 / +2,5 / +3,7** | 131 / 138 / 144 / 166 | 77 % |
+
+Ce qu'on en retient :
+- **À taille de L4 égale, la courbe ne fait presque plus rien** (+4,4 à +4,7), et l'irrégularité des faibles non plus.
+- **L'écart total entre la coupure de la L1 et celle de la L4 est à peu près fixe** (environ 9 à 10 coups). Il vient de la répartition du talent. C'est la **taille des ligues** qui décide comment cet écart se répartit entre les paliers : la coupure de chaque ligue se fait au 65e golfeur, donc elle tombe au rang 65, L1 + 65, L1 + L2 + 65 et L1 + L2 + L3 + 65 du circuit. Aujourd'hui, les ligues grossissent vers le bas (131 / 147 / 167), alors que le talent se raréfie en bas. Le dernier palier est donc le plus large.
+- **L2 et L3 un peu plus petites** donnent des paliers presque réguliers (+2,7 / +2,5 / +3,7). En contrepartie, la L4 grossit (166 golfeurs, 40 % passent la coupure au lieu de 43 %). En prime, il y a plus d'éclosions tardives : 0,50 par saison au lieu de 0,32. Les autres mesures de variété restent semblables.
+- Les tailles se règlent dans `VL.minL` et `VL.maxL` (`src/js/10-mode-commissaire.js`, ligne 200). Décision en attente.
+
 ### Profils de départ des recrues (22 novembre 2026, essai)
 
 **Souhait de Max** : des recrues un peu plus « game ready », sans rendre le monde plus fort, et surtout **un monde varié où les golfeurs n'ont pas tous le même chemin**. Par exemple : certains commencent en L2 et y restent toute leur carrière, d'autres traînent en L4 puis font un gros bond jusqu'en L1, comme dans le vrai golf.
