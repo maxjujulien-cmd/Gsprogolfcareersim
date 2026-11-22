@@ -398,6 +398,25 @@ Ce qu'on en retient :
 - Les éclosions tardives montent (0,32 → 0,48 par saison).
 - **Le seuil de carte en coups pose problème** : il faut le recalibrer à chaque changement de courbe. Une règle en part de la classe (par exemple, les 13 % les moins bons de la classe de recrues n'ont pas de carte) garderait la taille de la L4 stable, quelle que soit la courbe.
 
+**Biais de l'élan (« Pression en direct et élan », `liveSim`)** (trouvé le 22 novembre 2026). Le descriptif dit que la moyenne des rondes ne bouge pas, mais le recentrage se fait avec une seule constante (`LIVE.C`, `src/js/07-pression-en-direct-elan-et.js`, ligne 9), calibrée pour un golfeur moyen. Les golfeurs faibles font plus de bogeys et de doubles, donc les dérapages l'emportent chez eux. Biais mesuré par ronde (tempérament neutre, 12 000 rondes par point) :
+
+| Score visé par ronde | 0 | +2 | +4 | +6 | +8 | +10 | +12 | +14 | +16 | +18 | +20 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Biais de l'élan | −0,29 | −0,09 | +0,05 | +0,10 | +0,23 | +0,44 | +0,60 | +0,70 | +0,91 | +1,03 | +1,14 |
+
+Sur la coupure, ce biais ajoute environ 0 / 0,1 / 0,3 / 1,0 coup en L1 / L2 / L3 / L4.
+
+Essai de correction : on retire `liveBias(d) / 18` à chaque trou, `liveBias` interpolant la table ci-dessus selon le décalage de la ronde `d`. Le biais résiduel tombe sous ±0,2.
+
+| Essai | Coupures L1 / L2 / L3 / L4 | Écarts | Taille L4 |
+|---|---|---|---|
+| v418 | +3,2 / +5,7 / +8,2 / +12,9 | +2,5 / +2,6 / +4,7 | 152 |
+| Élan corrigé | +3,2 / +5,5 / +7,6 / +11,6 | +2,2 / +2,2 / +4,0 | 163 |
+| Élan corrigé, 2e tirage | +3,2 / +5,3 / +7,6 / +11,7 | +2,1 / +2,2 / +4,1 | 163 |
+
+- La correction réduit **tous** les écarts. Les écarts du milieu, que Max trouve parfaits à +2,5 / +2,6, tombent à +2,2. Le rapport entre l'écart L3 → L4 et ceux du milieu ne s'améliore pas : environ 1,9 avant comme après, à taille de L4 égale (la L4 regrossit à 163, ce qui gonfle encore la baisse).
+- **Non intégrée** pour l'instant : c'est une vraie correction de bogue, mais elle change l'échelle de tout le circuit sans régler la forme. À reprendre si on veut des moyennes exactes ; il faudrait alors compenser avec le réglage `gap` (environ ×1,15) pour retrouver +2,5 / +2,6 au milieu.
+
 **Retraite forcée des derniers de la L4** (idée de Max, essai du 22 novembre 2026) : à la fin de chaque saison, les N derniers du classement de la L4 qui ont l'âge minimum prennent leur retraite.
 
 | Essai | Écarts de coupure | Coupure L4 | Taille L4 | Éclosions tardives par saison |
