@@ -262,6 +262,43 @@ La régularité `g.v` dérive d'une saison à l'autre et revient vers la nature 
 
 ---
 
+## 7 bis. Talent et handicap
+
+Il n'y a pas de table fixe « talent → handicap » dans le code. Chaque golfeur a un vrai Handicap Index, calculé comme au golf réel (méthode WHS, `src/js/36-handicap-index.js`) à partir des rondes simulées. Trois choses relient le talent au handicap.
+
+**1. Index réellement obtenu selon le niveau** (mesuré le 22 novembre 2026 sur la v418, circuit de référence sans défi, 2 mondes × 10 saisons après les 20 saisons cachées) :
+
+| Niveau | Titre | Index médian, courbe 100 % (avant v417) | Index médian, v418 (70 %) |
+|---|---|---|---|
+| 0-149 | Weak | 14,3 | 12,1 |
+| 150-299 | Amateur | 12,0 | 10,7 |
+| 300-449 | Average | 9,0 | 8,1 |
+| 450-599 | Semi-Pro | 5,6 | 5,8 |
+| 600-699 | Pro | 3,7 | 3,8 |
+| 700-799 | Established Pro | 1,8 | 2,0 |
+| 800-899 | Elite | 0,6 | 0,5 |
+| 900-949 | Hall Of Famer | −0,5 | −0,7 |
+| 950-1000 | Generational | −0,6 | −0,9 |
+
+Index médian par ligue : L1 0,2 → 0,4 ; L2 2,8 → 3,0 ; L3 5,3 → 5,7 ; L4 10,2 → 9,4 (courbe 100 % → v418).
+
+**2. Index attendu d'un golfeur** (Play Now, `src/js/31-play-now-tournoi-rapide-hors.js`, ligne 29) : `index ≈ 0,83 × (mu(niveau) + cotes de jeu) − 0,6`, sur le circuit de référence.
+
+**3. Ton handicap règle le niveau du circuit** (`LVL`, `src/js/05-cotes-de-jeu-fairways-fers.js`, lignes 11-22, calibré en v223). À la création d'une partie, ton handicap et ton défi donnent un nombre de coups ajoutés à chaque ronde de tous les golfeurs simulés (`S.cfg.lvl`), pour que tu te retrouves au rang visé. Index du golfeur repère sur le circuit de référence (0 coup ajouté) :
+
+| Défi | Index du repère, circuit de référence |
+|---|---|
+| L1 · Aspirant chaque année | −2,0 |
+| L1 · Joueur établi | 1,2 |
+| L2 · Aspirant | 1,3 |
+| L2 · Joueur établi | 4,9 |
+| L3 · Joueur établi | 7,5 |
+| L4 · Joueur établi | 11,3 |
+
+Exemple : handicap 4 et « L2 · Aspirant » donnent environ +3,0 coups par ronde à tous les adversaires. Tous les index du circuit sont alors plus élevés d'environ 2,5.
+
+⚠️ Cette table date de la v223. La v417 a amélioré l'index des golfeurs faibles (L4 : 10,2 → 9,4). Les repères « L4 · Joueur établi » et, un peu, « L3 · Joueur établi » sont donc probablement à recalibrer, ainsi que les estimations affichées à la création (`LVL.win`, `LVL.cut`, `LVL.rnd` pour la L4). Les repères L1 et L2 ne changent pas.
+
 ## 8. Où changer les choses
 
 | Je veux… | Paramètre | Où |
