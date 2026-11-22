@@ -80,3 +80,17 @@ Banc d'essai (3 mondes × 30 saisons, v420, outil `tools/mesure/vedettes.cjs`). 
 - Au-delà de 1,5, le gain ralentit.
 - Les coupures de la L2 à la L4 ne bougent pas. Celle de la L1 baisse d'environ 0,2, donc l'écart L1 → L2 passe d'environ +2,4 à +2,7.
 - Le nombre de Generational reste autour de 4 à 5.
+
+**Réaction de Max** : l'avance 1,5 rend les vedettes trop dominantes. Sa proposition : des golfeurs plus constants au quotidien, avec plus de rondes de feu et de rondes catastrophes pour garder les surprises.
+
+| Essai | Generational : victoires / top 10 / coupure ratée | Rang final médian | Top 5 / top 10 de la saison | HoF : victoires / top 10 | Écarts de coupure |
+|---|---|---|---|---|---|
+| Constance 70 % (`rand` 0,7), feu 5 %, catastrophes 6 % | 4,2 % / 29 % / 22 % | 14 | 27 % / 41 % | 2,2 % / 20 % | +2,3 / +2,5 / +3,8 |
+| Constance 50 %, feu 6 %, catastrophes 7 % | 4,2 % / 29 % / 21 % | 14 | 25 % / 41 % | 2,0 % / 20 % | +2,5 / +2,6 / +3,9 |
+| Constance 30 %, feu 7 %, catastrophes 8 % | 4,8 % / 30 % / 20 % | 12 | 32 % / 47 % | 2,4 % / 21 % | +2,4 / +2,4 / +3,9 |
+| Constance 50 %, 6 % / 7 % + avance 0,6 | 5,1 % / 35 % / 17 % | 10 | 34 % / 51 % | 2,4 % / 22 % | +2,4 / +2,5 / +3,9 |
+| **Constance 70 %, 5 % / 6 % + avance 0,8** | **6,0 % / 38 % / 16 %** | **9** | **39 % / 56 %** | 2,4 % / 23 % | +2,5 / +2,4 / +4,0 |
+| Constance 70 %, 5 % / 6 % + avance 1,0 | 6,8 % / 42 % / 14 % | 8 | 40 % / 58 % | 2,8 % / 25 % | +2,5 / +2,4 / +3,8 |
+
+- La constance seule change peu : le hasard trou par trou domine sur une ronde de 18 trous.
+- Un mélange avec une avance modérée (0,8 à 1,0) donne des vedettes nettement plus présentes sans écraser le circuit.
