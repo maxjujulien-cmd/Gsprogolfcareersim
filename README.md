@@ -68,7 +68,7 @@ Point de départ vérifié : au moment de son import, le code redonnait le fichi
 
 Pour mesurer l'équilibre du monde (coupures, ligues, recrues, carrières) : voir `tools/mesure/` (en-tête de `mesurer.cjs`).
 
-L'artifact publié est en v418 depuis le 22 novembre 2026 (`dist/index.html` ; les trois fichiers de données n'ont pas changé).
+L'artifact publié est en v420 depuis le 22 novembre 2026 (`dist/index.html` ; les trois fichiers de données n'ont pas changé).
 Pour la v385, `index.html` était identique à la page
 de l'artifact, à une balise `</body></html>` en double près, retirée en fin de fichier.
 
