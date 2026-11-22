@@ -417,6 +417,45 @@ Essai de correction : on retire `liveBias(d) / 18` à chaque trou, `liveBias` in
 - La correction réduit **tous** les écarts. Les écarts du milieu, que Max trouve parfaits à +2,5 / +2,6, tombent à +2,2. Le rapport entre l'écart L3 → L4 et ceux du milieu ne s'améliore pas : environ 1,9 avant comme après, à taille de L4 égale (la L4 regrossit à 163, ce qui gonfle encore la baisse).
 - **Non intégrée** pour l'instant : c'est une vraie correction de bogue, mais elle change l'échelle de tout le circuit sans régler la forme. À reprendre si on veut des moyennes exactes ; il faudrait alors compenser avec le réglage `gap` (environ ×1,15) pour retrouver +2,5 / +2,6 au milieu.
 
+**Plafonds des recrues resserrés sous 450** (essai du 22 novembre 2026). Le vrai plafond tiré pour une recrue (`drawOverall`) est rapproché de 450 quand il est plus bas : `450 − (450 − x) × F`. Rien ne change au-dessus de 450. Idée : la coupure de la L4 se fait sur le golfeur au rang L1 + L2 + L3 + 65 ; avec plus de golfeurs entre 350 et 550, ce golfeur est meilleur, sans toucher le haut.
+
+| Essai | Coupures L1 / L2 / L3 / L4 | Écarts | Tailles L1 / L2 / L3 / L4 | Promus restés L3 | Éclosions tardives |
+|---|---|---|---|---|---|
+| v418 | +3,2 / +5,7 / +8,2 / +12,9 | +2,5 / +2,6 / +4,7 | 131 / 147 / 167 / 152 | 81 % | 0,32 |
+| F = 0,8 | +3,3 / +5,9 / +8,3 / +12,9 | +2,6 / +2,4 / +4,6 | 131 / 147 / 166 / 151 | 79 % | 0,51 |
+| F = 0,65 | +3,1 / +5,7 / +8,1 / +12,5 | +2,6 / +2,5 / +4,4 | 131 / 148 / 166 / 154 | 80 % | 0,60 |
+| F = 0,5 | +3,3 / +5,8 / +8,3 / +12,4 | +2,5 / +2,5 / +4,1 | 131 / 148 / 165 / 155 | 79 % | 0,42 |
+| **F = 0,35** | +3,2 / +5,7 / +8,2 / +11,9 | **+2,6 / +2,5 / +3,6** | 131 / 148 / 167 / 161 | 82 % | 0,44 |
+| F = 0,5 et L3 de 150 à 180 | +3,3 / +5,7 / +8,3 / +11,8 | +2,4 / +2,6 / +3,4 | 131 / 148 / 155 / 165 | 78 % | 0,44 |
+| F = 0,35 et L3 de 150 à 180 | +3,2 / +5,8 / +8,4 / +11,9 | +2,5 / +2,7 / +3,5 | 131 / 147 / 155 / 157 | 78 % | 0,50 |
+| **F = 0,5, L2 de 135 à 170, L3 de 140 à 170** | +3,1 / +5,8 / +8,3 / +11,5 | **+2,6 / +2,5 / +3,2** | 131 / 138 / 145 / 169 | 76 % | 0,54 |
+
+- **Premier levier qui réduit le dernier palier sans toucher le milieu ni les tailles de ligues** : avec F = 0,35, +2,6 / +2,5 / +3,6. Les autres mesures (taille de la L4, part du top 5, montées, variété des carrières) restent semblables.
+- Combiné aux tailles de ligues, on descend à +3,2.
+- **Ce que ça coûte** : il y a moins de golfeurs très faibles. Avec F = 0,35, le plus petit plafond possible devient environ 290 au lieu de 0. Une recrue peut encore partir très bas (une recrue brute part à 30 % de son plafond), mais elle finit au moins vers le niveau Average.
+
+Essais écartés au passage :
+- Sans retraite forcée en L4 (`forcedL4` jamais) : +3,0 / +2,9 / +3,6, mais tout le circuit s'affaiblit (médiane L3 486 au lieu de 543, coupures du haut +0,4 à +1,3). La règle garde le circuit fort.
+- Retraite « par faiblesse » seulement sous 400 au lieu de 500 : aucun effet.
+
+**Répartition réelle des niveaux sur le circuit** (toutes ligues, début de saison, 3 mondes × 30 saisons), comparée au tableau de référence de Max (`OVERALL_DIST`) :
+
+| Tranche | Tableau de Max | v418 | F = 0,5 | F = 0,35 |
+|---|---|---|---|---|
+| 0-99 | 3 % | 1,1 % | 0,1 % | 0,0 % |
+| 100-199 | 8 % | 2,8 % | 1,5 % | 1,0 % |
+| 200-299 | 11 % | 5,2 % | 5,4 % | 4,6 % |
+| 300-399 | 13 % | 8,4 % | 10,2 % | 10,8 % |
+| 400-499 | 14 % | 13,3 % | 14,3 % | 15,4 % |
+| 500-599 | 14 % | 17,8 % | 18,0 % | 18,1 % |
+| 600-699 | 13 % | 17,4 % | 17,9 % | 17,6 % |
+| 700-799 | 13 % | 16,6 % | 15,3 % | 15,3 % |
+| 800-899 | 9 % | 12,3 % | 12,3 % | 11,6 % |
+| 900-949 | 1,9 % | 3,0 % | 3,1 % | 3,3 % |
+| 950-1000 | 0,1 % | 2,0 % | 2,0 % | 2,1 % |
+
+Le circuit réel est déjà bien plus fort que le tableau : 9 % des golfeurs sous 300 (contre 22 %), et 5 % au-dessus de 900 (contre 2 %). Le tableau sert à tirer les plafonds, mais le développement, les retraites et les recrues prêtes poussent le circuit vers le haut. À noter : **2 % de golfeurs Generational (≥ 950) au lieu de 0,1 %**, soit une douzaine en même temps sur le circuit.
+
 **Retraite forcée des derniers de la L4** (idée de Max, essai du 22 novembre 2026) : à la fin de chaque saison, les N derniers du classement de la L4 qui ont l'âge minimum prennent leur retraite.
 
 | Essai | Écarts de coupure | Coupure L4 | Taille L4 | Éclosions tardives par saison |
