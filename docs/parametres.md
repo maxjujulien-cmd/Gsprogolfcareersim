@@ -289,6 +289,24 @@ Les valeurs par défaut des réglages sont dans `DEFAULT_CFG` (`src/js/02-carrie
 - **Montée L4 → L3** : les promus passent 40 % des coupures en L3 à leur première saison, contre 45 % pour les promus en L2 et en L1. 79 % restent en L3 ou montent la saison suivante. **La montée n'est donc pas brutale** : l'écart vient de la moitié faible de la L4, qui tire la coupure vers le bas, pas d'un mur pour les meilleurs de la L4.
 - Les chiffres observés par Max dans sa partie (+4 / +7 / +11 / +18) sont environ 1,3 fois plus élevés partout. Ça laisse penser à des réglages différents dans sa sauvegarde : écart (`gap`) au-dessus de 1, ou des terrains plus durs ou au slope plus élevé. Les proportions entre les ligues restent les mêmes.
 
+**Recrues à leur arrivée** (4 000 recrues tirées avec le moteur) : niveau médian 226 (10e centile 60, 90e 429), contre 356 pour les golfeurs déjà en L4. Environ 40 recrues par saison. Le nombre de recrues n'est pas un réglage : il remplace les retraités pour garder le circuit autour de 600 golfeurs. Ajouter des recrues ferait donc baisser le niveau de la L4 au lieu de l'augmenter.
+
+**Essais** (22 novembre 2026, mêmes conditions que la référence, appliqués seulement dans le banc d'essai) :
+
+| Essai | Coupures L1 / L2 / L3 / L4 | Écart L3 → L4 (par monde) | L4 10e / 50e centile | Médiane L3 | Top 5 gagne (L1 / L4) | Promus en L3 : coupures / restés |
+|---|---|---|---|---|---|---|
+| A. Référence | +3,1 / +5,8 / +8,2 / +13,6 | +5,5 (5,5 / 5,5 / 5,4) | 167 / 360 | 549 | 17 % / 41 % | 40 % / 79 % |
+| B. Recrues plus prêtes (`ROOK.f0` +0,10) | +2,9 / +5,2 / +7,4 / +12,6 | +5,1 (5,1 / 5,0 / 5,4) | 191 / 388 | 576 | 15 % / 37 % | 40 % / 80 % |
+| C. Courbe adoucie sous 450 (k = 0,75) | +3,2 / +5,6 / +7,9 / +11,6 | **+3,7** (3,7 / 3,8 / 3,7) | 148 / 357 | 560 | 20 % / 40 % | 42 % / 82 % |
+| D. Recrues +0,05 et k = 0,85 | +3,2 / +5,6 / +7,7 / +11,9 | +4,2 (4,1 / 4,2 / 4,3) | 163 / 369 | 566 | 18 % / 38 % | 42 % / 81 % |
+| E. Recrues +0,10 et k = 0,75 | +3,0 / +5,4 / +7,4 / +11,4 | +4,0 (4,0 / 4,0 / 4,2) | 162 / 378 | 585 | 16 % / 36 % | 41 % / 81 % |
+
+Ce qu'on en retient :
+- **Les recrues plus prêtes (B) remontent tout le circuit**, pas seulement la L4 : la médiane de la L3 gagne 27 points et toutes les coupures baissent. L'écart L3 → L4 ne recule que de 0,4 coup.
+- **La courbe adoucie (C) vise juste** : l'écart L3 → L4 passe de +5,5 à +3,7, les coupures de la L1 et de la L2 bougent de 0,3 coup ou moins, et la montée vers la L3 devient un peu plus facile.
+- Combiner les deux (D, E) fait moins bien que C seul, parce que les recrues remontent aussi la L3.
+- D'un monde à l'autre, l'écart ne varie que de 0,1 à 0,4 coup : les différences entre les essais sont réelles.
+
 **Causes probables, trouvées dans le code** :
 
 1. `MU.GAM = 1,25` : 100 points de talent valent environ 2,5 coups en bas de l'échelle contre 1,8 en haut.

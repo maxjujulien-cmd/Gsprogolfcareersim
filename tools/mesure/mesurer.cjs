@@ -2,6 +2,10 @@
 // Usage : npm run build, puis
 //   node tools/mesure/mesurer.cjs dist/IndoorGolfCareer.html [mondes=3] [saisons=30] [réglages JSON, ex. {"gap":1.1}] > mesure.json
 //   node tools/mesure/analyser.cjs mesure.json
+// Essais sans modifier le jeu (clés spéciales dans le JSON des réglages) :
+//   "_f0": 0.10            fraction de départ des recrues augmentée (ROOK.f0 + 0.10)
+//   "_coude": 450, "_k": 0.75   sous le niveau 450, la courbe talent → coups est adoucie d'un facteur k
+//                               (le vent et la distance suivent la même courbe adoucie)
 // Chaque monde joue d'abord les 20 saisons cachées du jeu (non mesurées), puis les saisons demandées.
 const { chromium } = require('playwright');
 const path = require('path');
@@ -47,6 +51,13 @@ const PAGE = process.argv[2], WORLDS = +(process.argv[3] || 3), SEASONS = +(proc
         }
         return origSeason.apply(this, arguments);
       };
+      if (cfgx._f0) ROOK.f0 += cfgx._f0;
+      if (cfgx._k != null && cfgx._k !== 1) {
+        const mu0 = mu, K = cfgx._coude || 450, k = cfgx._k, mK = mu0(K);
+        mu = o => o >= K ? mu0(o) : mK + (mu0(o) - mK) * k;
+        condFactor = g => { const o = clamp(effOverall(g), -50, 1000); return 0.85 + 0.15 * ((mu(o) - MU.A) / MU.B) / Math.pow(0.5, MU.GAM); };
+      }
+      ['_f0', '_coude', '_k'].forEach(x => delete cfgx[x]);
       newGame('Banc', 4, 'manual', 2000, SEASONS, false, true);
       Object.assign(S.cfg || (S.cfg = {}), cfgx); setCfg(S.cfg);
       const P = S.presim;
