@@ -346,6 +346,19 @@ Ce qu'on en retient :
 - **L2 et L3 un peu plus petites** donnent des paliers presque réguliers (+2,7 / +2,5 / +3,7). En contrepartie, la L4 grossit (166 golfeurs, 40 % passent la coupure au lieu de 43 %). En prime, il y a plus d'éclosions tardives : 0,50 par saison au lieu de 0,32. Les autres mesures de variété restent semblables.
 - Les tailles se règlent dans `VL.minL` et `VL.maxL` (`src/js/10-mode-commissaire.js`, ligne 200). Décision en attente.
 
+**Retraite forcée des derniers de la L4** (idée de Max, essai du 22 novembre 2026) : à la fin de chaque saison, les N derniers du classement de la L4 qui ont l'âge minimum prennent leur retraite.
+
+| Essai | Écarts de coupure | Coupure L4 | Taille L4 | Éclosions tardives par saison |
+|---|---|---|---|---|
+| v418 | +2,5 / +2,6 / +4,7 | +12,9 | 152 | 0,32 |
+| 30 derniers, 24 ans et plus | +2,4 / +2,5 / +5,0 | +13,2 | 148 | 0,39 |
+| 20 derniers, 24 ans et plus | +2,5 / +2,4 / +4,9 | +13,0 | 149 | 0,46 |
+| 30 derniers, 26 ans et plus | +2,6 / +2,3 / +4,9 | +13,0 | 153 | 0,38 |
+
+**Aucun effet sur l'écart.** Deux raisons :
+- **La coupure de la L4 dépend du haut de la L4, pas du bas.** C'est le 65e meilleur golfeur de la L4, donc le golfeur au rang L1 + L2 + L3 + 65 du circuit. Retirer les plus faibles ne change pas qui est 65e.
+- **Le bas de la L4, ce sont surtout des jeunes recrues** : parmi les 30 golfeurs les plus faibles de la L4, 77 % ont moins de 24 ans et 34 % viennent d'arriver. La règle touche peu de monde, et chaque place libérée va à une nouvelle recrue, aussi faible.
+
 ### Profils de départ des recrues (22 novembre 2026, essai)
 
 **Souhait de Max** : des recrues un peu plus « game ready », sans rendre le monde plus fort, et surtout **un monde varié où les golfeurs n'ont pas tous le même chemin**. Par exemple : certains commencent en L2 et y restent toute leur carrière, d'autres traînent en L4 puis font un gros bond jusqu'en L1, comme dans le vrai golf.
