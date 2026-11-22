@@ -68,6 +68,14 @@ function famProfileHTML(id) {
 /* v247 : âge des recrues de 17 à 25 ans, surtout 17 à 20 (≈ 70 %) ; les plus vieilles sont des cas moins fréquents */
 const ROOK_AGE_W = [[17, 16], [18, 20], [19, 19], [20, 15], [21, 9], [22, 7], [23, 6], [24, 4], [25, 4]];
 function rookieAge() { let r = Math.random() * ROOK_AGE_W.reduce((a, x) => a + x[1], 0); for (const [a, w] of ROOK_AGE_W) { r -= w; if (r < 0) return a; } return 19; }
+/* v418 : profils de départ des recrues. Le vrai plafond ne change pas, seul le point de départ change :
+   brut (25 %) = 30 à 50 % du plafond, et une fois sur deux une éclosion tardive (2 à 4 ans de retard) ;
+   standard = comme avant ; prêt à jouer (CFG.rcReady %, 25 par défaut) = 75 à 92 % du plafond, peu de marge.
+   Simulation (3 mondes × 30 saisons) : 4 fois plus de recrues placées directement en L2, 2 fois plus en L3, environ
+   1 recrue en L1 aux 3 saisons, 2,5 fois plus de golfeurs qui plafonnent dans leur ligue de départ, autant d'éclosions
+   tardives et un circuit aussi fort qu'avant (médianes des ligues à ±11 points). Voir docs/parametres.md. */
+const RPROF = { rawP: 0.25, raw: [0.30, 0.50], ready: [0.75, 0.92], lbP: 0.5 };
+function rpDraw() { const rd = clamp((CFG.rcReady == null ? 25 : +CFG.rcReady) / 100, 0, 0.6), u = Math.random(); return u < RPROF.rawP ? 0 : u < 1 - rd ? 1 : 2; }
 function newRookie(id, used) {
   const age = rookieAge();
   const ph = phenOn() && S && S.G && !phenActive() && Math.random() < PHEN.p;
@@ -75,7 +83,10 @@ function newRookie(id, used) {
   let pt = ph ? PHEN.ptMin + Math.random() * (PHEN.ptMax - PHEN.ptMin) : clamp(ROOK.ptC + (drawOverall() - ROOK.ptC) * ROOK.ptS * eraMul(), 20, 995);
   if (F && F.rel !== 'cousin' && F.peak > 0) pt = clamp(pt + FAM.inh * (F.peak - pt), 20, 995);   // un peu du talent familial
   const t = (ROOK.ageMax - age) / (ROOK.ageMax - ROOK.ageMin);
-  const frac = clamp(ROOK.f0 + (1 - t) * ROOK.f1 + gauss() * 0.08, 0.25, 0.97);
+  let frac = clamp(ROOK.f0 + (1 - t) * ROOK.f1 + gauss() * 0.08, 0.25, 0.97);
+  const rp = ph ? 1 : rpDraw();   // v418 : profil de départ (0 brut, 1 standard, 2 prêt à jouer) ; le vrai plafond ne change pas
+  if (rp === 0) frac = RPROF.raw[0] + Math.random() * (RPROF.raw[1] - RPROF.raw[0]);
+  else if (rp === 2) frac = RPROF.ready[0] + Math.random() * (RPROF.ready[1] - RPROF.ready[0]);
   const o = clamp(Math.min(pt - 5, pt * frac), 5, ROOK.cap);
   const g = newGolfer(id, used, o, age);
   g.o = o; g.op = o; g.cs = 0; g.sg = 0;
@@ -83,6 +94,7 @@ function newRookie(id, used) {
   g.p = clamp(est, o, 1000);   // estimation des dépisteurs
   if (g.bio) g.bio.pm = mediaPick(Object.assign({}, g, { pt }));   // v286 : la personnalité tient compte du potentiel annoncé
   initDev(g); g.pt = pt; (g.tr || []).forEach(t => { t.sn = 0; t.rv = null; });   // une recrue arrive sans talent connu
+  g.rp = rp; if (rp === 0 && !g.lb && Math.random() < RPROF.lbP) g.lb = 2 + Math.floor(Math.random() * 3);   // v418 : un talent brut éclot souvent tard
   if (ph) phenMake(g);
   if (F) { try { famApply(g, F, used); } catch (e) { } }
   // v247 : rarement (CFG.rcProd %), une recrue arrive déjà prête (Pro à Elite). Son potentiel n'est pas garanti :
@@ -91,7 +103,7 @@ function newRookie(id, used) {
     const o2 = 640 + Math.random() * 200, room = Math.max(8, (40 + (25 - age) * 14) * Math.exp(gauss() * 0.6));
     g.o = g.op = o2; g.pt = clamp(o2 + room, o2 + 5, 995);
     let est = g.pt + gauss() * ROOK.scout; if (est > ROOK.scPiv) est = ROOK.scPiv + (est - ROOK.scPiv) * ROOK.scS;
-    g.p = clamp(est, o2, 1000); initDev(g); g.pt = clamp(o2 + room, o2 + 5, 995); g.prd = 1;
+    g.p = clamp(est, o2, 1000); initDev(g); g.pt = clamp(o2 + room, o2 + 5, 995); g.prd = 1; delete g.rp;
   }
   return g;
 }

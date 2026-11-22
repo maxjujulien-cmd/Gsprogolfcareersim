@@ -17,14 +17,17 @@ function rcScout(g) { const q = rcOdds(g); return q.pe + 0.5 * q.ps + 0.35 * cla
 function rcCert(g) { const pe = rcOdds(g).pe; return pe >= 0.8 ? ['sure', 'Valeur sûre'] : pe >= 0.52 ? ['solid', 'Solide pari'] : pe >= 0.2 ? ['mid', 'Bon pari'] : pe >= 0.034 ? ['risk', 'Pari risqué'] : ['lotto', 'Billet de loterie']; }
 function rcReport(g) {
   const v = g.v0 || g.v || 1, cl = g.cl || 0, out = [], pick = (arr, k) => arr[hashN(g.id, k) % arr.length];
+  if (g.rp === 2) out.push(pick(['Prêt à jouer : son jeu est déjà rodé.', 'Prêt à jouer tout de suite : peu de choses à corriger.'], 6));   // v418 : profil de départ
+  else if (g.rp === 0) out.push(pick(['Talent brut : son jeu est encore loin d’être rodé.', 'Un diamant brut : beaucoup de travail avant de voir ce qu’il vaut.'], 6));
   if (g.p >= 820) out.push(pick(['Un talent qui saute aux yeux.', 'Le genre de recrue qu’on voit rarement passer.', 'Tous les dépisteurs ont noté son nom.'], 1));
   if (v <= 0.82) out.push(pick(['Très régulier, rarement spectaculaire.', 'Une machine à faire des pars : il fait toutes ses coupures.'], 2));
   else if (v >= 1.3) out.push(pick(['Imprévisible : capable d’un 64 comme d’un 80 la même semaine.', 'Des montagnes russes : brillant un jour, perdu le lendemain.'], 2));
   if (cl >= 1) out.push(pick(['Un sang-froid de vétéran quand ça compte.', 'Il aime les fins de tournoi serrées.'], 3));
   else if (cl <= -1) out.push(pick(['Encore fragile sous la pression.', 'Il lui reste à apprendre à finir le travail.'], 3));
   if (g.lb) out.push('Développement lent, mais les dépisteurs croient à une éclosion tardive.');
-  if (g.a <= 18) out.push(pick(['Très jeune et encore brut : il peut devenir n’importe quoi.', 'Le plus brut des diamants : tout reste à faire.'], 4));
-  else if (g.a >= 24) out.push(pick(['Déjà mature : ce que vous voyez est presque ce que vous aurez.', 'Il arrive tard, mais prêt à jouer tout de suite.'], 4));
+  const ageNote = g.rp !== 0 && g.rp !== 2;   // le profil de départ dit déjà s'il est brut ou prêt
+  if (ageNote && g.a <= 18) out.push(pick(['Très jeune et encore brut : il peut devenir n’importe quoi.', 'Le plus brut des diamants : tout reste à faire.'], 4));
+  else if (ageNote && g.a >= 24) out.push(pick(['Déjà mature : ce que vous voyez est presque ce que vous aurez.', 'Il arrive tard, mais prêt à jouer tout de suite.'], 4));
   if (!out.length) out.push(pick(['Un profil complet, sans grande faiblesse.', 'Solide partout, excellent nulle part.', 'Un travailleur : il progresse chaque saison.'], 5));
   return out.slice(0, 2).join(' ');
 }

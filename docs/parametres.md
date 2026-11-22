@@ -2,7 +2,7 @@
 
 Ce document résume les paramètres qui décident du niveau des golfeurs et de leurs scores : ce qu'ils font, où ils se trouvent et pourquoi ils ont ces valeurs. Il sert de mémoire entre les sessions, parce que les conversations précédentes ne suivent pas d'une session à l'autre.
 
-> **Source** : version **v417** du jeu (22 novembre 2026). La v417 part de la v416 (fichier `IndoorGolfCareer-v416.html` fourni par Max le 20 novembre 2026, réimporté avec `tools/importer.mjs`) et ajoute seulement le réglage « Écart en bas de l'échelle » (section 2). Entre la v385 et la v416, aucun des paramètres décrits ici n'avait changé. L'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) est encore en v385. À chaque nouvelle version produite ailleurs, il faut la réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
+> **Source** : version **v418** du jeu (22 novembre 2026). La v417 et la v418 ont été faites dans le dépôt à partir de la v416 (fichier `IndoorGolfCareer-v416.html` fourni par Max le 20 novembre 2026). v417 : réglage « Écart en bas de l'échelle » (section 2). v418 : seuil de carte des recrues recalibré et profils de départ des recrues (section 6). L'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) est encore en v385. À chaque nouvelle version produite ailleurs, il faut la réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
 
 Échelle utilisée partout : **coups par rapport au par**, sur une ronde de 18 trous.
 
@@ -231,7 +231,12 @@ La régularité `g.v` dérive d'une saison à l'autre et revient vers la nature 
 
 - Toutes les recrues arrivent en **Ligue 4**, entre 17 et 25 ans.
 - **Vrai plafond** : `pt = 450 + (tirage sur OVERALL_DIST − 450) × ptS × époque`, avec `ptS = 1,15` par défaut. Le réglage « Talent des recrues » va de 0,9 à 1,4.
-- **Niveau de départ** : une fraction du plafond, `0,35 + (1 − t) × 0,35 ± 0,08`, où `t` vaut 1 à 17 ans et 0 à 25 ans. Plus la recrue est jeune, plus elle part loin de son plafond.
+- **Niveau de départ** : une fraction du plafond, selon le **profil de départ** (v418, `RPROF` et `rpDraw()` dans `src/js/09-familles.js`, profil gardé dans `g.rp`) :
+  - **Brut** (25 %, `g.rp = 0`) : 30 à 50 % du plafond. Une fois sur deux, il reçoit aussi une éclosion tardive (2 à 4 ans de retard).
+  - **Standard** (50 %, `g.rp = 1`) : `0,35 + (1 − t) × 0,35 ± 0,08`, où `t` vaut 1 à 17 ans et 0 à 25 ans. Plus la recrue est jeune, plus elle part loin de son plafond.
+  - **Prêt à jouer** (25 %, `g.rp = 2`) : 75 à 92 % du plafond. Elle peut commencer en L3, en L2, parfois en L1, mais a peu de marge.
+  - La part des recrues prêtes se règle dans les réglages avancés (« Recrues prêtes à jouer », `rcReady`, de 0 à 50 %). La part des brutes reste à 25 %. Le profil apparaît sur la fiche des dépisteurs (« Talent brut », « Prêt à jouer »). Le phénomène et les recrues déjà prêtes n'ont pas de profil.
+- **Carte** : après la saison de la classe de recrues, une recrue dont l'index dépasse la moyenne de la L4 + `rcNoCard` n'obtient pas de carte (environ 13 % des recrues). `rcNoCard` vaut **3,5** depuis la v418, au lieu de 5, pour aller avec la courbe adoucie de la v417.
 - **Estimation des dépisteurs** : `pt ± 80` (`scout`). Au-dessus de 700, l'estimation est compressée (×0,75 avec le réglage « Prudents ») pour éviter trop de recrues cotées Generational.
 - **Familles** : un fils ou un frère hérite d'une part du sommet de son parent (`FAM.inh`).
 - **Recrue déjà prête** (`rcProd = 0,5 %`) : elle arrive avec un niveau entre 640 et 840.
@@ -268,6 +273,8 @@ La régularité `g.v` dérive d'une saison à l'autre et revient vers la nature 
 | Changer la variance des faibles | `1,3 + 1,15 × (1 − x)` dans `dayFactor` | `src/js/03-moteur-de-simulation.js`, ligne 113 |
 | Changer la force du vent | `windMul`, `windW`, `windBump0` | `src/js/08-fiche-d-identite-et-personnalite.js`, ligne 427 |
 | Changer l'abondance de talent chez les recrues | `ptS` | Réglages avancés › Talent et recrues |
+| Avoir plus ou moins de recrues prêtes à jouer | `rcReady` | Réglages avancés › Carrières, « Recrues prêtes à jouer » |
+| Changer la part des recrues sans carte | `rcNoCard` | Réglages avancés › Carrières (à recalibrer si on change `lowK`) |
 | Changer le nombre de golfeurs qui passent la coupure | `DEFAULT_CUT` / `S.settings.cut` | `src/js/07-pression-en-direct-elan-et.js`, ligne 1323 |
 
 Les valeurs par défaut des réglages sont dans `DEFAULT_CFG` (`src/js/02-carriere-de-golf-moteur-de.js`, ligne 23) et `ADV_DEF` (`src/js/41-reglages-avances.js`, ligne 4).
@@ -304,7 +311,7 @@ Recalibrage du seuil de carte, avec `lowK` = 0,70 (v417, 3 mondes × 30 saisons)
 | **`lowK` 70 %, seuil +3,5** | **153** | +3,3 / +5,8 / +8,2 / +12,6 | **+4,4** | 47 |
 | `lowK` 70 %, seuil +3 | 137 | +3,3 / +6,0 / +8,5 / +13,7 | +5,1 | 44 |
 
-**À la même taille de L4, l'effet réel de `lowK` = 0,70 est d'environ 1 coup** (+5,4 → +4,4), pas 2. La taille de la L4 pèse aussi lourd que la courbe sur la coupure. Décision en attente : recalibrer le seuil (≈ +3,5) et revoir `lowK` à la même taille de L4.
+**À la même taille de L4, l'effet réel de `lowK` = 0,70 est d'environ 1 coup** (+5,4 → +4,4), pas 2. La taille de la L4 pèse aussi lourd que la courbe sur la coupure. **Fait en v418** : seuil à +3,5 par défaut. Les parties créées en v417 passent aussi à +3,5 au chargement ; les parties plus anciennes (courbe à 100 %) gardent +5. Mesuré dans le jeu v418 : L4 de 150 golfeurs, coupures +3,2 / +5,7 / +8,2 / +12,9, écart L3 → L4 **+4,7**. À revoir : `lowK` plus bas ou coude plus haut, si on veut se rapprocher des autres paliers (environ +2,5).
 
 **Recrues plus prêtes** (`ROOK.f0` augmenté, v417 avec seuil +5, donc L4 ≈ 190) :
 
@@ -347,6 +354,7 @@ Des recrues plus prêtes rapprochent la classe de recrues de la L4 et placent pl
 Ce qu'on en retient :
 - Avec standard +0,05, les éclosions tardives tombent de moitié et le circuit se renforce (médiane L2 +28). C'est à éviter.
 - **Avec standard inchangé et 50 % des bruts en éclosion tardive** : 4 fois plus de recrues placées directement en L2, 2 fois plus en L3, 2,5 fois plus de plateaux, autant d'éclosions tardives qu'avant, le plus grand nombre de chemins différents (237), et un circuit à peu près aussi fort qu'avant (médianes à ±11 points). **C'est la version retenue pour la v418.**
+- **Vérifié dans le jeu v418** (3 mondes × 30 saisons) : recrues placées par saison 0,5 / 1,9 / 3,7 / 42 (L1 / L2 / L3 / L4), 407 golfeurs qui plafonnent dans leur ligue de départ, 0,32 éclosion tardive par saison, 234 chemins de carrière différents, part du top 5 en L1 17 %, médianes 834 / 693 / 543 / 353.
 - Les bonds de plus de 150 points sont un peu moins fréquents (14 contre 17 par saison) : les recrues prêtes ont peu de marge.
 - Le profil ne décide pas du destin : brutes, standard et prêtes atteignent la L1 à peu près aussi souvent (44 %, 47 %, 51 %). C'est le vrai plafond qui décide.
 
