@@ -1,0 +1,35 @@
+/* ============ HAUT DU PROFIL D'UN GOLFEUR (v393) ============
+   Bandeau de gTopBand() : le parcours (ligue par saison) sur toute la largeur, puis la carte handicap et la
+   progression niveau · potentiel côte à côte, à la même hauteur (la carte handicap est resserrée pour ça).
+   Sur téléphone, les trois panneaux s'empilent. */
+.gtop{display:flex;flex-direction:column;gap:14px;margin:14px 0}
+.gtop .dpb{padding:10px 14px}
+.gtop .rsch{margin:0}
+.gtop .rsch>p.small:first-child{margin:0 0 4px}
+.gtop2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch}
+.gtop2>.dpn{height:100%}
+.gtop2 .dpb{display:flex;flex-direction:column;justify-content:center}
+/* Carte handicap resserrée : chiffres à gauche, graphique et légende à droite */
+.gt-hc .hcard{display:grid;grid-template-columns:minmax(0,310px) minmax(0,1fr);column-gap:22px;align-items:start;margin:0}
+.gt-hc .hcard>*{grid-column:1}
+.gt-hc .hcard>.hcsvg{grid-column:2;grid-row:1/6;width:100%;height:auto;align-self:center}
+.gt-hc .hcard>.hclg{grid-column:2;grid-row:6;flex-wrap:wrap;gap:4px 12px}
+.gt-hc .hcard>.hcfoot{grid-column:1;grid-row:6}
+.gt-hc .hcard .hcbig{font-size:46px}
+.gt-hc .hcard .hcname{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.15}
+.gt-hc .dpb>p.small{margin:8px 0 0}
+html:not(.pc) .gt-hc .hcard{display:block}
+/* Progression niveau · potentiel : hauteur raisonnable sur grand écran */
+.gt-pr svg{max-height:270px}
+html:not(.pc) .gtop2{grid-template-columns:minmax(0,1fr)}
+/* v394 : Résultats › saison partagée entre deux ligues : astérisque au rang et nombre de tournois joués dans la ligue */
+.rsr .rsast{color:var(--me);font-weight:700;margin-left:1px}
+.rsr .rsn{display:block;font-size:12px;font-weight:500;color:var(--mute);text-align:right;margin-top:2px}
+/* v397 : page des départs › classement de la saison (colonne de gauche) */
+.tstand{margin-top:14px}
+.tstw{max-height:640px;overflow:auto;border-top:1px solid var(--line)}
+.tstt th{position:sticky;top:0;background:var(--paper);z-index:1}
+.tstt td,.tstt th{padding:5px 6px}
+.tstt .tstn{display:flex;align-items:center;gap:6px;min-width:0}
+.tstt .tstn .nmt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tstt tr.me td{background:var(--meBg);font-weight:700}

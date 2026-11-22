@@ -1,0 +1,39 @@
+/* ============ TÉLÉPHONE EN SOMBRE (v387) ============
+   Sur téléphone (mise en page une colonne), l'app est toujours sombre, avec les couleurs ardoise et vert
+   du style « Gestionnaire » de l'ordinateur, même si le téléphone est en mode clair :
+   - palette ardoise (fond, panneaux, tableaux) et couleurs de scores de la version sombre ;
+   - titres de sections en petites majuscules, panneaux plats à bordure fine, comme sur l'ordinateur ;
+   - version compacte : photo d'en-tête plus basse (150 px), marges réduites, onglet actif surligné.
+   Rien ne change sur ordinateur (html.pc). */
+html:not(.pc){color-scheme:dark;
+  --lg1:#3987e5;--lg2:#d95926;--lg3:#199e70;--lg4:#c98500;--under:#FF8A78;--underB:#FF8A78;--bad:#FF5C4D;--good:#5CC796;
+  --hE2:#E5534B;--hE2i:#fff;--hE1:#7A2E2A;--hE1i:#FFD9D5;--hB1:#25415F;--hB1i:#D3E5FA;--hB2:#33639C;--hB2i:#E4F0FF;--hB3:#4674DC;--hB3i:#fff;--rW:#F0C419;--rWi:#1A1A1A;--rT:#1F4D37;--rTi:#CFF0DF;--rM:#3A2523;--rMi:#D2AAA5;
+  --s-sky1:#15252D;--s-sky2:#33464B;--s-ray:#BFE0CA;--s-rayo:.3;--s-cloud:#4B6068;--s-mist:#2B4044;--s-blue:#28485C;--s-m1:#3B5052;--s-m2:#29403F;--s-m3:#1B2C2B;--s-tree:#0E190F;--s-tree2:#172614;--s-hill:#16260F;--s-lake:#2B4148;--s-sand:#6B6A4A;--s-flower:#B5566B;--s-fw1:#478322;--s-fw2:#2D5B19;--s-fw3:#173510;--s-stripe:#FFFFFF;--turf1:#3A7A20;--turf2:#1F4A12;--ph-b:.92}
+html:not(.pc) body{background:var(--bg)}
+html:not(.pc) nav.tabs{background:color-mix(in srgb,var(--paper) 92%,transparent);border-top-color:var(--line)}
+html:not(.pc) .tab{color:var(--mute)}
+html:not(.pc) .tab[aria-current="page"]{color:var(--ink)}
+html:not(.pc) .chip[aria-pressed="true"],html:not(.pc) .chip.on{background:var(--acc);color:var(--accInk);border-color:var(--acc)}
+html:not(.pc) .btn.sec{color:var(--ink)}
+html:not(.pc){--bg:#12161B;--paper:#1B2128;--ink:#E6EBF0;--mute:#8A97A6;--line:#2C3540;--board:#161C22;--board2:#212932;--binkc:#E6EBF0;--bmute:#8A97A6;--acc:#2FBF71;--acc2:#36D07F;--accInk:#04170C;--me:#E8B931;--meBg:rgba(232,185,49,.13);--meSolid:#3B3518;--off:#0A0D10;--sceneH:150px}
+html:not(.pc) .block{border-radius:12px;box-shadow:none;border-color:var(--line)}
+html:not(.pc) h2{font:700 14px Arimo,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#C9D2DC;margin:24px 0 10px}
+html:not(.pc) h2::before{width:4px;height:16px}
+html:not(.pc) .boardwrap{border-color:var(--line);box-shadow:none}
+html:not(.pc) .btn{border-radius:10px}
+html:not(.pc) nav.tabs .tab[aria-current="page"]::before{background:var(--acc)}
+html:not(.pc) .block{margin:10px 0;padding:12px 14px}
+html:not(.pc) .wrap.sc>.top h1{font-size:34px}
+html:not(.pc) h2{margin:18px 0 8px}
+html:not(.pc) nav.tabs{padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+html:not(.pc) .tab{min-height:44px;border-radius:10px;margin:0 1px}
+html:not(.pc) .tab[aria-current="page"]{background:color-mix(in srgb,var(--acc) 16%,transparent);color:var(--ink)}
+html:not(.pc) .tab[aria-current="page"]::before{display:none}
+/* v406 : cartes de scores sur téléphone › colonne « Golfeur » : le nom sur une ligne, le handicap en petit dessous
+   (choix du propriétaire, option B). La flèche ▾ est retirée : toucher le reste de la ligne ouvre toujours la carte. */
+.cards.mob .nmstk{flex-direction:column!important;align-items:flex-start!important;gap:0!important;max-width:calc(100% - 46px)!important}
+.cards.mob .s1 .pp{min-width:22px!important;width:22px}
+.cards.mob .s1{padding-right:3px!important}
+.cards.mob .s1 .hx{font-size:10px!important;margin:1px 0 0!important}
+.cards.mob .s1 .cxbtn{display:none!important}
+.cards.mob td,.cards.mob th{height:40px}
