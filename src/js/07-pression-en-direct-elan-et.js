@@ -369,8 +369,9 @@ function clutchAdj(margin, cl) {   // margin = coups de retard sur le meneur apr
   const w = Math.exp(-Math.max(0, margin) / 4);
   return -cl * 0.6 * w;
 }
-/* Vent et distance selon le niveau : 0,85 de l'effet pour l'élite, 1 pour un golfeur moyen (niveau 500), jusqu'à environ 1,2 pour les plus faibles. */
-function condFactor(g) { const x = clamp(effOverall(g) / 1000, -0.05, 1); return 0.85 + 0.15 * Math.pow(1 - x, MU.GAM) / Math.pow(0.5, MU.GAM); }
+/* Vent et distance selon le niveau : 0,85 de l'effet pour l'élite, 1 pour un golfeur moyen (niveau 500), jusqu'à environ 1,2 pour les plus faibles.
+   v417 : suit la même courbe que mu (adoucie sous 450 par CFG.lowK) ; identique à l'ancienne formule avec lowK = 1. */
+function condFactor(g) { const o = clamp(effOverall(g), -50, 1000); return 0.85 + 0.15 * ((mu(o) - MU.A) / MU.B) / Math.pow(0.5, MU.GAM); }
 function roundTarget(g, ctx, r, margin) { const f = condFactor(g); return courseAdjust(mu(effOverall(g)) + eliteHandicap(g.o, g) + (margin != null ? clutchAdj(margin, g.cl) : 0), ctx) + (ctx.distDelta || 0) * f + ctx.course + ctx.weather[r] + dayFactor(g) + (ctx.windBump ? ctx.windBump[r] * f : 0) + talRT(g, ctx, r) + skRT(g) + lvlFor(g); }
 
 /* ---- Évolution en cours de saison (après chaque tournoi) ----

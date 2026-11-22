@@ -106,8 +106,12 @@ function newHoleVar() {
 }
 
 /* ---- Niveau (overall caché 0-1000) -> coups attendus vs par sur 18 trous ---- */
-const MU = { A: 0.2, B: 21.0, GAM: 1.25 };   // B : écart entre le meilleur et le pire (23 jusqu'à la v153 ; resserré de 10 % en v154)
-function mu(o) { const x = Math.max(-0.05, o / 1000); if (x > 1) return MU.A - (x - 1) * 20; return MU.A + MU.B * Math.pow(1 - x, MU.GAM); }
+const MU = { A: 0.2, B: 21.0, GAM: 1.25, K: 450 };   // B : écart entre le meilleur et le pire (23 jusqu'à la v153 ; resserré de 10 % en v154)
+function mu0(o) { const x = Math.max(-0.05, o / 1000); if (x > 1) return MU.A - (x - 1) * 20; return MU.A + MU.B * Math.pow(1 - x, MU.GAM); }
+/* v417 : sous MU.K (450, Semi-Pro), la courbe est adoucie d'un facteur CFG.lowK (« Écart en bas de l'échelle »). Avec 1, rien ne change.
+   Calibré par simulation (3 mondes × 30 saisons) : avec 0,70, l'écart de coupure entre la L3 et la L4 passe d'environ +5,5 à +3,6 coups,
+   sans changer les coupures de la L1 à la L3 (±0,3). Voir docs/parametres.md. */
+function mu(o) { const v = mu0(o), k = CFG.lowK == null ? 1 : +CFG.lowK; if (k === 1 || !(o < MU.K)) return v; const m = mu0(MU.K); return m + (v - m) * k; }
 function dayFactor(g) {
   const x = clamp(g.o / 1000, 0, 1), dom = g.dom && g.sl > 0, v = (g.v || 1) * (dom ? 0.75 : 1);   // en pleine domination : plus régulier
   const sd = (1.3 + 1.15 * (1 - x)) * v * (1 - (CFG.eliteSd || 0) * clamp((x - 0.8) / 0.2, 0, 1)) * (CFG.rand == null ? 1 : CFG.rand);   // CFG.eliteSd (v190) : élite un peu plus régulière   // bruit normal par ronde, rehauss\u00e9 \u2014 m\u00eame un golfeur pr\u00e8s du sommet garde une vraie variance

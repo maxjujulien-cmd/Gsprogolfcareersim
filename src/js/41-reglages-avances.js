@@ -1,7 +1,7 @@
 /* ============ RÉGLAGES AVANCÉS (v200) ============
    Des constantes du moteur deviennent des réglages de la partie (S.cfg). applyAdv() les pousse dans le moteur à chaque setCfg.
    Bornes raisonnables pour qu'on ne puisse pas casser le jeu ; les valeurs par défaut sont celles calibrées par simulation. */
-const ADV_DEF = { rcNcMax: 15, traits2: 1, gpCount: 1, relB30: 6, relBot: 10, majPts: 1.25, talents: 1, skills: 1, liveSim: 1, teeTimes: 1, clEvo: 1, majors: 1, finale: 1, varLg: 1, exWin: 1, exChamp: 1, exCar: 1, purseR: '10-15', pL2: 10, pL3: 2.5, pL4: 0.8, ptS: 1.15, scout: 1, famP: 2.5, eras: 0, gap: 1, rand: 1, eliteHc: 0, rcOn: 1, rcProd: 0.5, rcNoCard: 5, vlAvgD: 0.4, vlAvgUp: 0, streakMax: 8, streakAmp: 1.5, crMul: 1, crSoftT: 2, crSoftK: 40, windMul: 1, move: 10, forcedL4: 4, hofSev: 1, hofWait: 3, preset: 'real' };
+const ADV_DEF = { rcNcMax: 15, traits2: 1, gpCount: 1, relB30: 6, relBot: 10, majPts: 1.25, talents: 1, skills: 1, liveSim: 1, teeTimes: 1, clEvo: 1, majors: 1, finale: 1, varLg: 1, exWin: 1, exChamp: 1, exCar: 1, purseR: '10-15', pL2: 10, pL3: 2.5, pL4: 0.8, ptS: 1.15, scout: 1, famP: 2.5, eras: 0, gap: 1, rand: 1, eliteHc: 0, rcOn: 1, rcProd: 0.5, rcNoCard: 5, vlAvgD: 0.4, vlAvgUp: 0, streakMax: 8, streakAmp: 1.5, crMul: 1, crSoftT: 2, crSoftK: 40, windMul: 1, move: 10, forcedL4: 4, hofSev: 1, hofWait: 3, lowK: 0.7, preset: 'real' };
 Object.assign(DEFAULT_CFG, ADV_DEF);
 const MU_B0 = 21;
 let NOSAVE = false;
@@ -37,6 +37,7 @@ const ADV = [
     { k: 'traits2', type: 'tog', l: 'Tempérament et fin de tournoi', note: 'Deux traits de personnalité : Imperturbable → Colérique (réaction aux gros trous et aux séries) et Chasseur-né → Meneur-né (ronde finale, près de la tête). La moitié des golfeurs sont neutres ; ils changent rarement, poussés par ce qu’ils vivent.' },
     { k: 'clEvo', type: 'tog', l: 'Tempéraments évolutifs', note: 'Gagner sous pression donne de l’assurance, s’effondrer en fait perdre : le tempérament peut changer d’un cran à la fin de la saison, surtout chez les jeunes.' },
     { k: 'gap', type: 'range', l: 'Écart entre les meilleurs et les plus faibles', tag: 'now', min: 0.7, max: 1.3, step: 0.05, ends: ['Champ serré', 'Gros écarts'], f: v => Math.round(v * 100) + ' %', note: 'Plus haut = les favoris gagnent plus souvent. Touche aussi l’accès à la L1 pour toi.' },
+    { k: 'lowK', type: 'range', l: 'Écart en bas de l’échelle', tag: 'now', min: 0.5, max: 1, step: 0.05, ends: ['Resserré', 'Comme avant la v417'], f: v => Math.round(v * 100) + ' %', note: 'Sous le niveau Semi-Pro, chaque point de talent vaut moins de coups. Avec 70 %, la coupure de la L4 se rapproche de celle de la L3 (environ 3,5 coups d’écart au lieu de 5,5) ; les autres ligues ne bougent pas. 100 % = comme avant la v417.' },
     { k: 'rand', type: 'range', l: 'Hasard d’une ronde à l’autre', tag: 'now', min: 0.6, max: 1.4, step: 0.05, ends: ['Prévisible', 'Chaotique'], f: v => Math.round(v * 100) + ' %' },
     { k: 'eliteHc', type: 'seg', l: 'Nivellement de l’élite', opts: [[0, 'Aucun'], [0.5, 'Léger'], [1, 'Fort']], note: 'Un handicap pour les paliers Elite, Hall Of Famer et Generational. Fort = comme avant la v190.' },
     { k: 'hotP', type: 'range', l: 'Rondes de feu', min: 0, max: 12, step: 0.5, f: v => afmtP(v) + ' des rondes' },

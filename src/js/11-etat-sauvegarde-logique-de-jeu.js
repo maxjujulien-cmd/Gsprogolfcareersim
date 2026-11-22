@@ -245,7 +245,7 @@ function newGame(name, startLeague, mode, startYear, presimN, one, later) {
   presimN = Math.max(0, Math.min(PRESIM_MAX, Math.round(presimN || 0)));
   const U = newUniverse(name, startLeague, true);   // v321 : le monde se bâtit toujours sur des saisons cachées ; le joueur entre à la fin   // v253 : « plus tard » = circuit complet, sans place pour le joueur
   S = {
-    v: 2, cfgv: 4, stkv: 1, name: name || 'Toi', season: 1, t: 0, mode: mode === 'sim' ? 'sim' : 'manual', startYear: startYear || null,
+    v: 2, cfgv: 4, stkv: 1, lkv: 1, name: name || 'Toi', season: 1, t: 0, mode: mode === 'sim' ? 'sim' : 'manual', startYear: startYear || null,
     courses: Array.from({ length: N_TOURN }, (_, i) => Object.assign({ name: 'Terrain ' + (i + 1), pars: DEFAULT_PARS.slice() }, newCourseMeta())),
     courseBank: [],
     settings: { tables: clone(DEFAULT_TABLES), cut: DEFAULT_CUT, tv: 2, cv: 3, mc: 0, mcv: 1 },
@@ -289,7 +289,9 @@ function topUpLeagues() {
 }
 function loadState(obj) {
   WRM.clear();
-  S = obj; initExtras(); topUpLeagues(); try { ensureFinSlot(); } catch (e) { } duoMigrate(); MODEL = buildModel(S.settings.tables);
+  S = obj;
+  if (!S.lkv) { S.cfg = S.cfg || {}; if (S.cfg.lowK == null) S.cfg.lowK = 1; S.lkv = 1; }   // v417 : les parties commencées avant gardent la courbe d'avant (réglable dans Réglages avancés)
+  initExtras(); topUpLeagues(); try { ensureFinSlot(); } catch (e) { } duoMigrate(); MODEL = buildModel(S.settings.tables);
   if (S.hcv !== 1) { hcRebuild(); persist(); }   // anciennes parties : index recalculés depuis l'historique
   if (S.pav !== 1) { paBackfill(); persist(); }
   if (S.almv !== 1) { almBackfill(); persist(); }

@@ -2,7 +2,7 @@
 
 Ce document résume les paramètres qui décident du niveau des golfeurs et de leurs scores : ce qu'ils font, où ils se trouvent et pourquoi ils ont ces valeurs. Il sert de mémoire entre les sessions, parce que les conversations précédentes ne suivent pas d'une session à l'autre.
 
-> **Source** : version **v416** du jeu (fichier `IndoorGolfCareer-v416.html` fourni par Max le 20 novembre 2026, réimporté avec `tools/importer.mjs` ; la construction redonne ce fichier octet pour octet). Entre la v385 et la v416, aucun des paramètres décrits ici n'a changé : les changements touchent l'affichage, la mise en page sur ordinateur, le trajet, l'almanach et l'assistant de nouvelle partie. L'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) est encore en v385. À chaque nouvelle version, il faut la réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
+> **Source** : version **v417** du jeu (22 novembre 2026). La v417 part de la v416 (fichier `IndoorGolfCareer-v416.html` fourni par Max le 20 novembre 2026, réimporté avec `tools/importer.mjs`) et ajoute seulement le réglage « Écart en bas de l'échelle » (section 2). Entre la v385 et la v416, aucun des paramètres décrits ici n'avait changé. L'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) est encore en v385. À chaque nouvelle version produite ailleurs, il faut la réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
 
 Échelle utilisée partout : **coups par rapport au par**, sur une ronde de 18 trous.
 
@@ -77,26 +77,31 @@ Même fichier, ligne suivante. Le potentiel est exprimé par la ligue et le rôl
 
 ## 2. Du niveau au score : la formule centrale
 
-`src/js/03-moteur-de-simulation.js`, lignes 108-110.
+`src/js/03-moteur-de-simulation.js`, lignes 108-114.
 
 ```js
-const MU = { A: 0.2, B: 21.0, GAM: 1.25 };
-mu(o) = A + B × (1 − o/1000)^GAM      // coups au-dessus du par attendus sur 18 trous
+const MU = { A: 0.2, B: 21.0, GAM: 1.25, K: 450 };
+mu0(o) = A + B × (1 − o/1000)^GAM                 // coups au-dessus du par attendus sur 18 trous
+mu(o)  = mu0(o)                                   // à partir de K (450, Semi-Pro)
+mu(o)  = mu0(K) + (mu0(o) − mu0(K)) × lowK        // sous K (v417)
 ```
 
 - **A = 0,2** : le score d'un golfeur parfait (1000).
 - **B = 21** : l'écart entre le meilleur et le pire. Il valait 23 jusqu'à la v153 et a été resserré de 10 % en v154. Dans l'app, le réglage « Écart entre les meilleurs et les plus faibles » (`gap`, de 0,7 à 1,3) multiplie B (`MU.B = 21 × gap`, `src/js/41-reglages-avances.js`).
 - **GAM = 1,25** : la courbure. Au-dessus de 1, chaque point de talent vaut **plus de coups en bas de l'échelle qu'en haut**.
+- **lowK = 0,70** (v417) : sous 450, l'écart par rapport à un golfeur de niveau 450 est multiplié par 0,70. Dans l'app, c'est le réglage avancé « Écart en bas de l'échelle » (de 50 % à 100 %, section Moteur des rondes). Avec 100 %, la courbe est celle d'avant la v417. **Les parties commencées avant la v417 restent à 100 %** ; les nouvelles parties partent à 70 %. Choisi par simulation : voir la section 9.
 
 ### Valeurs calculées
 
+Entre parenthèses : avec `lowK` = 100 %, comme avant la v417.
+
 | Niveau | `mu` (coups/ronde) | Écart-type de la ronde | Effet du vent et de la distance |
 |---|---|---|---|
-| 0 | +21,2 | 2,45 | ×1,21 |
-| 100 | +18,6 | 2,33 | ×1,16 |
-| 200 | +16,1 | 2,22 | ×1,12 |
-| 300 | +13,6 | 2,10 | ×1,08 |
-| 400 | +11,3 | 1,99 | ×1,04 |
+| 0 | +17,9 (+21,2) | 2,45 | ×1,15 (×1,21) |
+| 100 | +16,1 (+18,6) | 2,33 | ×1,12 (×1,16) |
+| 200 | +14,3 (+16,1) | 2,22 | ×1,09 (×1,12) |
+| 300 | +12,6 (+13,6) | 2,10 | ×1,06 (×1,08) |
+| 400 | +10,9 (+11,3) | 1,99 | ×1,03 (×1,04) |
 | 500 | +9,0 | 1,88 | ×1,00 |
 | 600 | +6,9 | 1,76 | ×0,96 |
 | 700 | +4,9 | 1,65 | ×0,93 |
@@ -106,7 +111,9 @@ mu(o) = A + B × (1 − o/1000)^GAM      // coups au-dessus du par attendus sur 
 
 L'écart-type est calculé pour une régularité moyenne (`v = 1`) avec le hasard réglé à 100 %.
 
-Sur 100 points de talent, l'écart est d'environ **2,5 coups par ronde en bas** (100-300) contre **1,7 à 1,9 en haut** (700-900).
+Sur 100 points de talent, l'écart est d'environ **1,8 coup par ronde en bas** (100-300) avec `lowK` = 70 %, contre 2,5 avant la v417, et **1,7 à 1,9 en haut** (700-900).
+
+L'écart-type de la ronde ne dépend pas de `lowK` : il reste plus grand chez les faibles.
 
 ### Tout ce qui s'ajoute au score d'une ronde (`roundTarget`)
 
@@ -255,7 +262,8 @@ La régularité `g.v` dérive d'une saison à l'autre et revient vers la nature 
 | Je veux… | Paramètre | Où |
 |---|---|---|
 | Resserrer ou élargir tout le champ | `gap` (multiplie `MU.B`) | App : Plus › Réglages avancés › Moteur des rondes. Code : `src/js/41-reglages-avances.js` |
-| Changer la forme de la courbe talent → coups | `MU.GAM` | `src/js/03-moteur-de-simulation.js`, ligne 109 (agit aussi sur `condFactor`) |
+| Resserrer seulement le bas de l'échelle (sous 450) | `lowK` | App : Plus › Réglages avancés › Moteur des rondes, « Écart en bas de l'échelle ». Code : `MU.K` et `mu()` dans `src/js/03-moteur-de-simulation.js` |
+| Changer la forme de toute la courbe talent → coups | `MU.GAM` | `src/js/03-moteur-de-simulation.js`, ligne 109 (agit aussi sur `condFactor`) |
 | Rendre les rondes plus ou moins prévisibles | `rand` | Réglages avancés |
 | Changer la variance des faibles | `1,3 + 1,15 × (1 − x)` dans `dayFactor` | `src/js/03-moteur-de-simulation.js`, ligne 113 |
 | Changer la force du vent | `windMul`, `windW`, `windBump0` | `src/js/08-fiche-d-identite-et-personnalite.js`, ligne 427 |
@@ -268,7 +276,18 @@ Les valeurs par défaut des réglages sont dans `DEFAULT_CFG` (`src/js/02-carrie
 
 ## 9. Discussions en cours
 
-### Écart des coupures entre les ligues (novembre 2026)
+### Écart des coupures entre les ligues (novembre 2026) — réglé en v417
+
+**Décision (22 novembre 2026)** : courbe adoucie sous 450 avec `lowK` = 0,70, ajoutée au jeu comme réglage avancé. Vérification dans le jeu v417 (3 mondes de 30 saisons) :
+
+| Version | Coupures L1 / L2 / L3 / L4 | Écart L3 → L4 (par monde) | Top 5 gagne (L1 / L4) | Promus en L3 : coupures / restés |
+|---|---|---|---|---|
+| v416 | +3,1 / +5,8 / +8,2 / +13,6 | +5,5 (5,5 / 5,5 / 5,4) | 17 % / 41 % | 40 % / 79 % |
+| v417, réglage à 100 % | +3,2 / +5,6 / +7,9 / +13,2 | +5,3 (5,0 / 5,4 / 5,5) | 17 % / 39 % | 40 % / 78 % |
+| **v417, 70 % (défaut)** | +3,2 / +5,8 / +8,0 / **+11,5** | **+3,5** (3,4 / 3,5 / 3,5) | 19 % / 37 % | 42 % / 81 % |
+
+Le réglage à 100 % redonne la v416 (à la marge de hasard près), et 70 % donne le même résultat que le banc d'essai. Le reste de cette section garde l'historique de l'analyse.
+
 
 **Constat de Max** : les coupures observées sont environ L1 +4, L2 +7, L3 +11 et L4 +18 **après la ronde 1** (18 trous). Les écarts entre ligues sont donc +3, +4, puis **+7**. Le dernier palier est presque deux fois plus grand que les autres.
 
@@ -334,4 +353,4 @@ Ce qu'on en retient :
 - Plafonner `condFactor` à environ ×1,05.
 - Cible proposée : environ L1 +3 / L2 +6 / L3 +9 / L4 +12 à +13, soit un écart régulier de 3 à 4 coups par palier.
 
-**Avant de toucher quoi que ce soit** : vérifier les effets sur la répartition des victoires (le top 5 gagne environ 20 % des tournois), sur la montée L4 → L3 et sur les records déjà calibrés.
+**Avant de toucher quoi que ce soit** (fait pour la v417) : vérifier les effets sur la répartition des victoires (le top 5 gagne environ 20 % des tournois), sur la montée L4 → L3 et sur les records déjà calibrés.
