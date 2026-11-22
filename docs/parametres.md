@@ -383,6 +383,21 @@ Ce qu'on en retient :
 - **L2 et L3 un peu plus petites** donnent des paliers presque réguliers (+2,7 / +2,5 / +3,7). En contrepartie, la L4 grossit (166 golfeurs, 40 % passent la coupure au lieu de 43 %). En prime, il y a plus d'éclosions tardives : 0,50 par saison au lieu de 0,32. Les autres mesures de variété restent semblables.
 - Les tailles se règlent dans `VL.minL` et `VL.maxL` (`src/js/10-mode-commissaire.js`, ligne 200). Décision en attente.
 
+**Table d'index resserrée entre 300 et 600** (essai du 22 novembre 2026). La courbe talent → coups est remplacée par une table (interpolation linéaire entre les points 0, 150, 300, 450, 600, 700, 800, 900 et 1000). Rien ne change à partir de 600. Entre 300 et 600, la pente passe de 2,2 à environ 1,5 coup par 100 points.
+
+| Essai (coups attendus aux niveaux 0 / 150 / 300 / 450 / 600) | Coupures L1 / L2 / L3 / L4 | Écarts | Taille L4 |
+|---|---|---|---|
+| v418 : 17,9 / 15,2 / 12,6 / 10,15 / 6,9 | +3,2 / +5,7 / +8,2 / +12,9 | +2,5 / +2,6 / +4,7 | 152 |
+| Contrôle (même courbe, en table) | +3,1 / +5,5 / +8,0 / +12,8 | +2,5 / +2,5 / +4,8 | 150 |
+| Un peu plus plat : 17,0 / 14,5 / 12,0 / 9,6 / 6,9 | +3,2 / +5,6 / +7,7 / +12,0 | +2,4 / +2,1 / +4,2 | 156 |
+| Plus plat : 16,0 / 13,6 / 11,3 / 9,1 / 6,9 | +3,1 / +5,6 / +7,6 / +11,1 | +2,5 / +2,0 / +3,4 | **167** |
+| Plus plat, carte +3 | +3,2 / +5,8 / +7,9 / +12,2 | +2,6 / +2,1 / +4,3 | 141 |
+
+- Encore une fois, la L4 grossit dès qu'on adoucit le bas (plus de recrues obtiennent leur carte). Une partie de la baisse vient de là.
+- **À taille de L4 égale (≈ 150), l'effet réel est d'environ 0,7 à 0,8 coup** (+4,7 → ≈ +4,0). L'écart L2 → L3 baisse aussi (+2,6 → +2,1), puisque la L3 se resserre.
+- Les éclosions tardives montent (0,32 → 0,48 par saison).
+- **Le seuil de carte en coups pose problème** : il faut le recalibrer à chaque changement de courbe. Une règle en part de la classe (par exemple, les 13 % les moins bons de la classe de recrues n'ont pas de carte) garderait la taille de la L4 stable, quelle que soit la courbe.
+
 **Retraite forcée des derniers de la L4** (idée de Max, essai du 22 novembre 2026) : à la fin de chaque saison, les N derniers du classement de la L4 qui ont l'âge minimum prennent leur retraite.
 
 | Essai | Écarts de coupure | Coupure L4 | Taille L4 | Éclosions tardives par saison |
