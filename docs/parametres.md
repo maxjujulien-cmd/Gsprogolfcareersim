@@ -317,6 +317,39 @@ Recalibrage du seuil de carte, avec `lowK` = 0,70 (v417, 3 mondes × 30 saisons)
 
 Des recrues plus prêtes rapprochent la classe de recrues de la L4 et placent plus de recrues directement en L3 et en L2. Mais elles remontent tout le circuit, et l'écart L3 → L4 ne bouge pas (+3,7 à +4,0).
 
+### Profils de départ des recrues (22 novembre 2026, essai)
+
+**Souhait de Max** : des recrues un peu plus « game ready », sans rendre le monde plus fort, et surtout **un monde varié où les golfeurs n'ont pas tous le même chemin**. Par exemple : certains commencent en L2 et y restent toute leur carrière, d'autres traînent en L4 puis font un gros bond jusqu'en L1, comme dans le vrai golf.
+
+**Idée** : le vrai plafond ne change pas. Seul le point de départ est tiré selon un profil :
+
+| Profil | Part | Départ (part du plafond) |
+|---|---|---|
+| Brut | 25 % | 30-50 %, avec une chance d'éclosion tardive (2 à 4 ans de retard) |
+| Standard | 50 % | comme avant |
+| Prêt | 25 % | 75-92 % : prêt à jouer, mais avec peu de marge |
+
+**Mesure** (3 mondes × 30 saisons, v417 avec seuil de carte +3,5). Outil : `tools/mesure/carrieres.cjs`.
+
+| Mesure | v416 | v417 corrigée | Profils (standard +0,05) | **Profils, standard inchangé, bruts tardifs 50 %** | Profils, bruts tardifs 80 % |
+|---|---|---|---|---|---|
+| Recrues placées par saison L1 / L2 / L3 / L4 | 0,1 / 0,5 / 1,8 / 44 | 0,0 / 0,4 / 2,1 / 43 | 0,3 / 1,7 / 3,9 / 41 | **0,3 / 1,9 / 4,3 / 42** | 0,4 / 2,1 / 4,1 / 41 |
+| Recrues (8 saisons et plus) qui atteignent la L2 / la L1 | 81 % / 49 % | 81 % / 49 % | 78 % / 46 % | 77 % / 48 % | 78 % / 48 % |
+| Placées en L2 ou L3 qui ne montent jamais (nombre) | 157 | 164 | 368 | **411** | 420 |
+| Éclosions tardives (L4 à 25 ans ou plus → L1) par saison | 0,38 | 0,39 | 0,21 | **0,38** | 0,45 |
+| Bonds de plus de 150 points en 2 saisons, par saison | 17,7 | 16,7 | 13,1 | 14,3 | 14,4 |
+| Âge au sommet 10e / 50e / 90e | 24 / 29 / 34 | 24 / 29 / 34 | 24 / 28 / 34 | 24 / 28 / 33 | 24 / 28 / 34 |
+| Chemins de carrière différents | 209 | 209 | 217 | **237** | 227 |
+| Classe de recrues : score moyen R1 | +17,6 | +16,0 | +15,0 | +15,1 | +15,3 |
+| Coupures L1 / L2 / L3 / L4 | +3,1 / +5,8 / +8,2 / +13,5 | +3,3 / +5,9 / +8,3 / +13,0 | +3,0 / +5,3 / +7,8 / +12,8 | +3,1 / +5,6 / +8,2 / +12,8 | +3,3 / +5,9 / +8,4 / +13,1 |
+| Médiane de niveau L1 / L2 / L3 | 836 / 676 / 544 | 828 / 676 / 535 | 845 / 704 / 559 | 839 / 687 / 540 | 832 / 680 / 538 |
+
+Ce qu'on en retient :
+- Avec standard +0,05, les éclosions tardives tombent de moitié et le circuit se renforce (médiane L2 +28). C'est à éviter.
+- **Avec standard inchangé et 50 % des bruts en éclosion tardive** : 4 fois plus de recrues placées directement en L2, 2 fois plus en L3, 2,5 fois plus de plateaux, autant d'éclosions tardives qu'avant, le plus grand nombre de chemins différents (237), et un circuit à peu près aussi fort qu'avant (médianes à ±11 points). **C'est la version retenue pour la v418.**
+- Les bonds de plus de 150 points sont un peu moins fréquents (14 contre 17 par saison) : les recrues prêtes ont peu de marge.
+- Le profil ne décide pas du destin : brutes, standard et prêtes atteignent la L1 à peu près aussi souvent (44 %, 47 %, 51 %). C'est le vrai plafond qui décide.
+
 
 **Constat de Max** : les coupures observées sont environ L1 +4, L2 +7, L3 +11 et L4 +18 **après la ronde 1** (18 trous). Les écarts entre ligues sont donc +3, +4, puis **+7**. Le dernier palier est presque deux fois plus grand que les autres.
 
