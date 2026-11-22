@@ -1351,6 +1351,11 @@ function buildOverallCDF(dist) {
   return cum.map(c => c / total);
 }
 const OVERALL_CDF = buildOverallCDF(OVERALL_DIST);
+/* v419 : vrais plafonds faibles rapprochés de 450 (pour les recrues et le monde de départ ; Play Now garde la courbe telle quelle).
+   450 − (450 − x) × CFG.rcLowCeil ; rien ne change au-dessus de 450. Avec 0,35 (défaut), le plus petit plafond devient ≈ 290.
+   Simulation (3 mondes × 30 saisons) : écarts de coupure L1→L2 / L2→L3 / L3→L4 de +2,5 / +2,6 / +4,7 à +2,6 / +2,5 / +3,6, tailles de
+   ligues, part du top 5, montées et variété des carrières inchangées. Voir docs/parametres.md. */
+function ceilLow(x) { const F = CFG.rcLowCeil == null ? 1 : clamp(+CFG.rcLowCeil, 0, 1); return x < 450 ? 450 - (450 - x) * F : x; }
 function drawOverall() {                 // tirage individuel d'un overall (0-1000) selon la courbe de référence
   const u = Math.random();
   let lo = 0, hi = OVERALL_CDF.length - 1;

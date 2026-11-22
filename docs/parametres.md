@@ -236,6 +236,7 @@ La régularité `g.v` dérive d'une saison à l'autre et revient vers la nature 
   - **Standard** (50 %, `g.rp = 1`) : `0,35 + (1 − t) × 0,35 ± 0,08`, où `t` vaut 1 à 17 ans et 0 à 25 ans. Plus la recrue est jeune, plus elle part loin de son plafond.
   - **Prêt à jouer** (25 %, `g.rp = 2`) : 75 à 92 % du plafond. Elle peut commencer en L3, en L2, parfois en L1, mais a peu de marge.
   - La part des recrues prêtes se règle dans les réglages avancés (« Recrues prêtes à jouer », `rcReady`, de 0 à 50 %). La part des brutes reste à 25 %. Le profil apparaît sur la fiche des dépisteurs (« Talent brut », « Prêt à jouer »). Le phénomène et les recrues déjà prêtes n'ont pas de profil.
+- **Plafonds faibles resserrés** (v419, `ceilLow()` dans `src/js/07-pression-en-direct-elan-et.js`, réglage avancé « Plafonds des recrues faibles », `rcLowCeil`, 35 % par défaut) : un vrai plafond tiré sous 450 devient `450 − (450 − x) × 0,35`. Le plus petit plafond devient donc environ 290. S'applique aux recrues et au monde de départ d'une nouvelle partie (pas à Play Now). Dans une partie existante, seulement aux prochaines recrues. Mesuré dans le jeu v419 (2 × 3 mondes × 30 saisons) : écarts de coupure +2,6 / +2,5 / +3,6, contre +2,5 / +2,6 / +4,7 en v418.
 - **Carte** : après la saison de la classe de recrues, une recrue dont l'index dépasse la moyenne de la L4 + `rcNoCard` n'obtient pas de carte (environ 13 % des recrues). `rcNoCard` vaut **3,5** depuis la v418, au lieu de 5, pour aller avec la courbe adoucie de la v417.
 - **Estimation des dépisteurs** : `pt ± 80` (`scout`). Au-dessus de 700, l'estimation est compressée (×0,75 avec le réglage « Prudents ») pour éviter trop de recrues cotées Generational.
 - **Familles** : un fils ou un frère hérite d'une part du sommet de son parent (`FAM.inh`).
@@ -310,6 +311,7 @@ Exemple : handicap 4 et « L2 · Aspirant » donnent environ +3,0 coups par rond
 | Changer la variance des faibles | `1,3 + 1,15 × (1 − x)` dans `dayFactor` | `src/js/03-moteur-de-simulation.js`, ligne 113 |
 | Changer la force du vent | `windMul`, `windW`, `windBump0` | `src/js/08-fiche-d-identite-et-personnalite.js`, ligne 427 |
 | Changer l'abondance de talent chez les recrues | `ptS` | Réglages avancés › Talent et recrues |
+| Moins de golfeurs très faibles (et dernier palier de coupure plus petit) | `rcLowCeil` | Réglages avancés › Carrières, « Plafonds des recrues faibles » |
 | Avoir plus ou moins de recrues prêtes à jouer | `rcReady` | Réglages avancés › Carrières, « Recrues prêtes à jouer » |
 | Changer la part des recrues sans carte | `rcNoCard` | Réglages avancés › Carrières (à recalibrer si on change `lowK`) |
 | Changer le nombre de golfeurs qui passent la coupure | `DEFAULT_CUT` / `S.settings.cut` | `src/js/07-pression-en-direct-elan-et.js`, ligne 1323 |
@@ -437,6 +439,28 @@ Essai de correction : on retire `liveBias(d) / 18` à chaque trou, `liveBias` in
 Essais écartés au passage :
 - Sans retraite forcée en L4 (`forcedL4` jamais) : +3,0 / +2,9 / +3,6, mais tout le circuit s'affaiblit (médiane L3 486 au lieu de 543, coupures du haut +0,4 à +1,3). La règle garde le circuit fort.
 - Retraite « par faiblesse » seulement sous 400 au lieu de 500 : aucun effet.
+
+**Décision (22 novembre 2026)** : option A, plafonds faibles ×0,35, intégrée en v419.
+
+### Nombre de golfeurs Generational (22 novembre 2026, essais)
+
+Constat sur la v419 (2 × 3 mondes × 30 saisons) : **environ 11 à 12 golfeurs Generational (950 et plus) en même temps** (de 4 à 21 selon les saisons), 17 à 19 Hall Of Famer (900-949), et environ 2,4 nouveaux Generational par saison. Le tableau de Max en prévoit 0,1 %, soit moins d'un à la fois. Outil : `tools/mesure/elite.cjs`.
+
+D'où ils viennent (247 golfeurs devenus Generational) : **44 % avaient tiré un plafond de 950 et plus** à leur arrivée (le réglage « Talent des recrues » ×1,15 étire les plafonds autour de 450, donc un tirage au-dessus d'environ 885 devient 950 et plus) ; **56 % y sont arrivés par des percées** en cours de carrière (+45 à +115 d'un coup, sans frein près du sommet). Phénomène, déclic et recrues déjà prêtes : 5 % à eux trois.
+
+| Essai | Generational en même temps (moy. / min / max) | Hall Of Famer | Nouveaux par saison | Écarts de coupure | Médiane L1 |
+|---|---|---|---|---|---|
+| v419 (2 tirages) | 10,8 à 12,5 / 4 / 21 | 17 à 19 | 2,4 | +2,6 / +2,5 / +3,6 | 826-833 |
+| « Talent des recrues » ×1,0 | 4,9 / 1 / 11 | 10,5 | 1,24 | +2,4 / +2,2 / +3,5 | 796 |
+| Plafonds au-dessus de 800 ×0,6 | 7,0 / 1 / 14 | 14,0 | 1,75 | +2,4 / +2,5 / +3,7 | 820 |
+| Plafonds au-dessus de 800 ×0,4 | 6,9 / 2 / 14 | 13,0 | 1,49 | +2,2 / +2,5 / +3,9 | 819 |
+| Percées freinées au-dessus de 800 | 8,8 / 2 / 16 | 20,2 | 2,06 | +2,4 / +2,5 / +3,7 | 833 |
+| **Percées freinées et plafonds hauts ×0,6** | **3,9 / 1 / 10** | 13,4 | 1,17 | +2,4 / +2,4 / +3,8 | 814 |
+| Percées freinées et plafonds hauts ×0,4 | 3,2 / 0 / 7 | 11,3 | 0,87 | +2,2 / +2,3 / +3,8 | 811 |
+
+- « Plafonds au-dessus de 800 » : un tirage au-dessus de 800 dans le tableau (avant l'étirement) devient `800 + (x − 800) × H`.
+- « Percées freinées » : l'effet d'une percée ou d'une éclosion tardive est multiplié par 1 jusqu'à 800, puis diminue (×0,75 à 850, ×0,5 à 900, ×0,25 à 950, au moins ×0,2).
+- Il faut les deux leviers ensemble pour descendre sous 4 Generational à la fois. Le prix : une L1 un peu moins forte, et les écarts du milieu baissent d'environ 0,2 (+2,4 au lieu de +2,6). Décision en attente : nombre de Generational visé.
 
 **Répartition réelle des niveaux sur le circuit** (toutes ligues, début de saison, 3 mondes × 30 saisons), comparée au tableau de référence de Max (`OVERALL_DIST`) :
 

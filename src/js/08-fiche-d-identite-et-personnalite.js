@@ -235,7 +235,7 @@ function newUniverse(playerName, startLeague, full) {   // full : 150 IA partout
   // le pool complet est tiré d'un coup sur la courbe de référence, puis trié par talent : les 150 meilleurs
   // partent en Ligue 1, les 150 suivants en Ligue 2, etc. — ce sont les golfeurs qui dictent les ligues, pas l'inverse.
   const used = new Set(), G = {}, L = [[], [], [], []]; let id = 1;
-  const overalls = []; for (let i = 0; i < FIELD * 4 - (full ? 0 : 1); i++) overalls.push(drawOverall());
+  const overalls = []; for (let i = 0; i < FIELD * 4 - (full ? 0 : 1); i++) overalls.push(ceilLow(drawOverall()));   // v419
   overalls.sort((a, b) => b - a);
   let p = 0;
   for (let l = 0; l < 4; l++) {
