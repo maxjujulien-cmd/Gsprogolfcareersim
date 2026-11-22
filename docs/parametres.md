@@ -2,7 +2,7 @@
 
 Ce document résume les paramètres qui décident du niveau des golfeurs et de leurs scores : ce qu'ils font, où ils se trouvent et pourquoi ils ont ces valeurs. Il sert de mémoire entre les sessions, parce que les conversations précédentes ne suivent pas d'une session à l'autre.
 
-> **Source** : version **v418** du jeu (22 novembre 2026). La v417 et la v418 ont été faites dans le dépôt à partir de la v416 (fichier `IndoorGolfCareer-v416.html` fourni par Max le 20 novembre 2026). v417 : réglage « Écart en bas de l'échelle » (section 2). v418 : seuil de carte des recrues recalibré et profils de départ des recrues (section 6). L'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) est en v418 depuis le 22 novembre 2026. À chaque nouvelle version produite ailleurs, il faut la réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
+> **Source** : version **v420** du jeu (22 novembre 2026). Les v417 à v420 ont été faites dans le dépôt à partir de la v416 (fichier `IndoorGolfCareer-v416.html` fourni par Max le 20 novembre 2026). v417 : réglage « Écart en bas de l'échelle » (section 2). v418 : seuil de carte des recrues recalibré et profils de départ des recrues (section 6). v419 : plafonds faibles des recrues resserrés (section 6). v420 : moins de Generational (sections 5 et 6). L'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) est en v418 depuis le 22 novembre 2026. À chaque nouvelle version produite ailleurs, il faut la réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
 
 Échelle utilisée partout : **coups par rapport au par**, sur une ronde de 18 trous.
 
@@ -211,6 +211,8 @@ Ce rythme est multiplié par `dv`, la phase en cours et `CFG.youth`, avec un max
 | Éclosion de vétéran | 27 ans et plus : 2 %, puis 1,2 %, puis 0,6 % | +70 à +160 ; le sommet est repoussé de 3 ans |
 | Yips | 25 à 30 ans : 2 % | −70 à −160, sur le niveau et le plafond |
 
+**Depuis la v420**, une percée ou une éclosion tardive rapporte moins près du sommet (`topF()`, réglage « Progression freinée près du sommet », `topBrake`) : ×1 jusqu'à 800, ×0,75 à 850, ×0,5 à 900, ×0,25 à 950 (au moins ×0,2).
+
 Seulement 85 % de la variation s'applique à l'intersaison (`INS.off`). Le reste s'est joué en secret pendant la saison.
 
 La régularité `g.v` dérive d'une saison à l'autre et revient vers la nature du golfeur `g.v0` (`REG`) :
@@ -237,6 +239,7 @@ La régularité `g.v` dérive d'une saison à l'autre et revient vers la nature 
   - **Prêt à jouer** (25 %, `g.rp = 2`) : 75 à 92 % du plafond. Elle peut commencer en L3, en L2, parfois en L1, mais a peu de marge.
   - La part des recrues prêtes se règle dans les réglages avancés (« Recrues prêtes à jouer », `rcReady`, de 0 à 50 %). La part des brutes reste à 25 %. Le profil apparaît sur la fiche des dépisteurs (« Talent brut », « Prêt à jouer »). Le phénomène et les recrues déjà prêtes n'ont pas de profil.
 - **Plafonds faibles resserrés** (v419, `ceilLow()` dans `src/js/07-pression-en-direct-elan-et.js`, réglage avancé « Plafonds des recrues faibles », `rcLowCeil`, 35 % par défaut) : un vrai plafond tiré sous 450 devient `450 − (450 − x) × 0,35`. Le plus petit plafond devient donc environ 290. S'applique aux recrues et au monde de départ d'une nouvelle partie (pas à Play Now). Dans une partie existante, seulement aux prochaines recrues. Mesuré dans le jeu v419 (2 × 3 mondes × 30 saisons) : écarts de coupure +2,6 / +2,5 / +3,6, contre +2,5 / +2,6 / +4,7 en v418.
+- **Plafonds d'élite resserrés** (v420, même fonction `ceilShape()`, réglage « Plafonds des recrues d'élite », `rcHighCeil`, 60 % par défaut) : un tirage au-dessus de 800 dans le tableau devient `800 + (x − 800) × 0,6`, avant l'étirement par le talent des recrues (`ptS`). Avec la progression freinée près du sommet (section 5), environ 4 Generational en même temps.
 - **Carte** : après la saison de la classe de recrues, une recrue dont l'index dépasse la moyenne de la L4 + `rcNoCard` n'obtient pas de carte (environ 13 % des recrues). `rcNoCard` vaut **3,5** depuis la v418, au lieu de 5, pour aller avec la courbe adoucie de la v417.
 - **Estimation des dépisteurs** : `pt ± 80` (`scout`). Au-dessus de 700, l'estimation est compressée (×0,75 avec le réglage « Prudents ») pour éviter trop de recrues cotées Generational.
 - **Familles** : un fils ou un frère hérite d'une part du sommet de son parent (`FAM.inh`).
@@ -312,6 +315,7 @@ Exemple : handicap 4 et « L2 · Aspirant » donnent environ +3,0 coups par rond
 | Changer la force du vent | `windMul`, `windW`, `windBump0` | `src/js/08-fiche-d-identite-et-personnalite.js`, ligne 427 |
 | Changer l'abondance de talent chez les recrues | `ptS` | Réglages avancés › Talent et recrues |
 | Moins de golfeurs très faibles (et dernier palier de coupure plus petit) | `rcLowCeil` | Réglages avancés › Carrières, « Plafonds des recrues faibles » |
+| Plus ou moins de golfeurs Generational | `rcHighCeil`, `topBrake`, `ptS` | Réglages avancés › Carrières (« Plafonds des recrues d'élite », « Progression freinée près du sommet ») et Talent et recrues |
 | Avoir plus ou moins de recrues prêtes à jouer | `rcReady` | Réglages avancés › Carrières, « Recrues prêtes à jouer » |
 | Changer la part des recrues sans carte | `rcNoCard` | Réglages avancés › Carrières (à recalibrer si on change `lowK`) |
 | Changer le nombre de golfeurs qui passent la coupure | `DEFAULT_CUT` / `S.settings.cut` | `src/js/07-pression-en-direct-elan-et.js`, ligne 1323 |
@@ -460,7 +464,19 @@ D'où ils viennent (247 golfeurs devenus Generational) : **44 % avaient tiré un
 
 - « Plafonds au-dessus de 800 » : un tirage au-dessus de 800 dans le tableau (avant l'étirement) devient `800 + (x − 800) × H`.
 - « Percées freinées » : l'effet d'une percée ou d'une éclosion tardive est multiplié par 1 jusqu'à 800, puis diminue (×0,75 à 850, ×0,5 à 900, ×0,25 à 950, au moins ×0,2).
-- Il faut les deux leviers ensemble pour descendre sous 4 Generational à la fois. Le prix : une L1 un peu moins forte, et les écarts du milieu baissent d'environ 0,2 (+2,4 au lieu de +2,6). Décision en attente : nombre de Generational visé.
+- Il faut les deux leviers ensemble pour descendre sous 4 Generational à la fois. Le prix : une L1 un peu moins forte, et les écarts du milieu baissent d'environ 0,2 (+2,4 au lieu de +2,6). **Décision (22 novembre 2026)** : environ 4 Generational en même temps. Intégré en v420 (plafonds d'élite ×0,6 et percées freinées).
+
+Mesuré dans le jeu v420 (2 × 3 mondes × 30 saisons) :
+
+| Version | Generational en même temps (moy. / min / max) | Hall Of Famer | Nouveaux par saison | Coupures L1 / L2 / L3 / L4 | Écarts | Médianes L1 / L2 / L3 / L4 |
+|---|---|---|---|---|---|---|
+| v419 | 10,8 / 4 / 21 | 17,0 | 2,37 | +3,5 / +6,1 / +8,6 / +12,4 | +2,6 / +2,5 / +3,7 | 826 / 672 / 527 / 375 |
+| v420 | 4,0 / 1 / 10 | 14,9 | 1,13 | +3,4 / +5,8 / +8,2 / +12,1 | +2,4 / +2,4 / +3,9 | 819 / 679 / 536 / 379 |
+| v420, 2e tirage | 4,0 / 1 / 10 | 14,0 | 1,22 | +3,5 / +5,8 / +8,2 / +12,0 | +2,3 / +2,4 / +3,8 | 814 / 682 / 539 / 380 |
+| v420, talent des recrues ×1,0 | 1,5 / 0 / 5 (aucun 26 % des saisons) | 6,7 | 0,54 | | | |
+| v420, talent des recrues ×1,3 | 13,9 / 7 / 23 | 26,7 | 2,90 | | | |
+
+Le prix : les écarts du milieu passent d'environ +2,6 / +2,5 à +2,4 / +2,4, et le dernier palier d'environ +3,6 à +3,8. Les tailles de ligues, les montées et la variété des carrières ne changent pas.
 
 **Répartition réelle des niveaux sur le circuit** (toutes ligues, début de saison, 3 mondes × 30 saisons), comparée au tableau de référence de Max (`OVERALL_DIST`) :
 

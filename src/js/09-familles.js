@@ -80,7 +80,7 @@ function newRookie(id, used) {
   const age = rookieAge();
   const ph = phenOn() && S && S.G && !phenActive() && Math.random() < PHEN.p;
   const F = ph ? null : famPick(age);
-  let pt = ph ? PHEN.ptMin + Math.random() * (PHEN.ptMax - PHEN.ptMin) : clamp(ROOK.ptC + (ceilLow(drawOverall()) - ROOK.ptC) * ROOK.ptS * eraMul(), 20, 995)   /* v419 : ceilLow */;
+  let pt = ph ? PHEN.ptMin + Math.random() * (PHEN.ptMax - PHEN.ptMin) : clamp(ROOK.ptC + (ceilShape(drawOverall()) - ROOK.ptC) * ROOK.ptS * eraMul(), 20, 995)   /* v419-v420 : ceilShape */;
   if (F && F.rel !== 'cousin' && F.peak > 0) pt = clamp(pt + FAM.inh * (F.peak - pt), 20, 995);   // un peu du talent familial
   const t = (ROOK.ageMax - age) / (ROOK.ageMax - ROOK.ageMin);
   let frac = clamp(ROOK.f0 + (1 - t) * ROOK.f1 + gauss() * 0.08, 0.25, 0.97);

@@ -488,14 +488,14 @@ function ageSeason(g) {
   const r = Math.random();
   if (r < pUp) {                      // perc\u00e9e normale (les jeunes rattrapent leur plafond r\u00e9el plus vite)
     const m = 45 + Math.random() * 70;
-    d += m; event = 'up';
+    d += m * topF(g.o); event = 'up';   // v420 : freinée près du sommet
     g.p = Math.min(1000, Math.max(g.p, g.o + d)); g.pt = Math.min(1000, Math.max(g.pt, g.o + d));
   } else if (r < pUp + pDown) { const m = 45 + Math.random() * 70; d -= m; event = 'down'; }
   if (!event && late) {               // \u00e9closion tardive : cas d'exception ind\u00e9pendant, un v\u00e9t\u00e9ran qui se r\u00e9invente \u2014 de plus en plus rare avec l'\u00e2ge
     const lateP = a < 35 ? 0.02 : a < 45 ? 0.012 : 0.006;
     if (Math.random() < lateP) {
       const m = 70 + Math.random() * 90;
-      d += m; event = 'late';
+      d += m * topF(g.o); event = 'late';   // v420 : freinée près du sommet
       g.p = Math.min(1000, Math.max(g.p, g.o + d)); g.pt = Math.min(1000, Math.max(g.pt, g.o + d));
       g.pk = Math.min(40, (g.pk || 29) + 3);
     }
@@ -1355,7 +1355,14 @@ const OVERALL_CDF = buildOverallCDF(OVERALL_DIST);
    450 − (450 − x) × CFG.rcLowCeil ; rien ne change au-dessus de 450. Avec 0,35 (défaut), le plus petit plafond devient ≈ 290.
    Simulation (3 mondes × 30 saisons) : écarts de coupure L1→L2 / L2→L3 / L3→L4 de +2,5 / +2,6 / +4,7 à +2,6 / +2,5 / +3,6, tailles de
    ligues, part du top 5, montées et variété des carrières inchangées. Voir docs/parametres.md. */
-function ceilLow(x) { const F = CFG.rcLowCeil == null ? 1 : clamp(+CFG.rcLowCeil, 0, 1); return x < 450 ? 450 - (450 - x) * F : x; }
+/* v420 : vrais plafonds très hauts rapprochés de 800 avant l'étirement du talent des recrues : 800 + (x − 800) × CFG.rcHighCeil (0,6 par défaut).
+   Avec les percées freinées près du sommet (topF), environ 4 golfeurs Generational en même temps au lieu de 11 ou 12. Voir docs/parametres.md. */
+function ceilShape(x) {
+  const F = CFG.rcLowCeil == null ? 1 : clamp(+CFG.rcLowCeil, 0, 1), H = CFG.rcHighCeil == null ? 1 : clamp(+CFG.rcHighCeil, 0, 1);
+  return x < 450 ? 450 - (450 - x) * F : x > 800 ? 800 + (x - 800) * H : x;
+}
+/* v420 : une percée ou une éclosion tardive rapporte moins près du sommet : ×1 jusqu'à 800, ×0,75 à 850, ×0,5 à 900, ×0,25 à 950 (au moins ×0,2). */
+function topF(o) { return CFG.topBrake === 0 || CFG.topBrake === false || o <= 800 ? 1 : clamp(1 - (o - 800) / 200, 0.2, 1); }
 function drawOverall() {                 // tirage individuel d'un overall (0-1000) selon la courbe de référence
   const u = Math.random();
   let lo = 0, hi = OVERALL_CDF.length - 1;
