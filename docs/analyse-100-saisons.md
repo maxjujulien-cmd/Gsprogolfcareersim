@@ -59,3 +59,24 @@ En L1 aujourd'hui : États-Unis 17 golfeurs sur 130 (13 %), pour 42 pays. Sur to
 ## Non évalué
 
 La sauvegarde est en mode spectateur, sans golfeur du joueur. Pour juger l'expérience du joueur (est-ce qu'on parle de lui, de ses rivaux, de ses moments forts), il faut une sauvegarde d'une vraie carrière.
+
+## Essais pour le point 1 (22 novembre 2026)
+
+**Cible de Max** : un dominant ne gagne pas forcément très souvent, mais il fait beaucoup de points et finit souvent en haut. Visé pour un Generational : environ 8 à 12 % de victoires, plus de la moitié de top 10, souvent dans le top 5 de la saison.
+
+Banc d'essai (3 mondes × 30 saisons, v420, outil `tools/mesure/vedettes.cjs`). « Avance E » : les golfeurs au-dessus de 850 gagnent E coups par ronde par tranche de 100 points au-dessus de 850 (950 : −E ; 1000 : −1,5 × E). « Régularité » : le réglage existant `eliteSd`, moins de hasard d'une ronde à l'autre pour l'élite.
+
+| Essai | Generational : victoires / top 10 / coupure ratée | Rang final médian (Gen) | Gen dans le top 5 / top 10 de la saison | HoF : victoires / top 10 | Écarts de coupure |
+|---|---|---|---|---|---|
+| v420 | 3,8 % / 28 % / 22 % | 16 | 24 % / 40 % | 2,4 % / 20 % | +2,3 / +2,5 / +3,8 |
+| Régularité 0,35 | 3,7 % / 28 % / 20 % | 16 | 23 % / 38 % | 2,0 % / 19 % | +2,4 / +2,4 / +3,7 |
+| Avance 0,6 | 4,7 % / 36 % / 17 % | 10 | 34 % / 53 % | 2,3 % / 22 % | +2,5 / +2,4 / +3,8 |
+| Avance 1,0 | 6,3 % / 38 % / 16 % | 8 | 37 % / 57 % | 2,2 % / 22 % | +2,5 / +2,3 / +3,7 |
+| **Avance 1,5** | **8,1 % / 46 % / 12 %** | **6** | **47 % / 68 %** | 2,4 % / 26 % | +2,7 / +2,5 / +3,8 |
+| Avance 2,0 | 8,5 % / 51 % / 9,5 % | 6 | 46 % / 70 % | 2,5 % / 27 % | +2,7 / +2,5 / +3,6 |
+
+- **La régularité par ronde ne change presque rien.** La coupure se fait après une seule ronde de 18 trous, et le hasard trou par trou (environ 3 coups d'écart-type sur une ronde, même chez les meilleurs) domine.
+- **L'avance au-dessus de 850 fonctionne.** Avec 1,5, un Generational gagne 8 % de ses tournois, fait un top 10 une fois sur deux, finit en médiane 6e de la saison et dans le top 5 près d'une saison sur deux. C'est exactement la cible.
+- Au-delà de 1,5, le gain ralentit.
+- Les coupures de la L2 à la L4 ne bougent pas. Celle de la L1 baisse d'environ 0,2, donc l'écart L1 → L2 passe d'environ +2,4 à +2,7.
+- Le nombre de Generational reste autour de 4 à 5.
