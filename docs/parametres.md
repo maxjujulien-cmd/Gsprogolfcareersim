@@ -2,7 +2,7 @@
 
 Ce document résume les paramètres qui décident du niveau des golfeurs et de leurs scores : ce qu'ils font, où ils se trouvent et pourquoi ils ont ces valeurs. Il sert de mémoire entre les sessions, parce que les conversations précédentes ne suivent pas d'une session à l'autre.
 
-> **Source** : version **v417** du jeu (22 novembre 2026). La v417 part de la v416 (fichier `IndoorGolfCareer-v416.html` fourni par Max le 20 novembre 2026, réimporté avec `tools/importer.mjs`) et ajoute seulement le réglage « Écart en bas de l'échelle » (section 2). Entre la v385 et la v416, aucun des paramètres décrits ici n'avait changé. L'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) est encore en v385. À chaque nouvelle version produite ailleurs, il faut la réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
+> **Source** : version **v420** du jeu (22 novembre 2026). Les v417 à v420 ont été faites dans le dépôt à partir de la v416 (fichier `IndoorGolfCareer-v416.html` fourni par Max le 20 novembre 2026). v417 : réglage « Écart en bas de l'échelle » (section 2). v418 : seuil de carte des recrues recalibré et profils de départ des recrues (section 6). v419 : plafonds faibles des recrues resserrés (section 6). v420 : moins de Generational (sections 5 et 6). L'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) est en v420 depuis le 22 novembre 2026. À chaque nouvelle version produite ailleurs, il faut la réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
 
 Échelle utilisée partout : **coups par rapport au par**, sur une ronde de 18 trous.
 
@@ -211,6 +211,8 @@ Ce rythme est multiplié par `dv`, la phase en cours et `CFG.youth`, avec un max
 | Éclosion de vétéran | 27 ans et plus : 2 %, puis 1,2 %, puis 0,6 % | +70 à +160 ; le sommet est repoussé de 3 ans |
 | Yips | 25 à 30 ans : 2 % | −70 à −160, sur le niveau et le plafond |
 
+**Depuis la v420**, une percée ou une éclosion tardive rapporte moins près du sommet (`topF()`, réglage « Progression freinée près du sommet », `topBrake`) : ×1 jusqu'à 800, ×0,75 à 850, ×0,5 à 900, ×0,25 à 950 (au moins ×0,2).
+
 Seulement 85 % de la variation s'applique à l'intersaison (`INS.off`). Le reste s'est joué en secret pendant la saison.
 
 La régularité `g.v` dérive d'une saison à l'autre et revient vers la nature du golfeur `g.v0` (`REG`) :
@@ -231,7 +233,14 @@ La régularité `g.v` dérive d'une saison à l'autre et revient vers la nature 
 
 - Toutes les recrues arrivent en **Ligue 4**, entre 17 et 25 ans.
 - **Vrai plafond** : `pt = 450 + (tirage sur OVERALL_DIST − 450) × ptS × époque`, avec `ptS = 1,15` par défaut. Le réglage « Talent des recrues » va de 0,9 à 1,4.
-- **Niveau de départ** : une fraction du plafond, `0,35 + (1 − t) × 0,35 ± 0,08`, où `t` vaut 1 à 17 ans et 0 à 25 ans. Plus la recrue est jeune, plus elle part loin de son plafond.
+- **Niveau de départ** : une fraction du plafond, selon le **profil de départ** (v418, `RPROF` et `rpDraw()` dans `src/js/09-familles.js`, profil gardé dans `g.rp`) :
+  - **Brut** (25 %, `g.rp = 0`) : 30 à 50 % du plafond. Une fois sur deux, il reçoit aussi une éclosion tardive (2 à 4 ans de retard).
+  - **Standard** (50 %, `g.rp = 1`) : `0,35 + (1 − t) × 0,35 ± 0,08`, où `t` vaut 1 à 17 ans et 0 à 25 ans. Plus la recrue est jeune, plus elle part loin de son plafond.
+  - **Prêt à jouer** (25 %, `g.rp = 2`) : 75 à 92 % du plafond. Elle peut commencer en L3, en L2, parfois en L1, mais a peu de marge.
+  - La part des recrues prêtes se règle dans les réglages avancés (« Recrues prêtes à jouer », `rcReady`, de 0 à 50 %). La part des brutes reste à 25 %. Le profil apparaît sur la fiche des dépisteurs (« Talent brut », « Prêt à jouer »). Le phénomène et les recrues déjà prêtes n'ont pas de profil.
+- **Plafonds faibles resserrés** (v419, `ceilLow()` dans `src/js/07-pression-en-direct-elan-et.js`, réglage avancé « Plafonds des recrues faibles », `rcLowCeil`, 35 % par défaut) : un vrai plafond tiré sous 450 devient `450 − (450 − x) × 0,35`. Le plus petit plafond devient donc environ 290. S'applique aux recrues et au monde de départ d'une nouvelle partie (pas à Play Now). Dans une partie existante, seulement aux prochaines recrues. Mesuré dans le jeu v419 (2 × 3 mondes × 30 saisons) : écarts de coupure +2,6 / +2,5 / +3,6, contre +2,5 / +2,6 / +4,7 en v418.
+- **Plafonds d'élite resserrés** (v420, même fonction `ceilShape()`, réglage « Plafonds des recrues d'élite », `rcHighCeil`, 60 % par défaut) : un tirage au-dessus de 800 dans le tableau devient `800 + (x − 800) × 0,6`, avant l'étirement par le talent des recrues (`ptS`). Avec la progression freinée près du sommet (section 5), environ 4 Generational en même temps.
+- **Carte** : après la saison de la classe de recrues, une recrue dont l'index dépasse la moyenne de la L4 + `rcNoCard` n'obtient pas de carte (environ 13 % des recrues). `rcNoCard` vaut **3,5** depuis la v418, au lieu de 5, pour aller avec la courbe adoucie de la v417.
 - **Estimation des dépisteurs** : `pt ± 80` (`scout`). Au-dessus de 700, l'estimation est compressée (×0,75 avec le réglage « Prudents ») pour éviter trop de recrues cotées Generational.
 - **Familles** : un fils ou un frère hérite d'une part du sommet de son parent (`FAM.inh`).
 - **Recrue déjà prête** (`rcProd = 0,5 %`) : elle arrive avec un niveau entre 640 et 840.
@@ -257,6 +266,43 @@ La régularité `g.v` dérive d'une saison à l'autre et revient vers la nature 
 
 ---
 
+## 7 bis. Talent et handicap
+
+Il n'y a pas de table fixe « talent → handicap » dans le code. Chaque golfeur a un vrai Handicap Index, calculé comme au golf réel (méthode WHS, `src/js/36-handicap-index.js`) à partir des rondes simulées. Trois choses relient le talent au handicap.
+
+**1. Index réellement obtenu selon le niveau** (mesuré le 22 novembre 2026 sur la v418, circuit de référence sans défi, 2 mondes × 10 saisons après les 20 saisons cachées) :
+
+| Niveau | Titre | Index médian, courbe 100 % (avant v417) | Index médian, v418 (70 %) |
+|---|---|---|---|
+| 0-149 | Weak | 14,3 | 12,1 |
+| 150-299 | Amateur | 12,0 | 10,7 |
+| 300-449 | Average | 9,0 | 8,1 |
+| 450-599 | Semi-Pro | 5,6 | 5,8 |
+| 600-699 | Pro | 3,7 | 3,8 |
+| 700-799 | Established Pro | 1,8 | 2,0 |
+| 800-899 | Elite | 0,6 | 0,5 |
+| 900-949 | Hall Of Famer | −0,5 | −0,7 |
+| 950-1000 | Generational | −0,6 | −0,9 |
+
+Index médian par ligue : L1 0,2 → 0,4 ; L2 2,8 → 3,0 ; L3 5,3 → 5,7 ; L4 10,2 → 9,4 (courbe 100 % → v418).
+
+**2. Index attendu d'un golfeur** (Play Now, `src/js/31-play-now-tournoi-rapide-hors.js`, ligne 29) : `index ≈ 0,83 × (mu(niveau) + cotes de jeu) − 0,6`, sur le circuit de référence.
+
+**3. Ton handicap règle le niveau du circuit** (`LVL`, `src/js/05-cotes-de-jeu-fairways-fers.js`, lignes 11-22, calibré en v223). À la création d'une partie, ton handicap et ton défi donnent un nombre de coups ajoutés à chaque ronde de tous les golfeurs simulés (`S.cfg.lvl`), pour que tu te retrouves au rang visé. Index du golfeur repère sur le circuit de référence (0 coup ajouté) :
+
+| Défi | Index du repère, circuit de référence |
+|---|---|
+| L1 · Aspirant chaque année | −2,0 |
+| L1 · Joueur établi | 1,2 |
+| L2 · Aspirant | 1,3 |
+| L2 · Joueur établi | 4,9 |
+| L3 · Joueur établi | 7,5 |
+| L4 · Joueur établi | 11,3 |
+
+Exemple : handicap 4 et « L2 · Aspirant » donnent environ +3,0 coups par ronde à tous les adversaires. Tous les index du circuit sont alors plus élevés d'environ 2,5.
+
+⚠️ Cette table date de la v223. La v417 a amélioré l'index des golfeurs faibles (L4 : 10,2 → 9,4). Les repères « L4 · Joueur établi » et, un peu, « L3 · Joueur établi » sont donc probablement à recalibrer, ainsi que les estimations affichées à la création (`LVL.win`, `LVL.cut`, `LVL.rnd` pour la L4). Les repères L1 et L2 ne changent pas.
+
 ## 8. Où changer les choses
 
 | Je veux… | Paramètre | Où |
@@ -268,6 +314,10 @@ La régularité `g.v` dérive d'une saison à l'autre et revient vers la nature 
 | Changer la variance des faibles | `1,3 + 1,15 × (1 − x)` dans `dayFactor` | `src/js/03-moteur-de-simulation.js`, ligne 113 |
 | Changer la force du vent | `windMul`, `windW`, `windBump0` | `src/js/08-fiche-d-identite-et-personnalite.js`, ligne 427 |
 | Changer l'abondance de talent chez les recrues | `ptS` | Réglages avancés › Talent et recrues |
+| Moins de golfeurs très faibles (et dernier palier de coupure plus petit) | `rcLowCeil` | Réglages avancés › Carrières, « Plafonds des recrues faibles » |
+| Plus ou moins de golfeurs Generational | `rcHighCeil`, `topBrake`, `ptS` | Réglages avancés › Carrières (« Plafonds des recrues d'élite », « Progression freinée près du sommet ») et Talent et recrues |
+| Avoir plus ou moins de recrues prêtes à jouer | `rcReady` | Réglages avancés › Carrières, « Recrues prêtes à jouer » |
+| Changer la part des recrues sans carte | `rcNoCard` | Réglages avancés › Carrières (à recalibrer si on change `lowK`) |
 | Changer le nombre de golfeurs qui passent la coupure | `DEFAULT_CUT` / `S.settings.cut` | `src/js/07-pression-en-direct-elan-et.js`, ligne 1323 |
 
 Les valeurs par défaut des réglages sont dans `DEFAULT_CFG` (`src/js/02-carriere-de-golf-moteur-de.js`, ligne 23) et `ADV_DEF` (`src/js/41-reglages-avances.js`, ligne 4).
@@ -287,6 +337,211 @@ Les valeurs par défaut des réglages sont dans `DEFAULT_CFG` (`src/js/02-carrie
 | **v417, 70 % (défaut)** | +3,2 / +5,8 / +8,0 / **+11,5** | **+3,5** (3,4 / 3,5 / 3,5) | 19 % / 37 % | 42 % / 81 % |
 
 Le réglage à 100 % redonne la v416 (à la marge de hasard près), et 70 % donne le même résultat que le banc d'essai. Le reste de cette section garde l'historique de l'analyse.
+
+**⚠️ Effet secondaire découvert après la v417 (22 novembre 2026)** : avec `lowK` = 0,70, **la L4 passe d'environ 150 à environ 193 golfeurs**, et le circuit de 590 à 630.
+
+- **Cause** : les recrues faibles améliorent leur index plus que la moyenne de la L4. Avec le seuil « Pas de carte au-delà de la moyenne L4 + 5 » (`rcNoCard`), seulement environ 5 % des recrues restent sans carte, au lieu d'environ 13 %. Il y a 55 recrues placées par saison au lieu de 46.
+- **Conséquence** : la coupure reste fixée à 65 golfeurs. Dans une L4 de 193 golfeurs, seulement 34 % passent, au lieu de 44 %. **Une bonne partie de la baisse de la coupure L4 venait de cette L4 plus grosse**, pas de la courbe.
+- Le golfeur à la coupure de la L4 reste vers 360-370 de niveau dans tous les cas : c'est le 65e meilleur de la L4.
+
+Recalibrage du seuil de carte, avec `lowK` = 0,70 (v417, 3 mondes × 30 saisons) :
+
+| Essai | Taille de la L4 | Coupures L1 / L2 / L3 / L4 | Écart L3 → L4 | Recrues placées par saison |
+|---|---|---|---|---|
+| `lowK` 100 %, seuil +5 (comme la v416) | 146 | +3,4 / +5,9 / +8,4 / +13,9 | +5,4 | 46 |
+| `lowK` 70 %, seuil +5 (v417 actuelle) | 191 | +3,3 / +5,6 / +7,8 / +11,5 | +3,7 | 55 |
+| `lowK` 70 %, seuil +4 | 170 | +3,2 / +5,6 / +7,8 / +11,9 | +4,1 | 50 |
+| **`lowK` 70 %, seuil +3,5** | **153** | +3,3 / +5,8 / +8,2 / +12,6 | **+4,4** | 47 |
+| `lowK` 70 %, seuil +3 | 137 | +3,3 / +6,0 / +8,5 / +13,7 | +5,1 | 44 |
+
+**À la même taille de L4, l'effet réel de `lowK` = 0,70 est d'environ 1 coup** (+5,4 → +4,4), pas 2. La taille de la L4 pèse aussi lourd que la courbe sur la coupure. **Fait en v418** : seuil à +3,5 par défaut. Les parties créées en v417 passent aussi à +3,5 au chargement ; les parties plus anciennes (courbe à 100 %) gardent +5. Mesuré dans le jeu v418 : L4 de 150 golfeurs, coupures +3,2 / +5,7 / +8,2 / +12,9, écart L3 → L4 **+4,7**. À revoir : `lowK` plus bas ou coude plus haut, si on veut se rapprocher des autres paliers (environ +2,5).
+
+**Recrues plus prêtes** (`ROOK.f0` augmenté, v417 avec seuil +5, donc L4 ≈ 190) :
+
+| Essai | Classe de recrues : score moyen R1 / niveau médian | Placées par saison L1 / L2 / L3 / L4 | Médiane L3 | Coupures L1 / L2 / L3 / L4 |
+|---|---|---|---|---|
+| Actuel | +16,0 / 234 | 0,1 / 0,5 / 1,4 / 53 | 570 | +3,3 / +5,6 / +7,8 / +11,5 |
+| +0,05 | +15,5 / 257 | 0,0 / 0,6 / 2,5 / 52 | 574 | +3,1 / +5,5 / +7,6 / +11,3 |
+| +0,10 | +15,0 / 285 | 0,1 / 0,9 / 3,3 / 52 | 583 | +3,0 / +5,2 / +7,4 / +11,2 |
+| +0,15 | +14,4 / 315 | 0,3 / 1,3 / 4,2 / 50 | 587 | +3,0 / +5,1 / +7,2 / +11,2 |
+
+Des recrues plus prêtes rapprochent la classe de recrues de la L4 et placent plus de recrues directement en L3 et en L2. Mais elles remontent tout le circuit, et l'écart L3 → L4 ne bouge pas (+3,7 à +4,0).
+
+### Écart L3 → L4 après la v418 : la courbe ne suffit plus, la taille des ligues décide (22 novembre 2026)
+
+Essais sur la v418 (3 mondes × 30 saisons), avec une L4 gardée autour de 150 golfeurs (seuil de carte ajusté au besoin) :
+
+| Essai | Coupures L1 / L2 / L3 / L4 | Écarts | Tailles L1 / L2 / L3 / L4 | Promus restés en L3 |
+|---|---|---|---|---|
+| v418 (coude 450, 70 %) | +3,2 / +5,7 / +8,2 / +12,9 | +2,5 / +2,6 / **+4,7** | 131 / 147 / 167 / 152 | 81 % |
+| Coude 450, 60 %, carte +3 | +3,2 / +5,8 / +8,4 / +12,9 | +2,5 / +2,6 / +4,6 | 131 / 148 / 166 / 147 | 80 % |
+| Coude 450, 50 %, carte +2,5 | +3,2 / +5,8 / +8,4 / +12,8 | +2,7 / +2,6 / +4,4 | 131 / 148 / 167 / 143 | 79 % |
+| Coude 500, 70 % | +3,1 / +5,6 / +8,0 / +12,6 | +2,4 / +2,5 / +4,5 | 131 / 148 / 166 / 151 | 81 % |
+| Coude 550, 75 % | +3,2 / +5,8 / +8,1 / +12,7 | +2,6 / +2,3 / +4,6 | 131 / 148 / 168 / 147 | 82 % |
+| Golfeurs faibles moins irréguliers (pente de l'écart-type 0,6 au lieu de 1,15) | +3,2 / +5,7 / +8,1 / +13,0 | +2,5 / +2,4 / +4,9 | 131 / 148 / 167 / 151 | 78 % |
+| L3 de 150 à 180 golfeurs (au lieu de 160-190) | +3,1 / +5,5 / +8,2 / +12,5 | +2,4 / +2,7 / +4,3 | 131 / 147 / 155 / 157 | 77 % |
+| L3 de 140 à 170 | +3,2 / +5,6 / +8,5 / +12,2 | +2,4 / +3,0 / +3,7 | 131 / 147 / 145 / 164 | 75 % |
+| **L2 de 135 à 170 et L3 de 140 à 170** | +3,1 / +5,8 / +8,3 / +12,0 | **+2,7 / +2,5 / +3,7** | 131 / 138 / 144 / 166 | 77 % |
+
+Ce qu'on en retient :
+- **À taille de L4 égale, la courbe ne fait presque plus rien** (+4,4 à +4,7), et l'irrégularité des faibles non plus.
+- **L'écart total entre la coupure de la L1 et celle de la L4 est à peu près fixe** (environ 9 à 10 coups). Il vient de la répartition du talent. C'est la **taille des ligues** qui décide comment cet écart se répartit entre les paliers : la coupure de chaque ligue se fait au 65e golfeur, donc elle tombe au rang 65, L1 + 65, L1 + L2 + 65 et L1 + L2 + L3 + 65 du circuit. Aujourd'hui, les ligues grossissent vers le bas (131 / 147 / 167), alors que le talent se raréfie en bas. Le dernier palier est donc le plus large.
+- **L2 et L3 un peu plus petites** donnent des paliers presque réguliers (+2,7 / +2,5 / +3,7). En contrepartie, la L4 grossit (166 golfeurs, 40 % passent la coupure au lieu de 43 %). En prime, il y a plus d'éclosions tardives : 0,50 par saison au lieu de 0,32. Les autres mesures de variété restent semblables.
+- Les tailles se règlent dans `VL.minL` et `VL.maxL` (`src/js/10-mode-commissaire.js`, ligne 200). Décision en attente.
+
+**Table d'index resserrée entre 300 et 600** (essai du 22 novembre 2026). La courbe talent → coups est remplacée par une table (interpolation linéaire entre les points 0, 150, 300, 450, 600, 700, 800, 900 et 1000). Rien ne change à partir de 600. Entre 300 et 600, la pente passe de 2,2 à environ 1,5 coup par 100 points.
+
+| Essai (coups attendus aux niveaux 0 / 150 / 300 / 450 / 600) | Coupures L1 / L2 / L3 / L4 | Écarts | Taille L4 |
+|---|---|---|---|
+| v418 : 17,9 / 15,2 / 12,6 / 10,15 / 6,9 | +3,2 / +5,7 / +8,2 / +12,9 | +2,5 / +2,6 / +4,7 | 152 |
+| Contrôle (même courbe, en table) | +3,1 / +5,5 / +8,0 / +12,8 | +2,5 / +2,5 / +4,8 | 150 |
+| Un peu plus plat : 17,0 / 14,5 / 12,0 / 9,6 / 6,9 | +3,2 / +5,6 / +7,7 / +12,0 | +2,4 / +2,1 / +4,2 | 156 |
+| Plus plat : 16,0 / 13,6 / 11,3 / 9,1 / 6,9 | +3,1 / +5,6 / +7,6 / +11,1 | +2,5 / +2,0 / +3,4 | **167** |
+| Plus plat, carte +3 | +3,2 / +5,8 / +7,9 / +12,2 | +2,6 / +2,1 / +4,3 | 141 |
+
+- Encore une fois, la L4 grossit dès qu'on adoucit le bas (plus de recrues obtiennent leur carte). Une partie de la baisse vient de là.
+- **À taille de L4 égale (≈ 150), l'effet réel est d'environ 0,7 à 0,8 coup** (+4,7 → ≈ +4,0). L'écart L2 → L3 baisse aussi (+2,6 → +2,1), puisque la L3 se resserre.
+- Les éclosions tardives montent (0,32 → 0,48 par saison).
+- **Le seuil de carte en coups pose problème** : il faut le recalibrer à chaque changement de courbe. Une règle en part de la classe (par exemple, les 13 % les moins bons de la classe de recrues n'ont pas de carte) garderait la taille de la L4 stable, quelle que soit la courbe.
+
+**Biais de l'élan (« Pression en direct et élan », `liveSim`)** (trouvé le 22 novembre 2026). Le descriptif dit que la moyenne des rondes ne bouge pas, mais le recentrage se fait avec une seule constante (`LIVE.C`, `src/js/07-pression-en-direct-elan-et.js`, ligne 9), calibrée pour un golfeur moyen. Les golfeurs faibles font plus de bogeys et de doubles, donc les dérapages l'emportent chez eux. Biais mesuré par ronde (tempérament neutre, 12 000 rondes par point) :
+
+| Score visé par ronde | 0 | +2 | +4 | +6 | +8 | +10 | +12 | +14 | +16 | +18 | +20 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Biais de l'élan | −0,29 | −0,09 | +0,05 | +0,10 | +0,23 | +0,44 | +0,60 | +0,70 | +0,91 | +1,03 | +1,14 |
+
+Sur la coupure, ce biais ajoute environ 0 / 0,1 / 0,3 / 1,0 coup en L1 / L2 / L3 / L4.
+
+Essai de correction : on retire `liveBias(d) / 18` à chaque trou, `liveBias` interpolant la table ci-dessus selon le décalage de la ronde `d`. Le biais résiduel tombe sous ±0,2.
+
+| Essai | Coupures L1 / L2 / L3 / L4 | Écarts | Taille L4 |
+|---|---|---|---|
+| v418 | +3,2 / +5,7 / +8,2 / +12,9 | +2,5 / +2,6 / +4,7 | 152 |
+| Élan corrigé | +3,2 / +5,5 / +7,6 / +11,6 | +2,2 / +2,2 / +4,0 | 163 |
+| Élan corrigé, 2e tirage | +3,2 / +5,3 / +7,6 / +11,7 | +2,1 / +2,2 / +4,1 | 163 |
+
+- La correction réduit **tous** les écarts. Les écarts du milieu, que Max trouve parfaits à +2,5 / +2,6, tombent à +2,2. Le rapport entre l'écart L3 → L4 et ceux du milieu ne s'améliore pas : environ 1,9 avant comme après, à taille de L4 égale (la L4 regrossit à 163, ce qui gonfle encore la baisse).
+- **Non intégrée** pour l'instant : c'est une vraie correction de bogue, mais elle change l'échelle de tout le circuit sans régler la forme. À reprendre si on veut des moyennes exactes ; il faudrait alors compenser avec le réglage `gap` (environ ×1,15) pour retrouver +2,5 / +2,6 au milieu.
+
+**Plafonds des recrues resserrés sous 450** (essai du 22 novembre 2026). Le vrai plafond tiré pour une recrue (`drawOverall`) est rapproché de 450 quand il est plus bas : `450 − (450 − x) × F`. Rien ne change au-dessus de 450. Idée : la coupure de la L4 se fait sur le golfeur au rang L1 + L2 + L3 + 65 ; avec plus de golfeurs entre 350 et 550, ce golfeur est meilleur, sans toucher le haut.
+
+| Essai | Coupures L1 / L2 / L3 / L4 | Écarts | Tailles L1 / L2 / L3 / L4 | Promus restés L3 | Éclosions tardives |
+|---|---|---|---|---|---|
+| v418 | +3,2 / +5,7 / +8,2 / +12,9 | +2,5 / +2,6 / +4,7 | 131 / 147 / 167 / 152 | 81 % | 0,32 |
+| F = 0,8 | +3,3 / +5,9 / +8,3 / +12,9 | +2,6 / +2,4 / +4,6 | 131 / 147 / 166 / 151 | 79 % | 0,51 |
+| F = 0,65 | +3,1 / +5,7 / +8,1 / +12,5 | +2,6 / +2,5 / +4,4 | 131 / 148 / 166 / 154 | 80 % | 0,60 |
+| F = 0,5 | +3,3 / +5,8 / +8,3 / +12,4 | +2,5 / +2,5 / +4,1 | 131 / 148 / 165 / 155 | 79 % | 0,42 |
+| **F = 0,35** | +3,2 / +5,7 / +8,2 / +11,9 | **+2,6 / +2,5 / +3,6** | 131 / 148 / 167 / 161 | 82 % | 0,44 |
+| F = 0,5 et L3 de 150 à 180 | +3,3 / +5,7 / +8,3 / +11,8 | +2,4 / +2,6 / +3,4 | 131 / 148 / 155 / 165 | 78 % | 0,44 |
+| F = 0,35 et L3 de 150 à 180 | +3,2 / +5,8 / +8,4 / +11,9 | +2,5 / +2,7 / +3,5 | 131 / 147 / 155 / 157 | 78 % | 0,50 |
+| **F = 0,5, L2 de 135 à 170, L3 de 140 à 170** | +3,1 / +5,8 / +8,3 / +11,5 | **+2,6 / +2,5 / +3,2** | 131 / 138 / 145 / 169 | 76 % | 0,54 |
+
+- **Premier levier qui réduit le dernier palier sans toucher le milieu ni les tailles de ligues** : avec F = 0,35, +2,6 / +2,5 / +3,6. Les autres mesures (taille de la L4, part du top 5, montées, variété des carrières) restent semblables.
+- Combiné aux tailles de ligues, on descend à +3,2.
+- **Ce que ça coûte** : il y a moins de golfeurs très faibles. Avec F = 0,35, le plus petit plafond possible devient environ 290 au lieu de 0. Une recrue peut encore partir très bas (une recrue brute part à 30 % de son plafond), mais elle finit au moins vers le niveau Average.
+
+Essais écartés au passage :
+- Sans retraite forcée en L4 (`forcedL4` jamais) : +3,0 / +2,9 / +3,6, mais tout le circuit s'affaiblit (médiane L3 486 au lieu de 543, coupures du haut +0,4 à +1,3). La règle garde le circuit fort.
+- Retraite « par faiblesse » seulement sous 400 au lieu de 500 : aucun effet.
+
+**Décision (22 novembre 2026)** : option A, plafonds faibles ×0,35, intégrée en v419.
+
+### Nombre de golfeurs Generational (22 novembre 2026, essais)
+
+Constat sur la v419 (2 × 3 mondes × 30 saisons) : **environ 11 à 12 golfeurs Generational (950 et plus) en même temps** (de 4 à 21 selon les saisons), 17 à 19 Hall Of Famer (900-949), et environ 2,4 nouveaux Generational par saison. Le tableau de Max en prévoit 0,1 %, soit moins d'un à la fois. Outil : `tools/mesure/elite.cjs`.
+
+D'où ils viennent (247 golfeurs devenus Generational) : **44 % avaient tiré un plafond de 950 et plus** à leur arrivée (le réglage « Talent des recrues » ×1,15 étire les plafonds autour de 450, donc un tirage au-dessus d'environ 885 devient 950 et plus) ; **56 % y sont arrivés par des percées** en cours de carrière (+45 à +115 d'un coup, sans frein près du sommet). Phénomène, déclic et recrues déjà prêtes : 5 % à eux trois.
+
+| Essai | Generational en même temps (moy. / min / max) | Hall Of Famer | Nouveaux par saison | Écarts de coupure | Médiane L1 |
+|---|---|---|---|---|---|
+| v419 (2 tirages) | 10,8 à 12,5 / 4 / 21 | 17 à 19 | 2,4 | +2,6 / +2,5 / +3,6 | 826-833 |
+| « Talent des recrues » ×1,0 | 4,9 / 1 / 11 | 10,5 | 1,24 | +2,4 / +2,2 / +3,5 | 796 |
+| Plafonds au-dessus de 800 ×0,6 | 7,0 / 1 / 14 | 14,0 | 1,75 | +2,4 / +2,5 / +3,7 | 820 |
+| Plafonds au-dessus de 800 ×0,4 | 6,9 / 2 / 14 | 13,0 | 1,49 | +2,2 / +2,5 / +3,9 | 819 |
+| Percées freinées au-dessus de 800 | 8,8 / 2 / 16 | 20,2 | 2,06 | +2,4 / +2,5 / +3,7 | 833 |
+| **Percées freinées et plafonds hauts ×0,6** | **3,9 / 1 / 10** | 13,4 | 1,17 | +2,4 / +2,4 / +3,8 | 814 |
+| Percées freinées et plafonds hauts ×0,4 | 3,2 / 0 / 7 | 11,3 | 0,87 | +2,2 / +2,3 / +3,8 | 811 |
+
+- « Plafonds au-dessus de 800 » : un tirage au-dessus de 800 dans le tableau (avant l'étirement) devient `800 + (x − 800) × H`.
+- « Percées freinées » : l'effet d'une percée ou d'une éclosion tardive est multiplié par 1 jusqu'à 800, puis diminue (×0,75 à 850, ×0,5 à 900, ×0,25 à 950, au moins ×0,2).
+- Il faut les deux leviers ensemble pour descendre sous 4 Generational à la fois. Le prix : une L1 un peu moins forte, et les écarts du milieu baissent d'environ 0,2 (+2,4 au lieu de +2,6). **Décision (22 novembre 2026)** : environ 4 Generational en même temps. Intégré en v420 (plafonds d'élite ×0,6 et percées freinées).
+
+Mesuré dans le jeu v420 (2 × 3 mondes × 30 saisons) :
+
+| Version | Generational en même temps (moy. / min / max) | Hall Of Famer | Nouveaux par saison | Coupures L1 / L2 / L3 / L4 | Écarts | Médianes L1 / L2 / L3 / L4 |
+|---|---|---|---|---|---|---|
+| v419 | 10,8 / 4 / 21 | 17,0 | 2,37 | +3,5 / +6,1 / +8,6 / +12,4 | +2,6 / +2,5 / +3,7 | 826 / 672 / 527 / 375 |
+| v420 | 4,0 / 1 / 10 | 14,9 | 1,13 | +3,4 / +5,8 / +8,2 / +12,1 | +2,4 / +2,4 / +3,9 | 819 / 679 / 536 / 379 |
+| v420, 2e tirage | 4,0 / 1 / 10 | 14,0 | 1,22 | +3,5 / +5,8 / +8,2 / +12,0 | +2,3 / +2,4 / +3,8 | 814 / 682 / 539 / 380 |
+| v420, talent des recrues ×1,0 | 1,5 / 0 / 5 (aucun 26 % des saisons) | 6,7 | 0,54 | | | |
+| v420, talent des recrues ×1,3 | 13,9 / 7 / 23 | 26,7 | 2,90 | | | |
+
+Le prix : les écarts du milieu passent d'environ +2,6 / +2,5 à +2,4 / +2,4, et le dernier palier d'environ +3,6 à +3,8. Les tailles de ligues, les montées et la variété des carrières ne changent pas.
+
+**Répartition réelle des niveaux sur le circuit** (toutes ligues, début de saison, 3 mondes × 30 saisons), comparée au tableau de référence de Max (`OVERALL_DIST`) :
+
+| Tranche | Tableau de Max | v418 | F = 0,5 | F = 0,35 |
+|---|---|---|---|---|
+| 0-99 | 3 % | 1,1 % | 0,1 % | 0,0 % |
+| 100-199 | 8 % | 2,8 % | 1,5 % | 1,0 % |
+| 200-299 | 11 % | 5,2 % | 5,4 % | 4,6 % |
+| 300-399 | 13 % | 8,4 % | 10,2 % | 10,8 % |
+| 400-499 | 14 % | 13,3 % | 14,3 % | 15,4 % |
+| 500-599 | 14 % | 17,8 % | 18,0 % | 18,1 % |
+| 600-699 | 13 % | 17,4 % | 17,9 % | 17,6 % |
+| 700-799 | 13 % | 16,6 % | 15,3 % | 15,3 % |
+| 800-899 | 9 % | 12,3 % | 12,3 % | 11,6 % |
+| 900-949 | 1,9 % | 3,0 % | 3,1 % | 3,3 % |
+| 950-1000 | 0,1 % | 2,0 % | 2,0 % | 2,1 % |
+
+Le circuit réel est déjà bien plus fort que le tableau : 9 % des golfeurs sous 300 (contre 22 %), et 5 % au-dessus de 900 (contre 2 %). Le tableau sert à tirer les plafonds, mais le développement, les retraites et les recrues prêtes poussent le circuit vers le haut. À noter : **2 % de golfeurs Generational (≥ 950) au lieu de 0,1 %**, soit une douzaine en même temps sur le circuit.
+
+**Retraite forcée des derniers de la L4** (idée de Max, essai du 22 novembre 2026) : à la fin de chaque saison, les N derniers du classement de la L4 qui ont l'âge minimum prennent leur retraite.
+
+| Essai | Écarts de coupure | Coupure L4 | Taille L4 | Éclosions tardives par saison |
+|---|---|---|---|---|
+| v418 | +2,5 / +2,6 / +4,7 | +12,9 | 152 | 0,32 |
+| 30 derniers, 24 ans et plus | +2,4 / +2,5 / +5,0 | +13,2 | 148 | 0,39 |
+| 20 derniers, 24 ans et plus | +2,5 / +2,4 / +4,9 | +13,0 | 149 | 0,46 |
+| 30 derniers, 26 ans et plus | +2,6 / +2,3 / +4,9 | +13,0 | 153 | 0,38 |
+
+**Aucun effet sur l'écart.** Deux raisons :
+- **La coupure de la L4 dépend du haut de la L4, pas du bas.** C'est le 65e meilleur golfeur de la L4, donc le golfeur au rang L1 + L2 + L3 + 65 du circuit. Retirer les plus faibles ne change pas qui est 65e.
+- **Le bas de la L4, ce sont surtout des jeunes recrues** : parmi les 30 golfeurs les plus faibles de la L4, 77 % ont moins de 24 ans et 34 % viennent d'arriver. La règle touche peu de monde, et chaque place libérée va à une nouvelle recrue, aussi faible.
+
+### Profils de départ des recrues (22 novembre 2026, essai)
+
+**Souhait de Max** : des recrues un peu plus « game ready », sans rendre le monde plus fort, et surtout **un monde varié où les golfeurs n'ont pas tous le même chemin**. Par exemple : certains commencent en L2 et y restent toute leur carrière, d'autres traînent en L4 puis font un gros bond jusqu'en L1, comme dans le vrai golf.
+
+**Idée** : le vrai plafond ne change pas. Seul le point de départ est tiré selon un profil :
+
+| Profil | Part | Départ (part du plafond) |
+|---|---|---|
+| Brut | 25 % | 30-50 %, avec une chance d'éclosion tardive (2 à 4 ans de retard) |
+| Standard | 50 % | comme avant |
+| Prêt | 25 % | 75-92 % : prêt à jouer, mais avec peu de marge |
+
+**Mesure** (3 mondes × 30 saisons, v417 avec seuil de carte +3,5). Outil : `tools/mesure/carrieres.cjs`.
+
+| Mesure | v416 | v417 corrigée | Profils (standard +0,05) | **Profils, standard inchangé, bruts tardifs 50 %** | Profils, bruts tardifs 80 % |
+|---|---|---|---|---|---|
+| Recrues placées par saison L1 / L2 / L3 / L4 | 0,1 / 0,5 / 1,8 / 44 | 0,0 / 0,4 / 2,1 / 43 | 0,3 / 1,7 / 3,9 / 41 | **0,3 / 1,9 / 4,3 / 42** | 0,4 / 2,1 / 4,1 / 41 |
+| Recrues (8 saisons et plus) qui atteignent la L2 / la L1 | 81 % / 49 % | 81 % / 49 % | 78 % / 46 % | 77 % / 48 % | 78 % / 48 % |
+| Placées en L2 ou L3 qui ne montent jamais (nombre) | 157 | 164 | 368 | **411** | 420 |
+| Éclosions tardives (L4 à 25 ans ou plus → L1) par saison | 0,38 | 0,39 | 0,21 | **0,38** | 0,45 |
+| Bonds de plus de 150 points en 2 saisons, par saison | 17,7 | 16,7 | 13,1 | 14,3 | 14,4 |
+| Âge au sommet 10e / 50e / 90e | 24 / 29 / 34 | 24 / 29 / 34 | 24 / 28 / 34 | 24 / 28 / 33 | 24 / 28 / 34 |
+| Chemins de carrière différents | 209 | 209 | 217 | **237** | 227 |
+| Classe de recrues : score moyen R1 | +17,6 | +16,0 | +15,0 | +15,1 | +15,3 |
+| Coupures L1 / L2 / L3 / L4 | +3,1 / +5,8 / +8,2 / +13,5 | +3,3 / +5,9 / +8,3 / +13,0 | +3,0 / +5,3 / +7,8 / +12,8 | +3,1 / +5,6 / +8,2 / +12,8 | +3,3 / +5,9 / +8,4 / +13,1 |
+| Médiane de niveau L1 / L2 / L3 | 836 / 676 / 544 | 828 / 676 / 535 | 845 / 704 / 559 | 839 / 687 / 540 | 832 / 680 / 538 |
+
+Ce qu'on en retient :
+- Avec standard +0,05, les éclosions tardives tombent de moitié et le circuit se renforce (médiane L2 +28). C'est à éviter.
+- **Avec standard inchangé et 50 % des bruts en éclosion tardive** : 4 fois plus de recrues placées directement en L2, 2 fois plus en L3, 2,5 fois plus de plateaux, autant d'éclosions tardives qu'avant, le plus grand nombre de chemins différents (237), et un circuit à peu près aussi fort qu'avant (médianes à ±11 points). **C'est la version retenue pour la v418.**
+- **Vérifié dans le jeu v418** (3 mondes × 30 saisons) : recrues placées par saison 0,5 / 1,9 / 3,7 / 42 (L1 / L2 / L3 / L4), 407 golfeurs qui plafonnent dans leur ligue de départ, 0,32 éclosion tardive par saison, 234 chemins de carrière différents, part du top 5 en L1 17 %, médianes 834 / 693 / 543 / 353.
+- Les bonds de plus de 150 points sont un peu moins fréquents (14 contre 17 par saison) : les recrues prêtes ont peu de marge.
+- Le profil ne décide pas du destin : brutes, standard et prêtes atteignent la L1 à peu près aussi souvent (44 %, 47 %, 51 %). C'est le vrai plafond qui décide.
 
 
 **Constat de Max** : les coupures observées sont environ L1 +4, L2 +7, L3 +11 et L4 +18 **après la ronde 1** (18 trous). Les écarts entre ligues sont donc +3, +4, puis **+7**. Le dernier palier est presque deux fois plus grand que les autres.
