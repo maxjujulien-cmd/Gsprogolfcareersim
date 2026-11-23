@@ -24,17 +24,9 @@ function offChapters(s) {
   }
   /* 3. le Temple : la cérémonie, seulement s'il y a un élu */
   if ((E.hof || []).some(r => r[5])) { const kv = VIEW; VIEW = { name: 'hofCer', s }; let h = ''; try { h = vHofCer(); } catch (e) { } VIEW = kv; C.push({ id: 'hof', ico: '🏛️', t: 'Temple de la renommée', sub: 'Cérémonie d’intronisation', h: '<div class="ofcer">' + h + '</div>' }); }
-  /* 4. retraites */
-  if (x && x.rt.length) {
-    /* v261 : seuls les titres de Ligue 1 comptent (tournois + Finale), et on trie par gains de carrière */
-    const W1 = l1WinsUpTo(s), w1 = r => W1[r[0]] || 0;
-    const rt = x.rt.slice().sort((a, b) => (b[0] === 0) - (a[0] === 0) || b[4] - a[4] || w1(b) - w1(a) || b[2] - a[2]), nf = rt.filter(r => r[7]).length;
-    const sp = rt.slice(0, 2), rest = rt.filter(r => !sp.includes(r));
-    let h = sp.map(r => '<div class="ofs plq"><div class="tg">🚪 ' + (r[0] === 0 ? 'Ta carrière prend fin' : 'Une carrière qui s’achève') + '</div><div class="nm big">' + offLnk(r[0]) + '</div><p>' + r[1] + ' ans · ' + plural(r[2], 'saison') + (r[6] >= 0 ? ' · dernier niveau ' + tierName(r[6]) : '') + '</p><div class="oft"><div><b>' + w1(r) + '</b>' + (w1(r) === 1 ? 'titre de L1' : 'titres de L1') + '</div><div><b>' + fmtM(r[4]) + '</b>gains</div><div><b>L' + (r[5] + 1) + '</b>dernière ligue</div></div></div>').join('');
-    const row = r => offRow(offLnk(r[0]), r[1] + ' ans · ' + (w1(r) ? plural(w1(r), 'titre') + ' de L1' : 'aucun titre de L1') + (r[4] > 0 ? ' · ' + fmtM(r[4]) + ' de gains' : '') + (r[7] ? ' · forcée' : ''));   // v260 : gains de carrière
-    if (rest.length) h += '<div class="block"><h3 style="margin-top:0">' + (sp.length ? 'Les autres départs' : 'Les départs') + '</h3>' + rest.slice(0, 8).map(row).join('') + (rest.length > 8 ? detailsBox('Voir les ' + (rest.length - 8) + ' autres', rest.slice(8).map(row).join('')) : '') + '</div>';
-    C.push({ id: 'rt', ico: '🚪', t: 'Retraites', sub: plural(rt.length, 'golfeur') + ' quittent le circuit' + (nf ? ', dont ' + nf + ' forcé' + (nf > 1 ? 's' : '') : ''), h });
-  }
+  /* 4. retraites — v427 : page « télé » plein écran (maquette C choisie par Max) : le tableau des départs classés par gains
+     en carrière, les chiffres de la saison et un bandeau qui fait défiler les autres départs. */
+  if (x && x.rt.length) C.push({ id: 'rt', ico: '🚪', t: 'Retraites', full: 1, img: HERO_IMG, dim: 1, h: offRtHTML(s, x) });
   /* 5. progression */
   if (x && x.tc.length) {
     const tc = x.tc, gens = tc.filter(c => c[2] === 8 && c[1] < 8), hofs = tc.filter(c => c[2] === 7 && c[1] < 7);
@@ -168,6 +160,28 @@ function l1WinsUpTo(s) {
   S.hist.forEach(H => { if (H.s > s) return; (H.t || []).forEach(t => add(t && t.lg && t.lg[0] && t.lg[0].rows[0])); add(H.fin && H.fin.lg && H.fin.lg[0] && H.fin.lg[0].rows[0]); });
   return m;
 }
+/* v427 : le chapitre « Retraites » en page télé (tableau des départs). Une ligne de x.rt : [id, âge, saisons, …, gains, dernière ligue, dernier niveau, forcée]. */
+function offRtHTML(s, x) {
+  const W1 = l1WinsUpTo(s), w1 = r => W1[r[0]] || 0, ids = new Set(x.rt.map(r => r[0])), maj = {}, wr = {};
+  S.hist.forEach(H => { if (!H || H.s > s) return;
+    if (CFG.majors !== 0) MAJ_T.forEach(t => { const T = H.t && H.t[t], w = T && T.lg && T.lg[0] && T.lg[0].rows[0]; if (w && ids.has(w[0])) maj[w[0]] = (maj[w[0]] || 0) + 1; });
+    const e = H.end; if (e && e.wr) e.wr.forEach((id, i) => { if (ids.has(id) && !(wr[id] <= i + 1)) wr[id] = i + 1; }); });
+  const rt = x.rt.slice().sort((a, b) => (b[0] === 0) - (a[0] === 0) || b[4] - a[4] || w1(b) - w1(a) || b[2] - a[2]), nf = rt.filter(r => r[7]).length, N = 12;
+  const top = rt.slice(0, N), rest = rt.slice(N), totL1 = rt.reduce((a, r) => a + w1(r), 0), totE = rt.reduce((a, r) => a + (r[4] || 0), 0), dash = '—';
+  let h = '<div class="ofxnm ofrth" role="heading" aria-level="2">Ils raccrochent</div><p class="ofrtl"><span>' + plural(rt.length, 'départ') + '</span> · <span>Classés par gains en carrière</span></p>';
+  h += '<div class="ofrtg"><div class="ofmsc ofrtt"><div class="h"><div class="lab">' + (rest.length ? '<span>Les départs</span> · top ' + N : '<span>Les départs</span>') + '</div></div><div class="scroll"><table>' +
+    '<tr><th></th><th class="l">Golfeur</th><th>Âge</th><th>Carrière</th><th>Titres L1</th>' + (CFG.majors !== 0 ? '<th>Majeurs</th>' : '') + '<th>Mondial</th><th>Gains</th></tr>' +
+    top.map((r, i) => '<tr class="' + (r[0] === 0 ? 'me' : wr[r[0]] === 1 ? 'gold' : '') + '"><td class="r">' + (i + 1) + '</td><td class="l n">' + offLnk(r[0]) +
+      (r[0] === 0 ? ' <span class="ofpill">Toi</span>' : wr[r[0]] === 1 ? ' <span class="ofpill">Ex-n° 1</span>' : '') + (r[7] ? ' <span class="ofpill gr">Forcée</span>' : '') + '</td><td>' + r[1] + '</td><td>' + (yr(s) - r[2] + 1) + '–' + yr(s) + '</td><td>' + (w1(r) || dash) + '</td>' +
+      (CFG.majors !== 0 ? '<td>' + (maj[r[0]] || dash) + '</td>' : '') + '<td>' + (wr[r[0]] ? 'n° ' + wr[r[0]] : dash) + '</td><td><b>' + (r[4] > 0 ? fmtM(r[4]) : dash) + '</b></td></tr>').join('') + '</table></div></div>';
+  const bx = (v, k) => '<div class="ofrtb"><b>' + v + '</b><span>' + k + '</span></div>';
+  h += '<div class="ofrts">' + bx(rt.length, rt.length > 1 ? 'départs' : 'départ') + bx(nf, nf > 1 ? 'perdent leur place (forcés)' : 'perd sa place (forcé)') + bx(totL1, totL1 > 1 ? 'titres de L1 qui s’en vont' : 'titre de L1 qui s’en va') + bx(fmtM(totE), 'de gains en carrière, au total') + '</div></div>';
+  if (rest.length) {
+    const it = rest.map(r => '<span>' + offLnk(r[0]) + ' <i>' + r[1] + ' ans' + (r[7] ? ' · forcée' : '') + '</i></span>').join('');
+    h += '<div class="ofxtk ofrtk"><div class="lab"><span>Aussi</span> · ' + rest.length + '</div><div class="its"><div class="mq" style="animation-duration:' + Math.max(30, rest.length * 4) + 's"><div>' + it + '</div><div aria-hidden="true" class="dup">' + it.replace(/<a /g, '<a tabindex="-1" ') + '</div></div></div></div>';
+  }
+  return h;
+}
 /* v426 : le chapitre « Ta saison » en page télé, avec la carte de pointage de la saison. */
 function offMeHTML(s, H, E, x) {
   const from = E.from, to = E.to, retired = to === -1, me = mySeason(H, E), mb = offMyBest(H), T = E.tables[from] || [];
@@ -266,7 +280,7 @@ function vOff() {
   const i = clamp(VIEW.i || 0, 0, C.length - 1), ch = C[i], cur = s === S.season - 1;
   if (cur && S.off && S.off.s === s) S.off.i = i;
   const dots = C.map((c, k) => '<a href="#" class="' + (k < i ? 'on' : k === i ? 'cur' : '') + '" data-a="offgo" data-i="' + k + '" title="' + esc(c.t) + '" aria-label="' + esc(c.t) + '"></a>').join('');
-  if (ch.full) return '<div class="ofw ofwx"><div class="ofx"><div class="ofxbg" aria-hidden="true"' + (ch.img ? ' style="background-image:url(' + ch.img + ')"' : '') + '></div><div class="ofxin"><div class="ofxk"><span>Chapitre ' + (i + 1) + '</span> · <span>' + esc(ch.t) + '</span> <span class="ofxy">· ' + yr(s) + ' → ' + yr(s + 1) + '</span></div><div class="ofdots">' + dots + '</div>' + ch.h + '</div></div>' + offFoot(C, i, s, cur) + '</div>';
+  if (ch.full) return '<div class="ofw ofwx"><div class="ofx"><div class="ofxbg' + (ch.dim ? ' dim' : '') + '" aria-hidden="true"' + (ch.img ? ' style="background-image:url(' + ch.img + ')"' : '') + '></div><div class="ofxin"><div class="ofxk"><span>Chapitre ' + (i + 1) + '</span> · <span>' + esc(ch.t) + '</span> <span class="ofxy">· ' + yr(s) + ' → ' + yr(s + 1) + '</span></div><div class="ofdots">' + dots + '</div>' + ch.h + '</div></div>' + offFoot(C, i, s, cur) + '</div>';
   let h = '<div class="ofw"><div class="ofprog"><div class="pl">Intersaison ' + yr(s) + ' → ' + yr(s + 1) + ' · ' + (i + 1) + ' / ' + C.length + '</div><div class="ofdots">' + dots + '</div></div>' +
     '<div class="ofhero"><div class="k">' + ch.ico + ' <span>Chapitre ' + (i + 1) + '</span></div><h1>' + ch.t + '</h1>' + (ch.sub ? '<p>' + ch.sub + '</p>' : '') + '</div>';
   h += ch.R ? '<div class="ofgrid two"><div>' + ch.h + '</div><div>' + ch.R + '</div></div>' : ch.h;

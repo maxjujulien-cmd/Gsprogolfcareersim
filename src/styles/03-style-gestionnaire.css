@@ -628,3 +628,22 @@ table.cards{font-size:15px}.cards .s2{font-size:17px}.cards td.r{font-size:14px}
   .ofmtop{flex-direction:column;align-items:stretch;gap:14px}.ofmtop .ofxlow{min-width:0;width:100%}.ofmsc table{font-size:15px}.ofmsc .leg{margin-left:0}
   .ofmret{margin:4px 16px 12px}
 }
+/* v427 : chapitre « Retraites » (tableau télé des départs, couleur des adieux) */
+.ofxbg.dim{filter:grayscale(.55) brightness(.8)}
+.ofx .ofxnm.ofrth{font-size:clamp(40px,3.6vw,64px);margin-top:4px}
+.ofrtl{font-size:20px;color:#d8d2c2;margin:6px 0 16px}
+.ofrtg{display:flex;gap:22px;align-items:flex-start}.ofrtt{flex:1;margin-top:0;border-top-color:#c9a24a;min-width:0}.ofrtt .lab{background:#c9a24a}
+.ofrtt th,.ofrtt td{text-align:right;padding:9px 12px}.ofrtt th.l,.ofrtt td.l{text-align:left;padding-left:12px;width:auto}.ofrtt td.r{color:#c8bfa4;width:36px;text-align:right}
+.ofrtt td.n{font:400 17px Arimo,Arial,sans-serif;letter-spacing:0;text-transform:none;color:#fff;white-space:nowrap}.ofrtt td.n a{color:#fff}.ofrtt tr.gold td{background:rgba(201,162,74,.16)}.ofrtt tr.gold td.n{font-weight:800}.ofrtt tr.me td{background:rgba(31,174,91,.2)}
+.ofpill{display:inline-block;background:#f0c419;color:#111;font:800 11px Arimo,Arial,sans-serif;padding:2px 6px;border-radius:3px;margin-left:6px;letter-spacing:.06em;text-transform:uppercase;vertical-align:2px}.ofpill.gr{background:#5d6168;color:#fff}
+.ofrts{width:360px;display:flex;flex-direction:column;gap:14px;flex:none}
+.ofrtb{background:rgba(10,12,14,.88);border-top:4px solid #8c6a3c;padding:14px 18px}.ofrtb b{display:block;font:800 44px/1.1 Arimo,Arial,sans-serif;color:#fff;white-space:nowrap}.ofrtb span{font-size:13px;color:#c8bfa4;letter-spacing:.1em;text-transform:uppercase}
+.ofrtk{border-top-color:#c9a24a;margin-top:auto}.ofrtg{margin-bottom:22px}.ofrtk .lab{background:#c9a24a}.ofrtk .its{flex:1;flex-wrap:nowrap;overflow:hidden;padding:0;min-width:0}
+.ofrtk .mq{display:flex;width:max-content;animation:ofmq 60s linear infinite}.ofrtk .mq>div{display:flex;gap:34px;padding:14px 34px 14px 0;white-space:nowrap}.ofrtk .mq:hover{animation-play-state:paused}
+.ofrtk .mq a{color:#fff}.ofrtk .mq i{color:#c9a24a;font-style:normal;font-size:14px;margin-left:6px}
+@keyframes ofmq{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.ofrtk .mq{animation:none;width:auto}.ofrtk .mq>div{flex-wrap:wrap;white-space:normal;gap:6px 26px;padding:10px 20px}.ofrtk .mq>.dup{display:none}}
+@media (max-width:899px){
+  .ofrtg{flex-direction:column;align-items:stretch}.ofrts{width:auto;flex-direction:row;flex-wrap:wrap}.ofrtb{flex:1 1 40%}.ofrtb b{font-size:28px}
+  .ofrtk .mq{animation:none;width:auto}.ofrtk .mq>div{flex-direction:column;gap:6px;padding:10px 16px;white-space:normal;max-height:280px;overflow-y:auto}.ofrtk .mq>.dup{display:none}.ofrtl{font-size:16px}
+}

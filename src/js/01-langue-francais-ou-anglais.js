@@ -929,6 +929,11 @@ I18N_RX.push(
   [/^(.*?) ?progresse : (.+) passe au niveau (bronze|argent|or)\.$/, (m, pre, l, v) => (pre ? pre + ' ' : '') + 'improves: ' + talEnLbl(l) + ' moves up to ' + I18N_TALLV[v] + '.']
 );
 /* ---- Intersaison en chapitres (v215) ---- */
+/* v427 : chapitre « Retraites » en page télé */
+Object.assign(I18N_EN, { 'Ils raccrochent': 'Hanging it up', 'Classés par gains en carrière': 'Ranked by career earnings', 'Les départs': 'Departures', 'Titres L1': 'L1 titles',
+  'Mondial': 'World', 'Toi': 'You', 'Ex-n° 1': 'Ex-No. 1', 'Forcée': 'Forced', 'départs': 'departures', 'départ': 'departure', 'perdent leur place (forcés)': 'lose their spot (forced)',
+  'perd sa place (forcé)': 'loses their spot (forced)', 'titres de L1 qui s’en vont': 'L1 titles leaving', 'titre de L1 qui s’en va': 'L1 title leaving', 'de gains en carrière, au total': 'in career earnings, combined', 'Aussi': 'Also' });
+I18N_RX.push([/^(\d+) départs?$/, (m, n) => n + (n === '1' ? ' departure' : ' departures')], [/^(\d+) ans · forcée$/, 'age $1 · forced'], [/^n° (\d+)$/, 'No. $1']);
 /* v426 : chapitre « Ta saison » en page télé */
 Object.assign(I18N_EN, { 'Ta carrière s’est terminée cette saison': 'Your career ended this season', 'Ta carte de la saison': 'Your season scorecard', 'Ta remontée': 'Your climb',
   'Ta saison au classement': 'Your season in the standings', 'après le premier tournoi, puis à la fin': 'after the first event, then at the end', 'aucune coupure ratée': 'no missed cuts',
