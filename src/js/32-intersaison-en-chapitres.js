@@ -13,21 +13,9 @@ function offMyBest(H) {
 function offChapters(s) {
   const H = S.hist[s - 1], E = H && H.end; if (!E) return [];
   const C = [], from = E.from, to = E.to, x = E.x || null, P = s > 1 && S.hist[s - 2] && S.hist[s - 2].end;
-  /* 1. ta saison */
-  if (from >= 0) {
-    const retired = to === -1, me = mySeason(H, E), mc = x ? x.tc.find(c => c[0] === 0) : null, mb = offMyBest(H);
-    const verdict = retired ? '' : to < from ? '<span class="tag good">Promotion</span>' : to > from ? '<span class="tag bad">Relégation</span>' : '<span class="tag">Maintien</span>';
-    let h = '<div class="ofs jmp"><div class="tg">Ton classement final en ' + LEAGUE_SHORT[from] + '</div><div class="ofbig">' + ord(E.rank) + '</div><p>' + (retired ? 'Ta carrière s’est terminée à la fin de cette saison.' : verdict + '  Tu commences la saison ' + yr(s + 1) + ' en <b>' + LEAGUE_NAMES[to] + '</b>.') + '</p></div>';
-    if (me.row) h += '<div class="mgrid">' + tile(mb.w, mb.w > 1 ? 'victoires' : 'victoire') + tile(mb.t10, 'top 10') + tile(me.cuts, me.cuts > 1 ? 'coupures ratées' : 'coupure ratée') + tile(fmtM(me.earn), 'gains de la saison') + '</div>';
-    const mom = [];
-    if (mb.best) mom.push('🏆 Meilleur résultat : ' + (mb.best.p === 1 ? 'victoire' : ord(mb.best.p)) + ' au tournoi ' + (mb.best.t + 1) + (mb.best.l !== from ? ' en Ligue ' + (mb.best.l + 1) : '') + (mb.best.n ? ' · ' + esc(mb.best.n) : ''));
-    if (mb.br) mom.push('🎯 Meilleure ronde : ' + (mb.br.par ? (mb.br.par + mb.br.v) + ' (' + fmt(mb.br.v) + ')' : fmt(mb.br.v)) + ' au tournoi ' + (mb.br.t + 1));
-    if (mc) mom.push('📈 Ton niveau : ' + tierName(mc[1]) + ' → ' + tierName(mc[2]));
-    if (talOn()) { const tm = talMine(); if (tm && tm.list && tm.list.length) { const t = tm.list[0]; mom.push((t.n ? '⚠️ Ton point faible selon tes cartes : ' : '⛳ Ta force selon tes cartes : ') + talLbl(t).toLowerCase() + ' (' + talLvName(t).toLowerCase() + ')'); } }
-    if (mom.length) h += '<div class="block"><h3 style="margin-top:0">Tes moments</h3>' + mom.map(m => '<div class="ofrow"><span>' + m + '</span></div>').join('') + '</div>';
-    if (s === S.season - 1 && canRetire()) h += retireBlock();
-    C.push({ id: 'me', ico: '🏌️', t: 'Ta saison ' + yr(s), sub: LEAGUE_NAMES[from], h });
-  }
+  /* 1. ta saison — v426 : page « télé » plein écran (maquette B2 choisie par Max) : ton rang géant, bandeau de stats,
+     ta carte de la saison (rondes, total, place, points et gains à chaque tournoi), tes moments et la saison qui vient. */
+  if (from >= 0) C.push({ id: 'me', ico: '🏌️', t: 'Ta saison ' + yr(s), full: 1, img: HERO_IMG, h: offMeHTML(s, H, E, x) });
   else if (E.prc) C.push({ id: 'me', ico: '\ud83c\udf93', t: 'Ta saison ' + yr(s), sub: 'Classe de recrues', h: '<div class="ofs jmp">' + rcEndHTML(H, E, s, false, true) + '</div>' });
   /* 2. les champions — v425 : page « télé » plein écran (maquette A2 choisie par Max) : photo du trophée, nom géant du champion
      de la Ligue 1, bandeau de stats, son parcours tournoi par tournoi, les trois autres champions et la Finale, puis le bandeau des majeurs. */
@@ -179,6 +167,58 @@ function l1WinsUpTo(s) {
   const m = {}, add = r => { if (r) m[r[0]] = (m[r[0]] || 0) + 1; };
   S.hist.forEach(H => { if (H.s > s) return; (H.t || []).forEach(t => add(t && t.lg && t.lg[0] && t.lg[0].rows[0])); add(H.fin && H.fin.lg && H.fin.lg[0] && H.fin.lg[0].rows[0]); });
   return m;
+}
+/* v426 : le chapitre « Ta saison » en page télé, avec la carte de pointage de la saison. */
+function offMeHTML(s, H, E, x) {
+  const from = E.from, to = E.to, retired = to === -1, me = mySeason(H, E), mb = offMyBest(H), T = E.tables[from] || [];
+  const mc = x ? x.tc.find(c => c[0] === 0) : null, MJ = CFG.majors !== 0;
+  const badge = retired ? '<div class="ofxlive gry">■ <span>Ta carrière s’est terminée cette saison</span></div>'
+    : to < from ? '<div class="ofxlive up">▲ <span>Promotion</span> · <span>Tu montes en Ligue ' + (to + 1) + '</span></div>'
+    : to > from ? '<div class="ofxlive">▼ <span>Relégation</span> · <span>Tu descends en Ligue ' + (to + 1) + '</span></div>'
+    : '<div class="ofxlive gry">■ <span>Maintien</span> · <span>Tu restes en Ligue ' + (to + 1) + '</span></div>';
+  let h = badge + '<div class="ofxnat"><span>' + esc(LEAGUE_NAMES[from]) + '</span> · <span>Classement final</span></div>';
+  const rk = E.rank || 0, sup = LANG === 'en' ? ord(rk).replace(/^\d+/, '') : rk === 1 ? 'er' : 'e';
+  const st = [[me.row ? me.row[1] : 0, 'points'], [mb.w, mb.w > 1 ? 'victoires' : 'victoire'], [mb.t10, 'top 10'], [fmtM(me.earn), 'gains']];
+  h += '<div class="ofmtop"><div class="ofmrk"><b>' + rk + '<sup>' + sup + '</sup></b><div><strong class="notr">' + esc(nameOf(0)) + '</strong><span>sur ' + T.length + ' golfeurs</span>' + (from > 0 ? '<span>Les ' + MOVE + ' premiers montent</span>' : '') + '</div></div>' +
+    '<div class="ofxlow"><div class="k"><span>Saison</span> ' + yr(s) + '</div><div class="v">' + st.map(v => '<div><b>' + v[0] + '</b><span>' + v[1] + '</span></div>').join('') + '</div></div></div>';
+  /* la carte de la saison : une colonne par tournoi (et la Finale si tu y étais) */
+  const cols = [];
+  H.t.forEach((t, ti) => { if (!t) return; const lg = t.pl === 4 ? t.rc : t.lg && t.lg[t.pl], r = lg && lg.rows.find(z => z[0] === 0);
+    cols.push({ k: String(ti + 1), n: t.name || '', mj: MJ && MAJ_T.includes(ti), l: t.pl, par: t.par || 0, r, earn: r && lg.pay ? lg.pay[0] || 0 : 0 }); });
+  const fl = H.fin && H.fin.lg && H.fin.lg[0], fr = fl && fl.rows.find(z => z[0] === 0);
+  if (fr) cols.push({ k: 'F', n: H.fin.name || '', fin: 1, l: 0, par: H.fin.par || 0, r: fr, earn: fl.pay ? fl.pay[0] || 0 : 0 });
+  const rd = (c, k) => c.r && c.r[k] != null ? (c.par ? c.par + c.r[k] : fmt(c.r[k])) : '—';
+  const chip = c => !c.r ? '—' : c.r[1] === 1 ? '<span class="cp w">1</span>' : c.r[1] === 0 ? '<span class="cp mc">MC</span>' : '<span class="cp' + (c.r[1] <= 10 ? ' t' : '') + '">' + c.r[1] + '</span>';
+  const sum = k => cols.reduce((a, c) => a + (c.r && c.r[k] != null ? c.r[k] : 0), 0), tot = c => c.r ? c.r[2] + (c.r[3] || 0) : null;
+  const row = (lab, f, tt, cls) => '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td class="l">' + lab + '</td>' + cols.map(c => '<td' + (c.mj || c.fin ? ' class="mj"' : '') + '>' + f(c) + '</td>').join('') + '<td class="tot">' + tt + '</td></tr>';
+  h += '<div class="ofmsc"><div class="h"><div class="lab">Ta carte de la saison</div><div class="leg"><span><i class="cp w">1</i><span>victoire</span></span><span><i class="cp t">5</i><span>top 10</span></span><span><i class="cp mc">MC</i><span>coupure ratée</span></span>' + (MJ ? '<span class="mjk">★ <span>majeur</span></span>' : '') + '</div></div><div class="scroll"><table>' +
+    '<tr><th class="l">Tournoi</th>' + cols.map(c => '<th' + (c.mj || c.fin ? ' class="mj"' : '') + '>' + (c.fin ? 'Finale' : (c.mj ? '★ ' : '') + c.k) + '</th>').join('') + '<th class="tot">Saison</th></tr>' +
+    '<tr class="crs"><td class="l">Terrain</td>' + cols.map(c => '<td' + (c.mj || c.fin ? ' class="mj"' : '') + ' title="' + esc(c.n) + '"><span class="notr">' + esc(c.n) + '</span>' + (c.l !== from && !c.fin ? '<em>' + (c.l === 4 ? 'Recrues' : 'L' + (c.l + 1)) + '</em>' : '') + '</td>').join('') + '<td class="tot"></td></tr>' +
+    row('Ronde 1', c => rd(c, 2), fmt(sum(2))) + row('Ronde 2', c => rd(c, 3), fmt(sum(3))) +
+    row('Total', c => tot(c) == null ? '—' : fmt(tot(c)), fmt(sum(2) + sum(3)), 'big') +
+    row('Place', chip, ord(rk)) + row('Points', c => c.r ? c.r[4] || 0 : '—', me.row ? me.row[1] : 0) +
+    row('Gains', c => c.earn ? fmtM(c.earn) : '—', fmtM(me.earn), 'sm') + '</table></div></div>';
+  /* tes moments */
+  const M = [];
+  if (mb.best) M.push(['🏆', 'Meilleur résultat', (mb.best.p === 1 ? 'Victoire' : ord(mb.best.p)) + ' au tournoi ' + (mb.best.t + 1), mb.best.n]);
+  if (mb.br) M.push(['🎯', 'Meilleure ronde', mb.br.par ? (mb.br.par + mb.br.v) + ' (' + fmt(mb.br.v) + ')' : fmt(mb.br.v), 'Tournoi ' + (mb.br.t + 1) + (H.t[mb.br.t] && H.t[mb.br.t].name ? ' · ' + H.t[mb.br.t].name : mb.br.t === N_TOURN && H.fin ? ' · Finale' : '')]);
+  const pr = offMyProg(H, E); if (pr && pr[0] !== rk) M.push(['📈', pr[0] > rk ? 'Ta remontée' : 'Ta saison au classement', ord(pr[0]) + ' → ' + ord(rk), 'après le premier tournoi, puis à la fin']);
+  if (me.played) M.push(['⛳', 'Coupures', (me.played - me.cuts) + ' sur ' + me.played, me.cuts ? me.cuts + (me.cuts > 1 ? ' coupures ratées' : ' coupure ratée') : 'aucune coupure ratée']);
+  if (mc) M.push(['📊', 'Ton niveau', tierName(mc[2]), mc[1] !== mc[2] ? 'avant : ' + tierName(mc[1]) : 'inchangé']);
+  if (talOn()) { const tm = talMine(); if (tm && tm.list && tm.list.length) { const t = tm.list[0]; M.push([t.n ? '⚠️' : '⛳', t.n ? 'Ton point faible' : 'Ta force', talLbl(t), talLvName(t)]); } }
+  if (M.length) h += '<div class="ofxrow ofmrow">' + M.slice(0, 5).map(m => '<div class="ofxt" style="border-color:#5CC796"><div class="t">' + m[0] + ' <span>' + m[1] + '</span></div><div class="n">' + m[2] + '</div><div class="p">' + esc(m[3]) + '</div></div>').join('') + '</div>';
+  /* la saison qui vient, et la retraite (toujours possible, jamais imposée) */
+  const obj = retired ? '' : to === 0 ? (from === 0 ? 'jouer le titre et la Finale' : 'garder ta place en Ligue 1') : to < from ? 'garder ta place' : 'finir dans les ' + MOVE + ' premiers pour monter';
+  h += '<div class="ofxtk ofmtk"><div class="lab">' + (retired ? '<span>Fin de carrière</span>' : '<span>Saison</span> ' + yr(s + 1)) + '</div><div class="its">' + (retired ? '' : '<span><em>Ta ligue</em>' + esc(LEAGUE_NAMES[to]) + '</span><span><em>Objectif</em>' + obj + '</span>') + '</div>' +
+    (s === S.season - 1 && canRetire() ? '<button class="ofmret" data-a="retireask">Prendre ma retraite</button>' : '') + '</div>';
+  return h;
+}
+/* ton rang au classement de ta ligue après le premier tournoi (null si tu as changé de ligue en cours de saison) */
+function offMyProg(H, E) {
+  const T = E.tables[E.from]; if (!T || !H.t[0] || H.t[0].pl !== E.from) return null;
+  const lg = H.t[0].lg[E.from]; if (!lg) return null; const p = {}; lg.rows.forEach(r => p[r[0]] = r[4] || 0);
+  if (p[0] == null) return null; const ids = T.map(r => r[0]);
+  return [1 + ids.filter(i => (p[i] || 0) > p[0]).length];
 }
 /* v425 : le chapitre « Les champions » en page télé (photo du trophée, src/assets/champ-img.webp). */
 const CHAMP_IMG = '{{asset:champ-img.webp}}', OFX_LC = ['#3987e5', '#e2672f', '#1fae7a', '#e0a21a'];

@@ -929,6 +929,14 @@ I18N_RX.push(
   [/^(.*?) ?progresse : (.+) passe au niveau (bronze|argent|or)\.$/, (m, pre, l, v) => (pre ? pre + ' ' : '') + 'improves: ' + talEnLbl(l) + ' moves up to ' + I18N_TALLV[v] + '.']
 );
 /* ---- Intersaison en chapitres (v215) ---- */
+/* v426 : chapitre « Ta saison » en page télé */
+Object.assign(I18N_EN, { 'Ta carrière s’est terminée cette saison': 'Your career ended this season', 'Ta carte de la saison': 'Your season scorecard', 'Ta remontée': 'Your climb',
+  'Ta saison au classement': 'Your season in the standings', 'après le premier tournoi, puis à la fin': 'after the first event, then at the end', 'aucune coupure ratée': 'no missed cuts',
+  'inchangé': 'unchanged', 'Ton point faible': 'Your weak spot', 'Ta force': 'Your strength', 'Ta ligue': 'Your league', 'Objectif': 'Goal', 'Fin de carrière': 'Career over',
+  'jouer le titre et la Finale': 'play for the title and the Finale', 'garder ta place en Ligue 1': 'keep your spot in League 1', 'garder ta place': 'keep your spot', 'Classement final': 'Final standings' });
+I18N_RX.push([/^Tu montes en Ligue (\d)$/, 'Moving up to League $1'], [/^Tu descends en Ligue (\d)$/, 'Dropping to League $1'], [/^Tu restes en Ligue (\d)$/, 'Staying in League $1'],
+  [/^sur (\d+) golfeurs$/, 'of $1 golfers'], [/^Les (\d+) premiers montent$/, 'Top $1 move up'], [/^Victoire au tournoi (\d+)$/, 'Win at event $1'], [/^(\S+) au tournoi (\d+)$/, '$1 at event $2'],
+  [/^avant : (.+)$/, 'before: $1'], [/^finir dans les (\d+) premiers pour monter$/, 'finish in the top $1 to move up']);
 /* v425 : chapitre « Les champions » en page télé */
 Object.assign(I18N_EN, { 'majeurs': 'majors', 'majeur': 'major', 'd’avance sur le 2e': 'ahead of 2nd', 'Son parcours · place à chaque tournoi': 'Season path · finish at each event',
   'Tu es champion de la Ligue 1': 'You are the League 1 champion', 'Tu es champion': 'You are champion' });

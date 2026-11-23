@@ -27,6 +27,7 @@ Ce fichier sert à mieux connaître Max d'une session à l'autre. **À la fin d'
 - Il pense en joueur : un dominant n'a pas besoin de gagner souvent, mais il doit faire beaucoup de points et finir souvent en haut. Il propose lui-même des pistes (constance, rondes exceptionnelles) : les tester honnêtement, même quand elles ne suffisent pas seules.
 - Il préfère l'imprévu cohérent à la perfection : des explosions et des surprises, mais qui ont un sens (le tempérament, une journée noire).
 - D'autres joueront aussi à son jeu : penser aux autres niveaux de handicap et aux autres défis, pas seulement aux siens.
+- En apparence, il aime le style « télé » (bandeaux, chiffres géants, photo) et mélange volontiers les options (« les infos de B avec le look de A »).
 - Il veut que tout soit au même endroit : un seul dépôt GitHub, tout y est enregistré à chaque changement.
 
 ## Décisions d'équilibre à respecter (novembre 2026)
@@ -57,16 +58,18 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 
 ## À chaque nouvelle version
 
-1. Numéro de version suivant (dernière : **v425**), noté dans les commentaires du code modifié.
+1. Numéro de version suivant (dernière : **v426**), noté dans les commentaires du code modifié.
 2. `npm run build`, puis `npm test`. Pour un changement d'équilibre, vérifier aussi dans le vrai jeu avec le banc d'essai.
 3. Mettre à jour `docs/parametres.md` (et le README si besoin).
 4. **Commit et push sur GitHub, toujours, à la fin de chaque changement.** Ne jamais laisser une version seulement dans l'artifact ou dans un fichier envoyé.
 5. Envoyer à Max le fichier autonome `IndoorGolfCareer-vNNN.html`.
 6. Republier l'artifact « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) si Max le demande : publier `dist/index.html`. Republier aussi un fichier de données (`ootp-names.js`, `ootp-names-extra.js`, `terrains-data.js`) seulement s'il a changé.
 
-## Intersaison en pages « télé » (v425, en cours)
+## Intersaison en pages « télé » (v425-v426, en cours)
 
 - Max refait les chapitres de l'intersaison un par un : 4 maquettes par chapitre, il en choisit une. « Les champions » = maquette A2 (v425) : page plein écran avec sa photo du trophée (`src/assets/champ-img.webp`), nom géant, bandeau de stats, parcours en barres, bandeau des majeurs.
+- « Ta saison » = maquette B2 (v426) : Max aimait les infos de la carte de pointage (option B) mais voulait le look télé de la A2. Ton rang géant, bandeau de stats, carte de la saison (rondes, total, place, points, gains par tournoi), moments, saison suivante et bouton de retraite discret.
+- Chapitres suivants : on garde la liste actuelle des chapitres (Max a refusé d'en ajouter pour l'instant).
 - Un chapitre plein écran se déclare avec `full: 1` (et `img`) dans `offChapters` ; `vOff` garde les points de progression et les boutons.
 - La photo du trophée (Wanamaker) vient de Max et est probablement protégée : bien pour son usage personnel, à remplacer avant de partager le jeu publiquement.
 

@@ -597,3 +597,34 @@ table.cards{font-size:15px}.cards .s2{font-size:17px}.cards td.r{font-size:14px}
   .ofxch{padding:12px}.ofxbars{gap:5px;height:80px}.ofxbars span{font-size:11px}.ofxbars em{display:none}
   .ofxrow{flex-direction:column;gap:10px}.ofxtk{margin:0 -16px;flex-direction:column}.ofxtk .lab{padding:8px 16px}.ofxtk .its{flex-direction:column;align-items:flex-start;padding:10px 16px}.ofxtk .its span{white-space:normal}
 }
+/* v426 : chapitre « Ta saison » (page télé avec la carte de la saison) */
+.ofxlive.up{background:#1fae5b}.ofxlive.gry{background:#4b5a52}
+.ofmtop{display:flex;align-items:flex-end;gap:34px;margin-top:2px;flex-wrap:wrap}
+.ofmrk{display:flex;align-items:flex-end;gap:18px}.ofmrk>b{font:800 170px/.85 Arimo,Arial,sans-serif;letter-spacing:-.04em;text-shadow:0 8px 40px rgba(0,0,0,.5)}
+.ofmrk>b sup{font-size:70px;vertical-align:top;position:relative;top:12px}
+.ofmrk div{padding-bottom:16px;font-size:20px;color:#d9e2dc;line-height:1.35;display:flex;flex-direction:column}.ofmrk strong{color:#fff;font-size:30px}
+.ofmtop .ofxlow{flex:1;margin:0 0 10px;min-width:560px;max-width:none}.ofmtop .ofxlow b{white-space:nowrap}
+.ofmsc{margin-top:22px;background:rgba(10,16,14,.86);box-shadow:0 20px 50px rgba(0,0,0,.45);border-top:3px solid #f0c419}
+.ofmsc .h{display:flex;align-items:center;flex-wrap:wrap}.ofmsc .lab{background:#f0c419;color:#111;font:800 14px Arimo,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:9px 18px}
+.ofmsc .leg{margin-left:auto;display:flex;gap:18px;padding:6px 16px;font-size:13px;color:#c8bfa4;align-items:center;flex-wrap:wrap}.ofmsc .leg>span{display:inline-flex;gap:7px;align-items:center}.ofmsc .leg .mjk{color:#f0c419}
+.ofmsc .scroll{overflow-x:auto}
+.ofmsc table{width:100%;border-collapse:collapse;font-size:17px;color:#fff;margin:0}
+.ofmsc th,.ofmsc td{text-align:center;padding:8px 4px;border:0;border-left:1px solid rgba(255,255,255,.07);background:none}
+.ofmsc tr+tr td{border-top:1px solid rgba(255,255,255,.07)}
+.ofmsc th{font:700 13px Arimo,Arial,sans-serif;letter-spacing:.1em;color:#c8bfa4;text-transform:uppercase;padding-top:10px}.ofmsc th.mj{color:#f0c419}
+.ofmsc td.l,.ofmsc th.l{text-align:left;padding-left:18px;width:110px;font:700 12px Arimo,Arial,sans-serif;letter-spacing:.14em;color:#c8bfa4;text-transform:uppercase;border-left:0;white-space:nowrap}
+.ofmsc tr.crs td{font-size:12px;color:#aab4ad;line-height:1.2;height:40px;max-width:150px}.ofmsc tr.crs td span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ofmsc tr.crs td.mj{color:#f0c419;font-weight:700}.ofmsc tr.crs em{display:block;font-style:normal;font-size:10px;letter-spacing:.08em;color:#8fd3ad;margin-top:2px}
+.ofmsc td.tot,.ofmsc th.tot{background:rgba(240,196,25,.14);font-weight:800;color:#fff;white-space:nowrap;padding-left:12px;padding-right:12px}.ofmsc th.tot{color:#f0c419}
+.ofmsc tr.big td{font-weight:800;font-size:19px}.ofmsc tr.big td.l{font-size:15px;color:#fff}.ofmsc tr.sm td{font-size:14px;white-space:nowrap}
+.ofmsc .cp,.ofmsc .leg .cp{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:30px;padding:0 4px;border-radius:4px;font-weight:800;font-style:normal;background:rgba(255,255,255,.08)}
+.ofmsc .cp.w{background:#f0c419;color:#111}.ofmsc .cp.t{background:#2f7fd8;color:#fff}.ofmsc .cp.mc{background:transparent;border:2px solid #d7263d;color:#ff8a95;font-size:12px}
+.ofmsc .leg .cp{min-width:22px;height:18px;font-size:10px}
+.ofmrow{padding-top:22px}.ofmrow .ofxt .n{font-size:21px}
+.ofmtk{border-top-color:#1fae5b}.ofmtk .lab{background:#1fae5b;color:#04210f}.ofmtk em{color:#5CC796}
+.ofmret{margin:auto 20px auto auto;background:none;color:#ff9a9a;font:600 14px Arimo,Arial,sans-serif;border:1px solid rgba(232,136,136,.55);padding:7px 14px;border-radius:6px;cursor:pointer;white-space:nowrap}.ofmret:hover{background:rgba(215,38,61,.2)}
+@media (max-width:899px){
+  .ofmrk>b{font-size:110px}.ofmrk>b sup{font-size:44px}.ofmrk strong{font-size:22px}.ofmrk div{font-size:15px}
+  .ofmtop{flex-direction:column;align-items:stretch;gap:14px}.ofmtop .ofxlow{min-width:0;width:100%}.ofmsc table{font-size:15px}.ofmsc .leg{margin-left:0}
+  .ofmret{margin:4px 16px 12px}
+}
