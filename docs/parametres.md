@@ -2,7 +2,7 @@
 
 Ce document résume les paramètres qui décident du niveau des golfeurs et de leurs scores : ce qu'ils font, où ils se trouvent et pourquoi ils ont ces valeurs. Il sert de mémoire entre les sessions, parce que les conversations précédentes ne suivent pas d'une session à l'autre.
 
-> **Source** : version **v421** du jeu (22 novembre 2026). Les v417 à v420 ont été faites dans le dépôt à partir de la v416 (fichier `IndoorGolfCareer-v416.html` fourni par Max le 20 novembre 2026). v417 : réglage « Écart en bas de l'échelle » (section 2). v418 : seuil de carte des recrues recalibré et profils de départ des recrues (section 6). v419 : plafonds faibles des recrues resserrés (section 6). v420 : moins de Generational (sections 5 et 6). v421 : avance des meilleurs, constance et rondes exceptionnelles (section 2). L'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) est en v420 depuis le 22 novembre 2026. À chaque nouvelle version produite ailleurs, il faut la réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
+> **Source** : version **v422** du jeu (22 novembre 2026). Les v417 à v420 ont été faites dans le dépôt à partir de la v416 (fichier `IndoorGolfCareer-v416.html` fourni par Max le 20 novembre 2026). v417 : réglage « Écart en bas de l'échelle » (section 2). v422 : se ressaisir après une mauvaise série (section 2). v418 : seuil de carte des recrues recalibré et profils de départ des recrues (section 6). v419 : plafonds faibles des recrues resserrés (section 6). v420 : moins de Generational (sections 5 et 6). v421 : avance des meilleurs, constance et rondes exceptionnelles (section 2). L'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) est en v420 depuis le 22 novembre 2026. À chaque nouvelle version produite ailleurs, il faut la réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
 
 Échelle utilisée partout : **coups par rapport au par**, sur une ronde de 18 trous.
 
@@ -626,3 +626,14 @@ Constat dans un monde de 100 saisons (voir `docs/analyse-100-saisons.md`) : un G
 | v421, 2e tirage | 6,0 % / 39 % / 13 % | 9 | 36 % | 45 % | +2,5 / +2,5 / +4,1 | 4,2 |
 
 La part des tournois de L1 gagnés par le top 5 (au niveau) passe d'environ 19 % à environ 30 %. La variété des carrières ne change pas. À noter : les « effets estimés » des préréglages dans les réglages avancés (`ADV_FX`) datent de la v200 et n'ont pas été remesurés.
+
+### Rondes absurdes (novembre 2026) — réglé en v422
+
+Voir les essais dans `docs/analyse-100-saisons.md` (point 2). **Rappel : dans le jeu, le pire résultat sur un trou est +4** (choix de Max). Une ronde absurde vient donc toujours d'une accumulation de mauvais trous, jamais d'un seul.
+
+**Décision (23 novembre 2026)** : « Se ressaisir » lié au tempérament, avec une journée noire 1 ronde sur 5 (version 7). La version la plus forte (5) a été jugée trop drastique : Max veut que les explosions arrivent encore de temps en temps, et surtout pas un monde prévisible ou « robotisé ».
+
+- `regroupShift()` (`src/js/07-pression-en-direct-elan-et.js`) : au-delà de 3 coups perdus sur l'attendu dans la ronde, 0,12 coup de mieux par trou et par coup de plus (au plus 1,5), multiplié selon le tempérament (Imperturbable 1,5, Calme 1,2, Neutre 1, Bouillant 0,6, Colérique 0,25). Aucune ressaisie lors d'une journée noire (1 ronde sur 5). Le golfeur du joueur n'est pas touché.
+- Réglage avancé « Se ressaisir après une mauvaise série » (`regroup`, 100 % par défaut, 0 = jamais). Les parties commencées avant la v422 restent à 0 (drapeau `rgv`).
+- Mesuré dans le jeu v422 (L1, 15 saisons, défi +3, écart avec le score médian du champ) : rondes à +15 ou pire **73 → 21**, à +12 ou pire **267 → 100**, pire ronde +25 → +19. Les meilleures rondes ne changent pas.
+- Circuit complet (3 mondes × 30 saisons, version 7 au banc) : écarts de coupure +2,7 / +2,5 / +3,6 (marge de hasard). Generational : 5,7 % de victoires, 35 % de top 10, 16 % de coupures ratées. Ils sont un peu moins dominants qu'en v421, puisque les autres limitent aussi leurs dégâts.

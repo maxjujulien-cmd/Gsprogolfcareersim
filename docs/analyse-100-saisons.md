@@ -120,3 +120,5 @@ Sur le circuit complet (3 mondes × 30 saisons), les solutions 1 et 5 ne changen
 | v421 (2 tirages) | +2,5 / +2,5-2,6 / +3,9-4,1 | 6,0-7,1 % / 39-40 % / 13-15 % | 8-9 |
 | Se ressaisir | +2,4 / +2,4 / +3,8 | 6,7 % / 38,5 % / 14,5 % | 9 |
 | Se ressaisir fort | +2,6 / +2,4 / +3,8 | 6,8 % / 40,4 % / 13,0 % | 7 |
+
+**Décision (23 novembre 2026)** : version 7 (tempérament + journée noire 1 ronde sur 5), intégrée en v422. Voir `docs/parametres.md`.

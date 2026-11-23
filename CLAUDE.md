@@ -25,6 +25,8 @@ Ce fichier sert à mieux connaître Max d'une session à l'autre. **À la fin d'
 - Le réalisme compte, mais d'abord le plaisir de jeu : un monde imprévisible, des histoires de carrière (le golfeur qui plafonne en L2, l'éclosion tardive qui finit en L1, le phénomène rare).
 - Il joue lui-même dans sa carrière (handicap 4, défi « L2 · Aspirant », partie commencée en v417), sur GSPro.
 - Il pense en joueur : un dominant n'a pas besoin de gagner souvent, mais il doit faire beaucoup de points et finir souvent en haut. Il propose lui-même des pistes (constance, rondes exceptionnelles) : les tester honnêtement, même quand elles ne suffisent pas seules.
+- Il préfère l'imprévu cohérent à la perfection : des explosions et des surprises, mais qui ont un sens (le tempérament, une journée noire).
+- D'autres joueront aussi à son jeu : penser aux autres niveaux de handicap et aux autres défis, pas seulement aux siens.
 - Il veut que tout soit au même endroit : un seul dépôt GitHub, tout y est enregistré à chaque changement.
 
 ## Décisions d'équilibre à respecter (novembre 2026)
@@ -34,6 +36,8 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 - **Écarts de coupure entre ligues** : les écarts du milieu (L1 → L2 et L2 → L3, environ +2,5) sont parfaits ; **ne pas resserrer le milieu**. On cherche seulement à réduire L3 → L4 (≈ +3,8 en v420).
 - **Environ 4 golfeurs Generational** en même temps sur le circuit.
 - **Vedettes présentes mais pas écrasantes** (v421) : un Generational gagne environ 6 à 7 % de ses tournois, fait un top 10 environ 4 fois sur 10 et finit souvent dans le top 10 de la saison. Max a refusé une domination plus forte (avance 1,5). Il aime les rondes exceptionnelles de temps en temps (feu 5 %, catastrophes 6 %).
+- **Le pire résultat sur un trou est +4** (choix de Max, à ne pas changer). Une ronde absurde vient d'une accumulation de mauvais trous.
+- **Explosions de temps en temps** (v422) : les golfeurs se ressaisissent après une mauvaise série selon leur tempérament, mais pas lors d'une journée noire (1 ronde sur 5). Max a refusé une version plus forte : il ne veut surtout pas un monde prévisible ou « robotisé ».
 - **Recrues** : profils brut / standard / prêt à jouer (25 / 50 / 25). Le vrai plafond ne change pas, seul le point de départ change.
 - Ce qui n'a pas marché, et pourquoi, est noté dans `docs/parametres.md` : ne pas le retester sans raison nouvelle.
 
@@ -52,7 +56,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 
 ## À chaque nouvelle version
 
-1. Numéro de version suivant (dernière : **v421**), noté dans les commentaires du code modifié.
+1. Numéro de version suivant (dernière : **v422**), noté dans les commentaires du code modifié.
 2. `npm run build`, puis `npm test`. Pour un changement d'équilibre, vérifier aussi dans le vrai jeu avec le banc d'essai.
 3. Mettre à jour `docs/parametres.md` (et le README si besoin).
 4. **Commit et push sur GitHub, toujours, à la fin de chaque changement.** Ne jamais laisser une version seulement dans l'artifact ou dans un fichier envoyé.

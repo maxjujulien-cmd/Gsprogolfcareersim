@@ -55,11 +55,26 @@ function momShift(h, pars, g) {   // en coups, d'après les trous déjà joués 
   let tl = 0; for (let d = 1; d <= 3 && d <= n && !tl; d++) if (h[n - d] - pars[n - d] >= 2) tl = TRT.tail[d - 1];   // le plus récent seulement (pas d'effet boule de neige)   // v341 : la suite d'un gros trou, selon le tempérament
   return (b >= 2 ? -LIVE.M2 : b === 1 ? -LIVE.M1 : 0) * kg + (tl + (bg >= 2 ? LIVE.B2 : 0)) * kb + LIVE.C;
 }
+/* v422 : se ressaisir. Quand un golfeur a perdu plus de 3 coups sur ce qu'on attendait de lui dans la ronde, il limite les dégâts
+   sur les trous suivants : 0,12 coup de mieux par trou et par coup perdu au-delà de 3 (au plus 1,5), selon son tempérament
+   (Imperturbable ×1,5 … Colérique ×0,25), et pas du tout lors d'une journée noire (1 ronde sur 5). Le maximum de +4 par trou ne change pas.
+   Simulation (L1, 15 saisons, écart avec le score médian du champ) : rondes à +15 ou pire de 69 à 18, à +12 ou pire de 266 à 140 ;
+   les meilleures rondes et les écarts de coupure ne changent pas. Réglage avancé « Se ressaisir » (CFG.regroup, 1 par défaut ; 0 = jamais). */
+const RG = { K: 3, R: 0.12, MAX: 1.5, NOIR: 0.2, TP: [1.5, 1.2, 1, 0.6, 0.25] }, RG_NOIR = new Map();
+function regroupShift(model, pars, d, h, g) {
+  const f = CFG.regroup == null ? 0 : +CFG.regroup; if (!(f > 0) || !g || g.id === 0) return 0;
+  if (h.length === 0) RG_NOIR.set(g.id, Math.random() < RG.NOIR);
+  if (RG_NOIR.get(g.id)) return 0;
+  let ex = 0; for (let i = 0; i < h.length; i++) { const M = model[pars[i]], j = clamp(Math.round((d - M.G0) / M.ST), 0, M.N - 1); ex += (h[i] - pars[i]) - M.E[j]; }
+  if (ex <= RG.K) return 0;
+  const t = trOn() && trOf(g).tp ? g.tp : 3;
+  return f * RG.TP[t - 1] * Math.min(RG.MAX, RG.R * (ex - RG.K));
+}
 /* un trou : m = coups de retard sur la tête avant ce trou (ronde finale seulement), null sinon */
 function liveHole(model, pars, idx, hv, k, g, d, h, m) {
   const p = pars[k], tm = talHoleMods(model, pars, d, g), on = liveOn();
   const base = d + (idx ? indexShift(idx[k]) : 0) + (hv ? hv[k] || 0 : 0) + (tm && tm.sh ? tm.sh[p] : 0);
-  let s = on ? momShift(h, pars, g) : 0;
+  let s = on ? momShift(h, pars, g) - regroupShift(model, pars, d, h, g) : 0;   // v422 : se ressaisir
   if (on && m != null && g && g.cl) s += -g.cl * LIVE.P * Math.exp(-Math.max(0, m) / LIVE.W) * LIVE.RAMP[k];
   if (on && m != null && g && g.id !== 0 && trOn() && trOf(g).mc !== 3) {   // v340 : meneur (protège une avance) ou chasseur (remonte)
     const v = g.mc - 3; s += (m <= 0 ? -v * Math.exp(-Math.max(0, -m - 2) / 3) : v * Math.exp(-m / TRT.WC)) * TRT.Q * LIVE.P * LIVE.RAMP[k];
