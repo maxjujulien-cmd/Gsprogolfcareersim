@@ -294,7 +294,8 @@ function loadState(obj) {
   if (!S.tev) { S.cfg = S.cfg || {}; if (S.cfg.topEdge == null) S.cfg.topEdge = 0; S.tev = 1; }
   if (!S.rgv) { S.cfg = S.cfg || {}; if (S.cfg.regroup == null) S.cfg.regroup = 0; S.rgv = 1; }   // v422 : idem pour « Se ressaisir »   // v421 : les parties commencées avant gardent l'équilibre d'avant (réglable dans Réglages avancés)   // v417 : les parties commencées avant gardent la courbe d'avant (réglable dans Réglages avancés)
   initExtras(); topUpLeagues();
-  if (!S.rpv) { if (+S.cfg.lowK < 1 && +S.cfg.rcNoCard === 5) S.cfg.rcNoCard = 3.5; S.rpv = 1; setCfg(S.cfg); }   // v418 : parties créées en v417 (courbe adoucie) : seuil de carte recalibré, sinon la L4 grossit try { ensureFinSlot(); } catch (e) { } duoMigrate(); MODEL = buildModel(S.settings.tables);
+  if (!S.rpv) { if (+S.cfg.lowK < 1 && +S.cfg.rcNoCard === 5) S.cfg.rcNoCard = 3.5; S.rpv = 1; setCfg(S.cfg); }   // v418 : parties créées en v417 (courbe adoucie) : seuil de carte recalibré, sinon la L4 grossit
+  try { ensureFinSlot(); } catch (e) { } duoMigrate(); MODEL = buildModel(S.settings.tables);   // v430 : ces trois lignes s'étaient retrouvées par erreur dans le commentaire ci-dessus (v418 à v429)
   if (S.hcv !== 1) { hcRebuild(); persist(); }   // anciennes parties : index recalculés depuis l'historique
   if (S.pav !== 1) { paBackfill(); persist(); }
   if (S.almv !== 1) { almBackfill(); persist(); }
