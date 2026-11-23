@@ -647,3 +647,14 @@ table.cards{font-size:15px}.cards .s2{font-size:17px}.cards td.r{font-size:14px}
   .ofrtg{flex-direction:column;align-items:stretch}.ofrts{width:auto;flex-direction:row;flex-wrap:wrap}.ofrtb{flex:1 1 40%}.ofrtb b{font-size:28px}
   .ofrtk .mq{animation:none;width:auto}.ofrtk .mq>div{flex-direction:column;gap:6px;padding:10px 16px;white-space:normal;max-height:280px;overflow-y:auto}.ofrtk .mq>.dup{display:none}.ofrtl{font-size:16px}
 }
+/* v428 : chapitre « Progression » (tableau télé de tous les changements de palier, à faire défiler) */
+.oftct{border-top-color:#f0c419}.oftct .lab{background:#f0c419}
+.oftcs{max-height:calc(100vh - var(--toph,56px) - 450px);min-height:320px;overflow-y:auto}
+.oftct thead th{position:sticky;top:0;z-index:1;background:#0d1114}
+.oftct td,.oftct th{text-align:left}.oftct td.e,.oftct th.e{text-align:right;font-weight:800}.oftct td.e.up{color:#5CC796}.oftct td.e.dw{color:#e06b6b}
+.oftct tr.dn td{background:rgba(200,71,58,.1)}.oftct tr.me td{background:rgba(31,174,91,.2)}
+.oftct tr.sep td{background:rgba(255,255,255,.05);font:700 12px Arimo,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#e06b6b;padding:7px 12px}.oftct tr.sep.up td{color:#5CC796}
+.oftc{display:inline-block;font:700 12px Arimo,Arial,sans-serif;letter-spacing:.04em;color:#fff;padding:3px 8px;border-radius:3px;white-space:nowrap}
+.ofpill.gn{background:#b06ad6;color:#fff}.ofpill.jb{background:#5CC796;color:#04210f}
+.oftck{border-top-color:#b23a78}.oftck .lab{background:#b23a78;color:#fff}#app .oftck .mq b,#app .oftck .mq a{color:#f0c419}
+@media (max-width:899px){.oftcs{max-height:60vh;min-height:0}}

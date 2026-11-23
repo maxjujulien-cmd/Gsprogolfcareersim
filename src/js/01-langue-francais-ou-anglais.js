@@ -929,6 +929,11 @@ I18N_RX.push(
   [/^(.*?) ?progresse : (.+) passe au niveau (bronze|argent|or)\.$/, (m, pre, l, v) => (pre ? pre + ' ' : '') + 'improves: ' + talEnLbl(l) + ' moves up to ' + I18N_TALLV[v] + '.']
 );
 /* ---- Intersaison en chapitres (v215) ---- */
+/* v428 : chapitre « Progression » en page télé */
+Object.assign(I18N_EN, { 'La progression': 'Progression', 'Fais défiler le tableau pour les voir tous': 'Scroll the table to see them all', 'Les mouvements': 'The moves', 'Avant': 'Before', 'Après': 'After',
+  'Écart': 'Change', 'Ils montent': 'Moving up', 'Ils reculent': 'Slipping', 'montent de palier': 'move up a tier', 'reculent': 'slip back', 'recule': 'slips back', 'nouveaux Generational': 'new Generationals',
+  'nouveau Generational': 'new Generational', 'nouveaux Hall Of Famer': 'new Hall Of Famers', 'nouveau Hall Of Famer': 'new Hall Of Famer', 'Nouveau Generational': 'New Generational', 'Nouveau Hall Of Famer': 'New Hall Of Famer', 'Recrues': 'Rookies' });
+I18N_RX.push([/^(\d+) golfeurs? changent? de palier$/, (m, n) => n + (n === '1' ? ' golfer changes tier' : ' golfers change tier')]);
 /* v427 : chapitre « Retraites » en page télé */
 Object.assign(I18N_EN, { 'Ils raccrochent': 'Hanging it up', 'Classés par gains en carrière': 'Ranked by career earnings', 'Les départs': 'Departures', 'Titres L1': 'L1 titles',
   'Mondial': 'World', 'Toi': 'You', 'Ex-n° 1': 'Ex-No. 1', 'Forcée': 'Forced', 'départs': 'departures', 'départ': 'departure', 'perdent leur place (forcés)': 'lose their spot (forced)',

@@ -27,24 +27,10 @@ function offChapters(s) {
   /* 4. retraites — v427 : page « télé » plein écran (maquette C choisie par Max) : le tableau des départs classés par gains
      en carrière, les chiffres de la saison et un bandeau qui fait défiler les autres départs. */
   if (x && x.rt.length) C.push({ id: 'rt', ico: '🚪', t: 'Retraites', full: 1, img: HERO_IMG, dim: 1, h: offRtHTML(s, x) });
-  /* 5. progression */
-  if (x && x.tc.length) {
-    const tc = x.tc, gens = tc.filter(c => c[2] === 8 && c[1] < 8), hofs = tc.filter(c => c[2] === 7 && c[1] < 7);
-    const ups = tc.filter(c => c[2] > c[1]).sort((a, b) => (b[2] - b[1]) - (a[2] - a[1]) || b[2] - a[2]), dns = tc.filter(c => c[2] < c[1]).sort((a, b) => (a[2] - a[1]) - (b[2] - b[1]) || b[1] - a[1]);
-    const age = id => { const g = S.G[id]; return g ? ' <small>' + g.a + ' ans</small>' : ''; };
-    let h = '';
-    if (gens.length) h += '<div class="ofs gen"><div class="tg">💎 <span>Nouveaux Generational · ' + gens.length + '</span></div><div class="ofpills">' + gens.slice(0, 10).map(c => '<span>' + offLnk(c[0]) + age(c[0]) + '</span>').join('') + '</div></div>';
-    const jump = ups.find(c => c[2] - c[1] >= 2);
-    if (jump) h += '<div class="ofs jmp"><div class="tg">🚀 Le grand bond</div><div class="nm">' + offLnk(jump[0]) + age(jump[0]) + '</div><p>' + tierName(jump[1]) + ' → <b>' + tierName(jump[2]) + '</b> · <span>+' + (jump[2] - jump[1]) + ' paliers</span></p></div>';
-    if (hofs.length) h += '<div class="block"><h3 style="margin-top:0">⭐ <span>Nouveaux Hall Of Famer · ' + hofs.length + '</span></h3>' + hofs.slice(0, 6).map(c => offRow(offLnk(c[0]), tierName(c[1]) + ' → ' + tierName(c[2]))).join('') + '</div>';
-    const ur = c => offRow(offLnk(c[0]), tierName(c[1]) + ' → <b>' + tierName(c[2]) + '</b>');
-    const up2 = ups.filter(c => c !== jump && !gens.includes(c) && !hofs.includes(c));
-    if (up2.length) h += '<div class="block"><h3 style="margin-top:0">📈 <span>Ils montent · ' + ups.length + '</span></h3>' + up2.slice(0, 6).map(ur).join('') + (up2.length > 6 ? detailsBox('Voir les ' + (up2.length - 6) + ' autres', up2.slice(6).map(ur).join('')) : '') + '</div>';
-    if (dns.length) h += '<div class="block"><h3 style="margin-top:0">📉 <span>Ils reculent · ' + dns.length + '</span></h3>' + dns.slice(0, 4).map(ur).join('') + (dns.length > 4 ? detailsBox('Voir les ' + (dns.length - 4) + ' autres', dns.slice(4).map(ur).join('')) : '') + '</div>';
-    const sc = E.news.map((n, i) => [n, i]).filter(([n]) => /éclosion tardive|franchi un cap|déçoit|perd soudainement|année difficile/.test(n));
-    if (sc.length) h += '<div class="block"><h3 style="margin-top:0">Dans les coulisses</h3><ul class="news">' + sc.map(([n, i]) => '<li>' + newsHTML(n, (E.nids && E.nids[i]) || idsIn(n)) + '</li>').join('') + '</ul></div>';
-    C.push({ id: 'tc', ico: '📈', t: 'Progression', sub: plural(tc.length, 'golfeur') + ' changent de palier', h });
-  }
+  /* 5. progression — v428 : page « télé » plein écran (maquette C choisie par Max) : le tableau de TOUS les golfeurs qui changent
+     de palier (les grands mouvements d'abord, puis ceux qui montent, puis ceux qui reculent), à faire défiler, avec les chiffres
+     de la saison et le bandeau « Dans les coulisses ». */
+  if (x && x.tc.length) C.push({ id: 'tc', ico: '📈', t: 'Progression', full: 1, img: HERO_IMG, h: offTcHTML(s, E, x) });
   /* 6. talents et tempéraments */
   let talH = '';
   if (talOn() && E.tal && E.tal.length) {
@@ -159,6 +145,29 @@ function l1WinsUpTo(s) {
   const m = {}, add = r => { if (r) m[r[0]] = (m[r[0]] || 0) + 1; };
   S.hist.forEach(H => { if (H.s > s) return; (H.t || []).forEach(t => add(t && t.lg && t.lg[0] && t.lg[0].rows[0])); add(H.fin && H.fin.lg && H.fin.lg[0] && H.fin.lg[0].rows[0]); });
   return m;
+}
+/* v428 : le chapitre « Progression » en page télé. Une ligne de x.tc : [id, palier avant, palier après, ligue de la saison, ligue suivante]. */
+const OFX_TCOL = ['#7d8a80', '#6fa05b', '#4e9a3a', '#2f8f7a', '#2e78b7', '#6b5bd1', '#c1852b', '#c9a227', '#b23a78'];
+function offTcHTML(s, E, x) {
+  const tc = x.tc, G8 = TIERS.length - 1, gens = tc.filter(c => c[2] === G8 && c[1] < G8), hofs = tc.filter(c => c[2] === G8 - 1 && c[1] < G8 - 1);
+  const ups = tc.filter(c => c[2] > c[1]).sort((a, b) => (b[2] - b[1]) - (a[2] - a[1]) || b[2] - a[2]), dns = tc.filter(c => c[2] < c[1]).sort((a, b) => (a[2] - a[1]) - (b[2] - b[1]) || b[1] - a[1]);
+  const jump = ups.find(c => c[2] - c[1] >= 2 && !gens.includes(c));
+  const lead = gens.concat(jump ? [jump] : [], hofs.filter(c => c !== jump)), upr = lead.concat(ups.filter(c => !lead.includes(c)));
+  const chip = t => '<span class="oftc" style="background:' + OFX_TCOL[t] + '">' + esc(tierName(t)) + '</span>';
+  const lg = l => l == null || l < 0 ? '—' : l === 4 ? 'Recrues' : 'L' + (l + 1);
+  const tag = c => c[0] === 0 ? '<span class="ofpill">Toi</span>' : gens.includes(c) ? '<span class="ofpill gn">Nouveau Generational</span>' : c === jump ? '<span class="ofpill jb">Le grand bond</span>' : hofs.includes(c) ? '<span class="ofpill">Nouveau Hall Of Famer</span>' : '';
+  const row = (c, up) => { const a = ageAt(c[0], s); return '<tr class="' + (up ? '' : 'dn') + (c[0] === 0 ? ' me' : '') + '"><td class="l n">' + offLnk(c[0]) + ' ' + tag(c) + '</td><td>' + (a != null ? a : '—') + '</td><td>' + lg(c[4]) + '</td><td>' + chip(c[1]) + '</td><td>' + chip(c[2]) + '</td><td class="e ' + (up ? 'up' : 'dw') + '">' + (up ? '▲ ' + (c[2] - c[1]) : '▼ ' + (c[1] - c[2])) + '</td></tr>'; };
+  let h = '<div class="ofxnm ofrth" role="heading" aria-level="2">La progression</div><p class="ofrtl"><span>' + plural(tc.length, 'golfeur') + ' changent de palier</span> · <span>Fais défiler le tableau pour les voir tous</span></p>';
+  h += '<div class="ofrtg"><div class="ofmsc ofrtt oftct"><div class="h"><div class="lab">Les mouvements</div></div><div class="scroll oftcs"><table>' +
+    '<thead><tr><th class="l">Golfeur</th><th>Âge</th><th>Ligue</th><th>Avant</th><th>Après</th><th class="e">Écart</th></tr></thead><tbody>' +
+    (upr.length ? '<tr class="sep up"><td colspan="6">▲ <span>Ils montent</span> · ' + upr.length + '</td></tr>' + upr.map(c => row(c, true)).join('') : '') +
+    (dns.length ? '<tr class="sep"><td colspan="6">▼ <span>Ils reculent</span> · ' + dns.length + '</td></tr>' + dns.map(c => row(c, false)).join('') : '') + '</tbody></table></div></div>';
+  const bx = (v, k, c) => '<div class="ofrtb" style="border-color:' + c + '"><b>' + v + '</b><span>' + k + '</span></div>';
+  h += '<div class="ofrts">' + bx(ups.length, 'montent de palier', '#5CC796') + bx(dns.length, dns.length > 1 ? 'reculent' : 'recule', '#c8473a') + bx(gens.length, gens.length > 1 ? 'nouveaux Generational' : 'nouveau Generational', '#b06ad6') + bx(hofs.length, hofs.length > 1 ? 'nouveaux Hall Of Famer' : 'nouveau Hall Of Famer', '#c9a227') + '</div></div>';
+  const sc = (E.news || []).map((n, i) => [n, i]).filter(([n]) => /éclosion tardive|franchi un cap|déçoit|perd soudainement|année difficile/.test(n));
+  if (sc.length) { const it = sc.map(([n, i]) => '<span>' + newsHTML(n, (E.nids && E.nids[i]) || idsIn(n)) + '</span>').join('');
+    h += '<div class="ofxtk ofrtk oftck"><div class="lab"><span>Dans les coulisses</span></div><div class="its"><div class="mq" style="animation-duration:' + Math.max(30, sc.length * 9) + 's"><div>' + it + '</div><div aria-hidden="true" class="dup">' + it.replace(/<a /g, '<a tabindex="-1" ') + '</div></div></div></div>'; }
+  return h;
 }
 /* v427 : le chapitre « Retraites » en page télé (tableau des départs). Une ligne de x.rt : [id, âge, saisons, …, gains, dernière ligue, dernier niveau, forcée]. */
 function offRtHTML(s, x) {
