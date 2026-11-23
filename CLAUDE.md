@@ -39,6 +39,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 - **Le pire résultat sur un trou est +4** (choix de Max, à ne pas changer). Une ronde absurde vient d'une accumulation de mauvais trous.
 - **Explosions de temps en temps** (v422) : les golfeurs se ressaisissent après une mauvaise série selon leur tempérament, mais pas lors d'une journée noire (1 ronde sur 5). Max a refusé une version plus forte : il ne veut surtout pas un monde prévisible ou « robotisé ».
 - **Recrues** : profils brut / standard / prêt à jouer (25 / 50 / 25). Le vrai plafond ne change pas, seul le point de départ change.
+- **Défis (handicap → niveau du circuit)** : table recalibrée en v423 (Aspirant = top 5 de la ligue, Joueur établi = milieu de la ligue). **À refaire avec `tools/mesure/calibrer-defis.cjs` après chaque changement d'équilibre important.**
 - Ce qui n'a pas marché, et pourquoi, est noté dans `docs/parametres.md` : ne pas le retester sans raison nouvelle.
 
 ## Le code
@@ -56,7 +57,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 
 ## À chaque nouvelle version
 
-1. Numéro de version suivant (dernière : **v422**), noté dans les commentaires du code modifié.
+1. Numéro de version suivant (dernière : **v423**), noté dans les commentaires du code modifié.
 2. `npm run build`, puis `npm test`. Pour un changement d'équilibre, vérifier aussi dans le vrai jeu avec le banc d'essai.
 3. Mettre à jour `docs/parametres.md` (et le README si besoin).
 4. **Commit et push sur GitHub, toujours, à la fin de chaque changement.** Ne jamais laisser une version seulement dans l'artifact ou dans un fichier envoyé.

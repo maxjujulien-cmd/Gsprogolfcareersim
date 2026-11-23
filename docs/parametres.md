@@ -2,7 +2,7 @@
 
 Ce document résume les paramètres qui décident du niveau des golfeurs et de leurs scores : ce qu'ils font, où ils se trouvent et pourquoi ils ont ces valeurs. Il sert de mémoire entre les sessions, parce que les conversations précédentes ne suivent pas d'une session à l'autre.
 
-> **Source** : version **v422** du jeu (22 novembre 2026). Les v417 à v420 ont été faites dans le dépôt à partir de la v416 (fichier `IndoorGolfCareer-v416.html` fourni par Max le 20 novembre 2026). v417 : réglage « Écart en bas de l'échelle » (section 2). v422 : se ressaisir après une mauvaise série (section 2). v418 : seuil de carte des recrues recalibré et profils de départ des recrues (section 6). v419 : plafonds faibles des recrues resserrés (section 6). v420 : moins de Generational (sections 5 et 6). v421 : avance des meilleurs, constance et rondes exceptionnelles (section 2). L'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) est en v420 depuis le 22 novembre 2026. À chaque nouvelle version produite ailleurs, il faut la réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
+> **Source** : version **v423** du jeu (22 novembre 2026). Les v417 à v420 ont été faites dans le dépôt à partir de la v416 (fichier `IndoorGolfCareer-v416.html` fourni par Max le 20 novembre 2026). v417 : réglage « Écart en bas de l'échelle » (section 2). v422 : se ressaisir après une mauvaise série (section 2). v423 : table des défis recalibrée (section 7 bis). v418 : seuil de carte des recrues recalibré et profils de départ des recrues (section 6). v419 : plafonds faibles des recrues resserrés (section 6). v420 : moins de Generational (sections 5 et 6). v421 : avance des meilleurs, constance et rondes exceptionnelles (section 2). L'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) est en v420 depuis le 22 novembre 2026. À chaque nouvelle version produite ailleurs, il faut la réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
 
 Échelle utilisée partout : **coups par rapport au par**, sur une ronde de 18 trous.
 
@@ -304,7 +304,22 @@ Index médian par ligue : L1 0,2 → 0,4 ; L2 2,8 → 3,0 ; L3 5,3 → 5,7 ; L4 
 
 Exemple : handicap 4 et « L2 · Aspirant » donnent environ +3,0 coups par ronde à tous les adversaires. Tous les index du circuit sont alors plus élevés d'environ 2,5.
 
-⚠️ Cette table date de la v223. La v417 a amélioré l'index des golfeurs faibles (L4 : 10,2 → 9,4). Les repères « L4 · Joueur établi » et, un peu, « L3 · Joueur établi » sont donc probablement à recalibrer, ainsi que les estimations affichées à la création (`LVL.win`, `LVL.cut`, `LVL.rnd` pour la L4). Les repères L1 et L2 ne changent pas.
+**Recalibrée en v423 (23 novembre 2026)**, outil `tools/mesure/calibrer-defis.cjs` (2 mondes × 12 saisons par décalage, de −6 à +30 coups). Le repère « Aspirant » est le 4e centile de sa ligue (top 5), le repère « Joueur établi » le 55e centile (milieu de la ligue). Avec la table de la v223, les Joueurs établis de L2, L3 et L4 tombaient près de la relégation (82e à 96e centile).
+
+| Défi | Index du repère, circuit de référence (v223 → v423) |
+|---|---|
+| L1 · Aspirant chaque année | −2,0 → −2,2 |
+| L1 · Joueur établi | 1,2 → 0,8 |
+| L2 · Aspirant | 1,3 → 1,3 |
+| L2 · Joueur établi | 4,9 → 3,2 |
+| L3 · Joueur établi | 7,5 → 5,9 |
+| L4 · Joueur établi | 11,3 → 9,1 |
+
+Exemples de coups ajoutés aux adversaires (v223 → v423) : handicap 4 et L2 Aspirant +3,0 → +3,2 ; handicap 10 et L1 Aspirant +14,4 → +14,4 ; handicap 0 et L2 Établi −5,0 → −3,4 ; handicap 15 et L3 Établi +8,7 → +10,6 ; handicap 20 et L4 Établi +10,6 → +12,5.
+
+Vérifié dans le jeu v423 (1 monde par profil) : handicap 4 et L2 Aspirant → rang 4 sur 146 en L2 ; handicap 10 et L1 Aspirant → rang 5 sur 130 en L1 ; handicap 0 et L2 Établi → 41e centile ; handicap 15 et L3 Établi → 68e ; handicap 20 et L4 Établi → 45e ; handicap 2 et L1 Établi → 61e.
+
+Les estimations affichées à la création (`LVL.win`, `LVL.cut`, `LVL.rnd`, et `LVL.one` pour le format une ronde) sont recalculées avec l'équilibre v422. Sur le circuit de référence, la coupure passe par exemple de +16,4 à +12,2 en L4. Le niveau du circuit d'une partie existante est fixé à sa création : il ne change pas.
 
 ## 8. Où changer les choses
 
