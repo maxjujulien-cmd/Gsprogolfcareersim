@@ -59,10 +59,11 @@ function vPalm() {
 /* v393 : en haut du profil, à la place de la fiche (talents, cotes de jeu, début de carrière, personnalité, partis dans
    Stats et Biographie) : le parcours ligue par saison sur toute la largeur, puis la carte handicap et la progression
    niveau · potentiel côte à côte, à la même hauteur. Les trois restent aussi dans leurs onglets. */
-function gTopBand(B, rsCh) {
+function gTopBand(B, rsCh, cc) {
   const pan = (t, body, cls) => '<section class="dpn ' + cls + '"><header><span>' + t + '</span></header><div class="dpb">' + body + '</div></section>';
   const prog = B.prog ? B.prog.replace(/^<h3>[^<]*<\/h3>/, '') : '<p class="mute small" style="margin:0">Pas encore de courbe.</p>';
   let h = '<div class="gtop">';
+  if (cc) return '<div class="gtop gccb">' + (rsCh ? pan('Parcours · ligue par saison', rsCh.replace(/<h3>Progression<\/h3>/, ''), 'gt-rs') : '') + pan('Progression · niveau et potentiel', prog, 'gt-pr') + '</div>';   // v429 : la carte handicap est montée à côté de la carte de collection
   if (rsCh) h += pan('Parcours · ligue par saison', rsCh.replace(/<h3>Progression<\/h3>/, ''), 'gt-rs');
   if (B.hc || B.prog) h += '<div class="gtop2">' + (B.hc ? pan('Carte handicap', B.hc, 'gt-hc') : '') + pan('Progression · niveau et potentiel', prog, 'gt-pr') + '</div>';
   return h + '</div>';
@@ -75,7 +76,8 @@ function vGolfer() {
   const hctx = (id === 0 ? 'Toi \u00b7 ' : '') + (g ? g.a + ' ans' + (g.nat ? ' \u00b7 ' + esc(g.nat) : '') : '') + (l >= 0 ? ' \u00b7 ' + LEAGUE_NAMES[l] : g && g.rcl ? ' \u00b7 <span>Classe de recrues</span> ' + yr(g.rcl) : '');
   const oldG0 = !g && id !== 0 && S.old ? S.old[id] : null, TR = golferTrophies(id);
   const earnAll = golferHistory(id, false, true).reduce((a, x) => a + (x.pay || 0), 0) || (g ? g.ce : oldG0 ? oldG0.ce : 0) || 0;   // v325 : gains de la Finale inclus
-  const T = g ? '<div class="top lchead tzhead">' + levelCard(g, l, { name: nameOf(id), ctx: hctx, id, photo: 1 }) + (isPC() ? phFrameHTML(id, 'phpc') + (seaPanel(id, l, TR, earnAll) || tzPanel(TR, earnAll, { active: true, cls: 'tzpc', pid: id })) : tzSide(TR, earnAll)) + '</div>' + (!isPC() ? seaPanel(id, l, TR, earnAll, true) : '') + (VIEW.tzfull && (!isPC() || seaPanel(id, l, TR, earnAll)) ? tzPanel(TR, earnAll, { active: true, cls: 'tzmobfull', stats: true }) : '')
+  const CC = g && isPC() && isMgr();   // v429 : sur ordinateur, carte de collection (photo + niveau) à gauche, saison et parcours à droite
+  const T = g ? (CC ? '<div class="top gcc">' + levelCard(g, l, { name: nameOf(id), ctx: hctx, id, photo: 1, cc: 1 }) + '<div class="gccR">' + (seaPanel(id, l, TR, earnAll) || tzPanel(TR, earnAll, { active: true, cls: 'tzpc', pid: id })) + '%%GRS%%</div></div>' : '<div class="top lchead tzhead">' + levelCard(g, l, { name: nameOf(id), ctx: hctx, id, photo: 1 }) + (isPC() ? phFrameHTML(id, 'phpc') + (seaPanel(id, l, TR, earnAll) || tzPanel(TR, earnAll, { active: true, cls: 'tzpc', pid: id })) : tzSide(TR, earnAll)) + '</div>') + (!isPC() ? seaPanel(id, l, TR, earnAll, true) : '') + (VIEW.tzfull && (!isPC() || seaPanel(id, l, TR, earnAll)) ? tzPanel(TR, earnAll, { active: true, cls: 'tzmobfull', stats: true }) : '')
     : (oldG0 ? flagBadge + '<div class="top"><div><h1>' + esc(nameOf(id)) + '</h1><div class="ctx">Retrait\u00e9' + (oldG0.s ? ' en ' + yr(oldG0.s) : '') + (oldG0.a ? ' \u00e0 ' + oldG0.a + ' ans' : '') + (oldG0.nat ? ' \u00b7 ' + esc(oldG0.nat) : '') + '</div></div></div>' + tzPanel(TR, earnAll, { big: true, stats: true, cs: oldG0.cs, cls: 'tzret', pid: id }) : '') + (oldG0 ? '' : flagBadge + '<div class="top"><div><h1>' + esc(nameOf(id)) + '</h1><div class="ctx">' + (id === 0 ? 'Ton profil' + (!g && S.pk && S.pk.a ? ' \u00b7 ' + S.pk.a + ' ans' : '') + (g ? ' \u00b7 ' + g.a + ' ans' + (g.nat ? ' \u00b7 ' + flagVisual(g.nat, 20) + ' ' + esc(g.nat) : '') : '') : g ? g.a + ' ans' + (g.nat ? ' \u00b7 ' + flagVisual(g.nat, 20) + ' ' + esc(g.nat) : '') : 'Retrait\u00e9') + (l >= 0 ? ' \u00b7 ' + LEAGUE_NAMES[l] : '') + '</div></div></div>');
   const oldG = !g && id !== 0 && S.old ? S.old[id] : null;
   const B = { seas: '', prog: g ? progressChart(g) : oldG && oldG.oh ? progressChart(oldG) : '', hc: '', traits: '', ret: '', season: '', pa: '', best: '', riv: '', car: '', bars: '', last: '', past: '', none: '' };
@@ -146,7 +148,8 @@ function vGolfer() {
   const bar = TABS.length > 1 ? '<div class="ptabs" role="tablist">' + TABS.map(t => '<button class="ptab" role="tab" data-a="ptab" data-v="' + t[0] + '" aria-selected="' + (t === cur) + '">' + t[1] + '</button>').join('') + '</div>' : '';
   h = cur ? cur[2] : '';
   h += '<button class="btn sec" data-a="backview" style="margin-top:14px">Retour</button>';
-  return T + wlBar(id) + geBlock(id) + gTopBand(B, rsCh) + bar + '<div class="pcols' + (cur && (cur[0] === 'riv' || cur[0] === 'res' || cur[0] === 'ov' || cur[0] === 'log' || cur[0] === 'tl' || cur[0] === 'bio') ? ' one' : '') + '">' + h + '</div>';
+  const T2 = T.indexOf('%%GRS%%') >= 0 ? T.replace('%%GRS%%', B.hc ? '<section class="dpn gt-hc gcchc"><header><span>Carte handicap</span></header><div class="dpb">' + B.hc + '</div></section>' : '') : T;
+  return T2 + wlBar(id) + geBlock(id) + gTopBand(B, rsCh, T2 !== T) + bar + '<div class="pcols' + (cur && (cur[0] === 'riv' || cur[0] === 'res' || cur[0] === 'ov' || cur[0] === 'log' || cur[0] === 'tl' || cur[0] === 'bio') ? ' one' : '') + '">' + h + '</div>';
 }
 
 

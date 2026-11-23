@@ -658,3 +658,23 @@ table.cards{font-size:15px}.cards .s2{font-size:17px}.cards td.r{font-size:14px}
 .ofpill.gn{background:#b06ad6;color:#fff}.ofpill.jb{background:#5CC796;color:#04210f}
 .oftck{border-top-color:#b23a78}.oftck .lab{background:#b23a78;color:#fff}#app .oftck .mq b,#app .oftck .mq a{color:#f0c419}
 @media (max-width:899px){.oftcs{max-height:60vh;min-height:0}}
+/* v429 : fiche du golfeur sur ordinateur — carte de collection (photo + niveau) à gauche, saison et parcours à droite */
+html.mgr.pc .gcc{display:flex!important;gap:18px;align-items:stretch!important;justify-content:flex-start!important;margin:0 0 12px;min-height:0;padding:0}
+html.mgr.pc .gcc>.lcard.lcc{flex:0 0 440px;margin:0;padding:6px;border-radius:20px;display:flex;box-shadow:0 22px 44px -20px #000,inset 0 0 0 1px rgba(255,255,255,.25)}
+.lcc>.lcin{flex:1;display:flex;flex-direction:column;padding:0 0 16px;border-radius:15px;overflow:hidden}
+.lcc>.lcin>:not(.lccph){margin-left:18px;margin-right:18px}
+.lccph{position:relative;height:250px;margin:0 0 6px;flex:none}
+.lccph .phf{position:absolute;inset:0;border-radius:0}.lccph .phflag{display:none}
+.lccph::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(0deg,rgba(10,12,10,.55) 0%,rgba(10,12,10,0) 38%),linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,0) 30%)}
+.lcc0{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 38%,rgba(255,255,255,.22),rgba(0,0,0,.4) 75%)}
+.lcc0 span{font:800 130px/1 Arimo,Arial,sans-serif;color:rgba(255,255,255,.88);letter-spacing:-.04em;text-shadow:0 8px 30px rgba(0,0,0,.35)}
+.lcctier{position:absolute;left:14px;top:14px;z-index:3;font:800 13px Arimo,Arial,sans-serif;color:#fff;padding:5px 11px;border-radius:5px;letter-spacing:.08em;text-transform:uppercase;box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.35)}
+.lcc .lcbox{margin-top:12px}.lcc .lcname{font-size:34px}
+html.mgr.pc .gccR{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-start;gap:14px;align-self:stretch}
+html.mgr.pc .gccR>.seap,html.mgr.pc .gccR>.tzpc{flex:0 0 auto;margin:0}
+html.mgr.pc .gccR>.gccrs{flex:1;margin:0;display:flex;flex-direction:column}.gccrs>.dpb{flex:1}
+html.mgr.pc .gccR>.gcchc{flex:1;margin:0}
+html.mgr.pc .gtop.gccb{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:14px;align-items:stretch}
+html.mgr.pc .gtop.gccb>.dpn{margin:0}
+html.mgr.pc .gcchc .hcard>.hcsvg{max-height:250px;width:100%}
+html.mgr.pc .gcchc .hcard{grid-template-columns:minmax(0,320px) minmax(0,1fr)}

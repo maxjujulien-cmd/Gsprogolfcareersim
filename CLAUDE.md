@@ -58,7 +58,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 
 ## À chaque nouvelle version
 
-1. Numéro de version suivant (dernière : **v428**), noté dans les commentaires du code modifié.
+1. Numéro de version suivant (dernière : **v429**), noté dans les commentaires du code modifié.
 2. `npm run build`, puis `npm test`. Pour un changement d'équilibre, vérifier aussi dans le vrai jeu avec le banc d'essai.
 3. Mettre à jour `docs/parametres.md` (et le README si besoin).
 4. **Commit et push sur GitHub, toujours, à la fin de chaque changement.** Ne jamais laisser une version seulement dans l'artifact ou dans un fichier envoyé.
@@ -75,6 +75,11 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 - Chapitres suivants : on garde la liste actuelle des chapitres (Max a refusé d'en ajouter pour l'instant).
 - Un chapitre plein écran se déclare avec `full: 1` (et `img`) dans `offChapters` ; `vOff` garde les points de progression et les boutons.
 - La photo du trophée (Wanamaker) vient de Max et est probablement protégée : bien pour son usage personnel, à remplacer avant de partager le jeu publiquement.
+
+## Fiche du golfeur (v429)
+
+- Max a choisi le style « carte de collection » (option B), mais en gardant **toutes** les infos déjà visibles : une refonte pour embellir, pas pour retirer. Sur ordinateur : carte (photo ou initiales + niveau) à gauche, saison et carte handicap à droite, parcours et niveau/potentiel côte à côte dessous. Téléphone inchangé.
+- Les photos des golfeurs viennent de la bibliothèque de Max (dossier Graphics, `44-bibliotheque-de-photos.js`).
 
 ## Terrains
 
