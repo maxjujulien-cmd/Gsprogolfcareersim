@@ -57,7 +57,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 
 ## À chaque nouvelle version
 
-1. Numéro de version suivant (dernière : **v423**), noté dans les commentaires du code modifié.
+1. Numéro de version suivant (dernière : **v424**), noté dans les commentaires du code modifié.
 2. `npm run build`, puis `npm test`. Pour un changement d'équilibre, vérifier aussi dans le vrai jeu avec le banc d'essai.
 3. Mettre à jour `docs/parametres.md` (et le README si besoin).
 4. **Commit et push sur GitHub, toujours, à la fin de chaque changement.** Ne jamais laisser une version seulement dans l'artifact ou dans un fichier envoyé.

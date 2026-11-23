@@ -201,6 +201,9 @@ function vOff() {
   if (nx) h += '<div class="ofskip"><a href="#" data-a="offgo" data-i="' + (C.length - 1) + '">Passer à la fin ›</a></div>';
   return h + '</div>';
 }
+/* v424 : tant que l'intersaison n'est pas terminée (« Commencer la saison »), la page Saison et le bouton Continuer ramènent au chapitre
+   où le joueur était rendu, même après être allé voir une autre page (golfeurs, ligues…). Avant, on tombait sur le premier tournoi. */
+function offPending() { try { return !!(S && S.off && S.off.s === S.season - 1 && S.t === 0 && !S.cur && !S.presim && offChapters(S.off.s).length); } catch (e) { return false; } }
 function offResumeHTML() {
   if (!S.off || S.off.s !== S.season - 1 || S.t !== 0 || S.cur || S.presim) return '';
   const C = offChapters(S.off.s); if (!C.length) return '';
