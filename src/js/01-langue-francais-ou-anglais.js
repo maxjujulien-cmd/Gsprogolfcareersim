@@ -929,6 +929,10 @@ I18N_RX.push(
   [/^(.*?) ?progresse : (.+) passe au niveau (bronze|argent|or)\.$/, (m, pre, l, v) => (pre ? pre + ' ' : '') + 'improves: ' + talEnLbl(l) + ' moves up to ' + I18N_TALLV[v] + '.']
 );
 /* ---- Intersaison en chapitres (v215) ---- */
+/* v425 : chapitre « Les champions » en page télé */
+Object.assign(I18N_EN, { 'majeurs': 'majors', 'majeur': 'major', 'd’avance sur le 2e': 'ahead of 2nd', 'Son parcours · place à chaque tournoi': 'Season path · finish at each event',
+  'Tu es champion de la Ligue 1': 'You are the League 1 champion', 'Tu es champion': 'You are champion' });
+I18N_RX.push([/^(\d+)e titre$/, (m, n) => n + (n.slice(-1) === '1' && n !== '11' ? 'st' : n.slice(-1) === '2' && n !== '12' ? 'nd' : n.slice(-1) === '3' && n !== '13' ? 'rd' : 'th') + ' title']);
 Object.assign(I18N_EN, { 'Passer à la fin ›': 'Skip to the end ›', 'Le classement final des quatre ligues': 'The final standings of all four leagues', 'Les autres titres': 'Other titles', 'dernière ligue': 'last league',
   'Les autres départs': 'Other departures', 'Les départs': 'Departures', 'Dans les coulisses': 'Behind the scenes', 'Ce que les dépisteurs ont remarqué cette année': 'What the scouts noticed this year',
   'Les suivants': 'Next in line', 'Voir toute la classe ›': 'See the whole class ›', 'Les familles': 'Families', 'Aussi dans la classe': 'Also in the class', 'Premier tournoi': 'First tournament', 'À surveiller': 'Worth watching',

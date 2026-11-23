@@ -558,3 +558,42 @@ table.cards{font-size:15px}.cards .s2{font-size:17px}.cards td.r{font-size:14px}
 
 /* v416 : bouton plein écran dans la barre du haut */
 .mtfs{flex:none;width:40px;height:40px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:20px;line-height:1;cursor:pointer;margin-right:10px}.mtfs:hover{background:rgba(255,255,255,.06)}
+/* v425 : chapitre plein écran de l'intersaison (« Les champions », style télé avec la photo du trophée) */
+.ofw.ofwx{max-width:none}
+.ofwx .offoot,.ofwx .ofskip{max-width:860px;margin-left:auto;margin-right:auto}
+.ofx{position:relative;overflow:hidden;border-radius:16px;background:#0b110e;color:#fff;min-height:calc(100vh - var(--toph,56px) - 150px);display:flex;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.ofxbg{position:absolute;inset:0;background:#14201a 72% 60%/cover no-repeat}
+.ofxbg:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,12,10,.9) 0%,rgba(8,12,10,.62) 40%,rgba(8,12,10,0) 66%),linear-gradient(0deg,rgba(8,12,10,.94) 0%,rgba(8,12,10,0) 36%)}
+.ofxin{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;padding:26px 40px 0;min-width:0}
+.ofxk{font:700 13px Arimo,Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#f0c419}.ofxk .ofxy{color:#c8bfa4}
+.ofx .ofdots{width:min(420px,100%);margin:10px 0 22px}
+.ofxlive{align-self:flex-start;background:#d7263d;color:#fff;font:700 13px Arimo,Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;padding:5px 10px;border-radius:3px;margin-bottom:14px}
+.ofxnat{font:700 20px Arimo,Arial,sans-serif;letter-spacing:.24em;text-transform:uppercase;color:#f6dc8a;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ofxnm{font:800 clamp(44px,5.2vw,96px)/.95 'Arimo',Arial,sans-serif;margin:10px 0 0;letter-spacing:-.02em;text-transform:uppercase;text-shadow:0 6px 30px rgba(0,0,0,.5)}
+.ofxnm a{color:#fff!important;text-decoration:none}
+.ofxlow{display:flex;margin-top:24px;max-width:900px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.ofxlow .k{background:#f0c419;color:#111;font:800 15px Arimo,Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;padding:16px 20px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.ofxlow .v{background:rgba(10,16,14,.85);flex:1;display:flex}.ofxlow .v div{flex:1;padding:12px 20px;border-left:1px solid rgba(255,255,255,.1)}
+.ofxlow b{display:block;font:800 40px/1.1 Arimo,Arial,sans-serif;color:#fff}.ofxlow .v span{font-size:13px;color:#c8bfa4;letter-spacing:.1em;text-transform:uppercase}
+.ofxch{margin-top:22px;max-width:900px;background:rgba(10,16,14,.7);padding:14px 22px 10px;border-radius:6px}
+.ofxch h4{margin:0 0 10px;font:700 13px Arimo,Arial,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#c8bfa4}
+.ofxbars{display:flex;gap:10px;height:100px;align-items:flex-end;margin-bottom:34px}.ofxbars>div{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
+.ofxbars>div.f{margin-left:12px}.ofxbars>div.f:before{content:"";position:absolute;left:-12px;top:0;bottom:0;border-left:1px dashed rgba(255,255,255,.25)}
+.ofxbars i{display:block;width:100%;border-radius:3px 3px 0 0}.ofxbars span{font:700 13px Arimo,Arial,sans-serif;margin-top:6px;color:#e6dcc0;position:absolute;top:100%}
+.ofxbars em{position:absolute;top:calc(100% + 19px);font:700 9.5px Arimo,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#f0c419;font-style:normal;white-space:nowrap}
+.ofxrow{display:flex;gap:14px;margin:auto 0 20px;padding-top:26px}
+.ofxt{flex:1;min-width:0;background:rgba(10,16,14,.82);border-top:4px solid;padding:12px 16px}
+.ofxt .t{font:700 12px Arimo,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#c8bfa4}
+.ofxt .n{font:700 20px Arimo,Arial,sans-serif;margin:4px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ofxt .n a{color:#fff}
+.ofxt .p{font-size:14px;color:#c8bfa4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ofxtk{margin:0 -40px;min-height:54px;background:#0a0f0c;border-top:3px solid #f0c419;display:flex;align-items:stretch;font-size:17px}
+.ofxtk .lab{background:#f0c419;color:#111;font:800 17px Arimo,Arial,sans-serif;display:flex;align-items:center;gap:6px;padding:0 22px;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+.ofxtk .its{display:flex;flex-wrap:wrap;align-items:center;gap:6px 34px;padding:10px 24px}.ofxtk .its span{white-space:nowrap}.ofxtk em{color:#f0c419;font-style:normal;font-weight:700;margin-right:8px}.ofxtk a{color:#fff}
+@media (max-width:899px){
+  .ofx{min-height:0}.ofxin{padding:18px 16px 0}.ofxbg{background-position:78% 30%}
+  .ofxbg:after{background:linear-gradient(0deg,rgba(8,12,10,.96) 0%,rgba(8,12,10,.8) 55%,rgba(8,12,10,.35) 100%)}
+  .ofxnat{font-size:14px;letter-spacing:.14em}.ofxlow{flex-direction:column}.ofxlow .k{padding:8px 14px}
+  .ofxlow .v{flex-wrap:wrap}.ofxlow .v div{flex:1 1 45%;padding:8px 14px}.ofxlow b{font-size:28px}
+  .ofxch{padding:12px}.ofxbars{gap:5px;height:80px}.ofxbars span{font-size:11px}.ofxbars em{display:none}
+  .ofxrow{flex-direction:column;gap:10px}.ofxtk{margin:0 -16px;flex-direction:column}.ofxtk .lab{padding:8px 16px}.ofxtk .its{flex-direction:column;align-items:flex-start;padding:10px 16px}.ofxtk .its span{white-space:normal}
+}
