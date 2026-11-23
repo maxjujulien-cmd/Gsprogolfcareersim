@@ -94,3 +94,29 @@ Banc d'essai (3 mondes × 30 saisons, v420, outil `tools/mesure/vedettes.cjs`). 
 
 - La constance seule change peu : le hasard trou par trou domine sur une ronde de 18 trous.
 - Un mélange avec une avance modérée (0,8 à 1,0) donne des vedettes nettement plus présentes sans écraser le circuit.
+
+## Point 2 : les rondes absurdes (23 novembre 2026, essais)
+
+**Diagnostic** (v421, défi +3, 15 à 30 saisons). La pire ronde de L1 combine deux choses :
+- une cible du jour déjà haute : ronde catastrophe (+3 à +6,5), vent fort (+3,5), creux de forme ;
+- un écart trou par trou qui s'ajoute par-dessus : jusqu'à +13 à +19 au-dessus de la cible. Sur 39 000 rondes, il devrait rarement dépasser +9 ou +10. L'élan explique une partie (sans élan, le maximum passe de +17,9 à +15,6). Le reste vient des gros trous enchaînés.
+
+**Mesure** : écart avec le score médian du champ dans le même tournoi (ronde 1, L1, 15 saisons). C'est ce qui choque un joueur : une ronde loin derrière les autres, pas un jour de grand vent où tout le monde souffre.
+
+| Solution | Pire vs champ | 99,9e centile | Rondes ≥ +12 vs champ | Rondes ≥ +15 vs champ | Meilleure vs champ |
+|---|---|---|---|---|---|
+| v421 | +22 | +17 | 266 | 69 | −16 |
+| 1. Se ressaisir (au-delà de 4 coups perdus sur l'attendu, 0,06 coup de mieux par trou et par coup perdu de plus, au plus 1) | +19 | +14 | 129 | 17 | −17 |
+| 2. Triple bogey au maximum sur un trou | +20 | +15 | 191 | 42 | −15 |
+| 3. Catastrophes adoucies (+2,5 + 0,9 × \|N\|) | +20 | +16 | 187 | 46 | −16 |
+| 4. Solutions 1 et 3 | +17 | +14 | 98 | 10 | −15 |
+| **5. Se ressaisir fort (au-delà de 3 coups, 0,12 par coup de plus, au plus 1,5)** | **+17** | **+13** | **59** | **7** | −14 |
+| 6. Solution 1 + mauvais jour plafonné à +4,5 | +19 | +14 | 118 | 15 | −15 |
+
+Sur le circuit complet (3 mondes × 30 saisons), les solutions 1 et 5 ne changent ni les coupures, ni les écarts entre ligues, ni les vedettes (dans la marge de hasard) :
+
+| Essai | Écarts de coupure | Generational : victoires / top 10 / coupure ratée | Rang final médian (Gen) |
+|---|---|---|---|
+| v421 (2 tirages) | +2,5 / +2,5-2,6 / +3,9-4,1 | 6,0-7,1 % / 39-40 % / 13-15 % | 8-9 |
+| Se ressaisir | +2,4 / +2,4 / +3,8 | 6,7 % / 38,5 % / 14,5 % | 9 |
+| Se ressaisir fort | +2,6 / +2,4 / +3,8 | 6,8 % / 40,4 % / 13,0 % | 7 |
