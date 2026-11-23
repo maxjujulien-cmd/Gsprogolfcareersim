@@ -2,7 +2,7 @@
 
 Ce document résume les paramètres qui décident du niveau des golfeurs et de leurs scores : ce qu'ils font, où ils se trouvent et pourquoi ils ont ces valeurs. Il sert de mémoire entre les sessions, parce que les conversations précédentes ne suivent pas d'une session à l'autre.
 
-> **Source** : version **v420** du jeu (22 novembre 2026). Les v417 à v420 ont été faites dans le dépôt à partir de la v416 (fichier `IndoorGolfCareer-v416.html` fourni par Max le 20 novembre 2026). v417 : réglage « Écart en bas de l'échelle » (section 2). v418 : seuil de carte des recrues recalibré et profils de départ des recrues (section 6). v419 : plafonds faibles des recrues resserrés (section 6). v420 : moins de Generational (sections 5 et 6). L'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) est en v420 depuis le 22 novembre 2026. À chaque nouvelle version produite ailleurs, il faut la réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
+> **Source** : version **v423** du jeu (22 novembre 2026). Les v417 à v420 ont été faites dans le dépôt à partir de la v416 (fichier `IndoorGolfCareer-v416.html` fourni par Max le 20 novembre 2026). v417 : réglage « Écart en bas de l'échelle » (section 2). v422 : se ressaisir après une mauvaise série (section 2). v423 : table des défis recalibrée (section 7 bis). v418 : seuil de carte des recrues recalibré et profils de départ des recrues (section 6). v419 : plafonds faibles des recrues resserrés (section 6). v420 : moins de Generational (sections 5 et 6). v421 : avance des meilleurs, constance et rondes exceptionnelles (section 2). L'artifact publié « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) est en v420 depuis le 22 novembre 2026. À chaque nouvelle version produite ailleurs, il faut la réimporter (voir le README) et vérifier ce fichier. Quand on change un paramètre, il faut aussi mettre à jour ce fichier.
 
 Échelle utilisée partout : **coups par rapport au par**, sur une ronde de 18 trous.
 
@@ -115,6 +115,8 @@ Sur 100 points de talent, l'écart est d'environ **1,8 coup par ronde en bas** (
 
 L'écart-type de la ronde ne dépend pas de `lowK` : il reste plus grand chez les faibles.
 
+**Avance des meilleurs** (v421, `topEdge()` dans `src/js/03-moteur-de-simulation.js`, réglage avancé « Avance des meilleurs », `topEdge`, 0,8 par défaut) : au-dessus de 850, `mu` baisse de `0,8 × (niveau − 850) / 100` coup par ronde (−0,8 à 950, −1,2 à 1000). La coupure de la L1 se fait vers 836, donc les coupures ne bougent pas. Les parties commencées avant la v421 restent à 0 (drapeau `tev`).
+
 ### Tout ce qui s'ajoute au score d'une ronde (`roundTarget`)
 
 `src/js/07-pression-en-direct-elan-et.js`, ligne 374. La cible d'une ronde est la somme de ces éléments :
@@ -125,9 +127,10 @@ L'écart-type de la ronde ne dépend pas de `lowK` : il reste plus grand chez le
 4. Le vent × l'effet des conditions (voir section 3).
 5. L'aléa du terrain et la météo de la ronde (`newCtx`, `src/js/08-fiche-d-identite-et-personnalite.js`, ligne 368) : terrain ±0,32, météo ±0,56 par ronde, partagés par tout le champ.
 6. Le jour du golfeur (`dayFactor`, `src/js/03-moteur-de-simulation.js`, ligne 111) :
-   - bruit normal d'écart-type `(1,3 + 1,15 × (1 − x)) × régularité × hasard` : **les faibles sont plus irréguliers** ;
-   - ronde de feu (`hotP = 4 %`) : −2,4 coups et plus ;
-   - ronde catastrophe (`coldP = 5 %`) : +2,9 coups et plus.
+   - bruit normal d'écart-type `(1,3 + 1,15 × (1 − x)) × régularité × hasard` : **les faibles sont plus irréguliers**. Le hasard (`rand`) vaut **0,7** depuis la v421, contre 1 avant ;
+   - ronde de feu (`hotP`, **5 %** depuis la v421, 4 % avant) : −2,4 coups et plus ;
+   - ronde catastrophe (`coldP`, **6 %** depuis la v421, 5 % avant) : +2,9 coups et plus.
+   - Les parties commencées avant la v421 gardent leurs valeurs enregistrées (1 / 4 % / 5 %).
 7. Les talents cachés (`talRT`), les cotes de jeu (`skRT`) et le tempérament sous pression (`clutchAdj`).
 8. Le niveau du circuit (`lvlFor`) : décalage réglable qui s'applique aux adversaires seulement, pas à ton golfeur.
 9. Le nivellement de l'élite (`eliteHandicap`) : **désactivé par défaut** depuis la v190 (`eliteHc = 0`). Une simulation montrait que, sans lui, le top 5 gagne 20 % des tournois au lieu de 9 %.
@@ -301,7 +304,22 @@ Index médian par ligue : L1 0,2 → 0,4 ; L2 2,8 → 3,0 ; L3 5,3 → 5,7 ; L4 
 
 Exemple : handicap 4 et « L2 · Aspirant » donnent environ +3,0 coups par ronde à tous les adversaires. Tous les index du circuit sont alors plus élevés d'environ 2,5.
 
-⚠️ Cette table date de la v223. La v417 a amélioré l'index des golfeurs faibles (L4 : 10,2 → 9,4). Les repères « L4 · Joueur établi » et, un peu, « L3 · Joueur établi » sont donc probablement à recalibrer, ainsi que les estimations affichées à la création (`LVL.win`, `LVL.cut`, `LVL.rnd` pour la L4). Les repères L1 et L2 ne changent pas.
+**Recalibrée en v423 (23 novembre 2026)**, outil `tools/mesure/calibrer-defis.cjs` (2 mondes × 12 saisons par décalage, de −6 à +30 coups). Le repère « Aspirant » est le 4e centile de sa ligue (top 5), le repère « Joueur établi » le 55e centile (milieu de la ligue). Avec la table de la v223, les Joueurs établis de L2, L3 et L4 tombaient près de la relégation (82e à 96e centile).
+
+| Défi | Index du repère, circuit de référence (v223 → v423) |
+|---|---|
+| L1 · Aspirant chaque année | −2,0 → −2,2 |
+| L1 · Joueur établi | 1,2 → 0,8 |
+| L2 · Aspirant | 1,3 → 1,3 |
+| L2 · Joueur établi | 4,9 → 3,2 |
+| L3 · Joueur établi | 7,5 → 5,9 |
+| L4 · Joueur établi | 11,3 → 9,1 |
+
+Exemples de coups ajoutés aux adversaires (v223 → v423) : handicap 4 et L2 Aspirant +3,0 → +3,2 ; handicap 10 et L1 Aspirant +14,4 → +14,4 ; handicap 0 et L2 Établi −5,0 → −3,4 ; handicap 15 et L3 Établi +8,7 → +10,6 ; handicap 20 et L4 Établi +10,6 → +12,5.
+
+Vérifié dans le jeu v423 (1 monde par profil) : handicap 4 et L2 Aspirant → rang 4 sur 146 en L2 ; handicap 10 et L1 Aspirant → rang 5 sur 130 en L1 ; handicap 0 et L2 Établi → 41e centile ; handicap 15 et L3 Établi → 68e ; handicap 20 et L4 Établi → 45e ; handicap 2 et L1 Établi → 61e.
+
+Les estimations affichées à la création (`LVL.win`, `LVL.cut`, `LVL.rnd`, et `LVL.one` pour le format une ronde) sont recalculées avec l'équilibre v422. Sur le circuit de référence, la coupure passe par exemple de +16,4 à +12,2 en L4. Le niveau du circuit d'une partie existante est fixé à sa création : il ne change pas.
 
 ## 8. Où changer les choses
 
@@ -609,3 +627,28 @@ Ce qu'on en retient :
 - Cible proposée : environ L1 +3 / L2 +6 / L3 +9 / L4 +12 à +13, soit un écart régulier de 3 à 4 coups par palier.
 
 **Avant de toucher quoi que ce soit** (fait pour la v417) : vérifier les effets sur la répartition des victoires (le top 5 gagne environ 20 % des tournois), sur la montée L4 → L3 et sur les records déjà calibrés.
+
+### Vedettes de la L1 (novembre 2026) — réglé en v421
+
+Constat dans un monde de 100 saisons (voir `docs/analyse-100-saisons.md`) : un Generational ne gagnait que 3 à 4 % de ses tournois et ratait la coupure une fois sur cinq. **Souhait de Max** : des vedettes plus présentes, qui font beaucoup de points et finissent souvent en haut, sans être trop dominantes, avec plus de rondes exceptionnelles (feu et catastrophes).
+
+**Décision (23 novembre 2026)** : avance 0,8, constance 70 % (`rand` 0,7), rondes de feu 5 % et catastrophes 6 %. L'avance 1,5 a été jugée trop dominante. Vérifié dans le jeu v421 (2 × 3 mondes × 30 saisons) :
+
+| Version | Generational : victoires / top 10 / coupure ratée | Rang final médian (Gen) | Gen dans le top 5 de la saison | Le golfeur au meilleur niveau finit top 10 d'un tournoi | Écarts de coupure | Generational en même temps |
+|---|---|---|---|---|---|---|
+| v420 | 3,8 % / 28 % / 22 % | 16 | 24 % | 36 % | +2,3 / +2,5 / +3,8 | 4,7 |
+| v421 | 7,1 % / 40 % / 15 % | 8 | 41 % | 48 % | +2,5 / +2,6 / +3,9 | 4,6 |
+| v421, 2e tirage | 6,0 % / 39 % / 13 % | 9 | 36 % | 45 % | +2,5 / +2,5 / +4,1 | 4,2 |
+
+La part des tournois de L1 gagnés par le top 5 (au niveau) passe d'environ 19 % à environ 30 %. La variété des carrières ne change pas. À noter : les « effets estimés » des préréglages dans les réglages avancés (`ADV_FX`) datent de la v200 et n'ont pas été remesurés.
+
+### Rondes absurdes (novembre 2026) — réglé en v422
+
+Voir les essais dans `docs/analyse-100-saisons.md` (point 2). **Rappel : dans le jeu, le pire résultat sur un trou est +4** (choix de Max). Une ronde absurde vient donc toujours d'une accumulation de mauvais trous, jamais d'un seul.
+
+**Décision (23 novembre 2026)** : « Se ressaisir » lié au tempérament, avec une journée noire 1 ronde sur 5 (version 7). La version la plus forte (5) a été jugée trop drastique : Max veut que les explosions arrivent encore de temps en temps, et surtout pas un monde prévisible ou « robotisé ».
+
+- `regroupShift()` (`src/js/07-pression-en-direct-elan-et.js`) : au-delà de 3 coups perdus sur l'attendu dans la ronde, 0,12 coup de mieux par trou et par coup de plus (au plus 1,5), multiplié selon le tempérament (Imperturbable 1,5, Calme 1,2, Neutre 1, Bouillant 0,6, Colérique 0,25). Aucune ressaisie lors d'une journée noire (1 ronde sur 5). Le golfeur du joueur n'est pas touché.
+- Réglage avancé « Se ressaisir après une mauvaise série » (`regroup`, 100 % par défaut, 0 = jamais). Les parties commencées avant la v422 restent à 0 (drapeau `rgv`).
+- Mesuré dans le jeu v422 (L1, 15 saisons, défi +3, écart avec le score médian du champ) : rondes à +15 ou pire **73 → 21**, à +12 ou pire **267 → 100**, pire ronde +25 → +19. Les meilleures rondes ne changent pas.
+- Circuit complet (3 mondes × 30 saisons, version 7 au banc) : écarts de coupure +2,7 / +2,5 / +3,6 (marge de hasard). Generational : 5,7 % de victoires, 35 % de top 10, 16 % de coupures ratées. Ils sont un peu moins dominants qu'en v421, puisque les autres limitent aussi leurs dégâts.

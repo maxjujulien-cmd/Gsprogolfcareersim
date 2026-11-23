@@ -111,7 +111,11 @@ function mu0(o) { const x = Math.max(-0.05, o / 1000); if (x > 1) return MU.A - 
 /* v417 : sous MU.K (450, Semi-Pro), la courbe est adoucie d'un facteur CFG.lowK (« Écart en bas de l'échelle »). Avec 1, rien ne change.
    Calibré par simulation (3 mondes × 30 saisons) : avec 0,70, l'écart de coupure entre la L3 et la L4 passe d'environ +5,5 à +3,6 coups,
    sans changer les coupures de la L1 à la L3 (±0,3). Voir docs/parametres.md. */
-function mu(o) { const v = mu0(o), k = CFG.lowK == null ? 1 : +CFG.lowK; if (k === 1 || !(o < MU.K)) return v; const m = mu0(MU.K); return m + (v - m) * k; }
+/* v421 : avance des meilleurs : au-dessus de 850, CFG.topEdge coups de mieux par ronde par tranche de 100 points (0,8 par défaut ; 0 = comme avant).
+   Simulation (3 mondes × 30 saisons, avec constance 70 % et rondes de feu / catastrophes à 5 % / 6 %) : un Generational passe de 3,8 % à
+   environ 6 % de victoires, de 28 % à 38 % de top 10 et de 22 % à 16 % de coupures ratées ; écarts de coupure inchangés. */
+function topEdge(o) { const E = CFG.topEdge == null ? 0 : +CFG.topEdge; return E > 0 && o > 850 ? E * (o - 850) / 100 : 0; }
+function mu(o) { const v = mu0(o), k = CFG.lowK == null ? 1 : +CFG.lowK; if (k === 1 || !(o < MU.K)) return v - topEdge(o); const m = mu0(MU.K); return m + (v - m) * k; }
 function dayFactor(g) {
   const x = clamp(g.o / 1000, 0, 1), dom = g.dom && g.sl > 0, v = (g.v || 1) * (dom ? 0.75 : 1);   // en pleine domination : plus régulier
   const sd = (1.3 + 1.15 * (1 - x)) * v * (1 - (CFG.eliteSd || 0) * clamp((x - 0.8) / 0.2, 0, 1)) * (CFG.rand == null ? 1 : CFG.rand);   // CFG.eliteSd (v190) : élite un peu plus régulière   // bruit normal par ronde, rehauss\u00e9 \u2014 m\u00eame un golfeur pr\u00e8s du sommet garde une vraie variance

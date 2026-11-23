@@ -28,8 +28,8 @@ const DEFAULT_CFG = {
   streakMax: 8,   // durée maximale d'une séquence, en tournois (minimum 2) ; v244 : 8 (les longues sont plus rares)
   streakAmp: 1.5, // v244 : force des séquences (×1,5 : un golfeur en feu fait environ 20 % de top 10 au lieu de 7 %)
   spread: 0.22,   // écart de régularité entre golfeurs (0 = tous pareils, 0.5 = très différents)
-  hotP: 4,        // % de rondes de feu (par ronde, ajusté par la régularité du golfeur)
-  coldP: 5,       // % de rondes catastrophes
+  hotP: 5,        // v421 : 5 (avant 4) ; % de rondes de feu (par ronde, ajusté par la régularité du golfeur)
+  coldP: 6,       // v421 : 6 (avant 5) ; % de rondes catastrophes
   youth: 1,       // progression des jeunes (chances de percée et rythme, 1 = normal)
   decline: 1,     // déclin des vétérans (1 = normal)
   showForm: 1,    // afficher les indicateurs de forme et de régularité
