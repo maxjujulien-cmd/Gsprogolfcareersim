@@ -378,6 +378,7 @@ function renderKeep(i) {
 function render() { if (RENDERING) { setTimeout(render, 0); return; } RENDERING = true; try { render0(); } finally { RENDERING = false; } }
 function render0() {
   futOff(); applyLayout(); CARDX = [];
+  if (VIEW && VIEW.name === 'home' && S && typeof offPending === 'function' && offPending()) VIEW = { name: 'off', s: S.off.s, i: S.off.i || 0 };   // v424 : l'intersaison reprend là où on était
   if (VIEW && /^pn[A-Z]/.test(VIEW.name || '')) { pnRender(); return; }
   if (!S || VIEW.name === 'new') { $tabs.hidden = true; $app.innerHTML = scene() + vNew(); newFormLoad(); return; }
   if (S.presim) { runPresim(); return; }   // histoire en cours de simulation (y compris apr\u00e8s un import ou une r\u00e9ouverture)

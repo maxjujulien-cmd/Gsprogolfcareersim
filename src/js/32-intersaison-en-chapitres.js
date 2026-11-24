@@ -13,65 +13,24 @@ function offMyBest(H) {
 function offChapters(s) {
   const H = S.hist[s - 1], E = H && H.end; if (!E) return [];
   const C = [], from = E.from, to = E.to, x = E.x || null, P = s > 1 && S.hist[s - 2] && S.hist[s - 2].end;
-  /* 1. ta saison */
-  if (from >= 0) {
-    const retired = to === -1, me = mySeason(H, E), mc = x ? x.tc.find(c => c[0] === 0) : null, mb = offMyBest(H);
-    const verdict = retired ? '' : to < from ? '<span class="tag good">Promotion</span>' : to > from ? '<span class="tag bad">Relégation</span>' : '<span class="tag">Maintien</span>';
-    let h = '<div class="ofs jmp"><div class="tg">Ton classement final en ' + LEAGUE_SHORT[from] + '</div><div class="ofbig">' + ord(E.rank) + '</div><p>' + (retired ? 'Ta carrière s’est terminée à la fin de cette saison.' : verdict + '  Tu commences la saison ' + yr(s + 1) + ' en <b>' + LEAGUE_NAMES[to] + '</b>.') + '</p></div>';
-    if (me.row) h += '<div class="mgrid">' + tile(mb.w, mb.w > 1 ? 'victoires' : 'victoire') + tile(mb.t10, 'top 10') + tile(me.cuts, me.cuts > 1 ? 'coupures ratées' : 'coupure ratée') + tile(fmtM(me.earn), 'gains de la saison') + '</div>';
-    const mom = [];
-    if (mb.best) mom.push('🏆 Meilleur résultat : ' + (mb.best.p === 1 ? 'victoire' : ord(mb.best.p)) + ' au tournoi ' + (mb.best.t + 1) + (mb.best.l !== from ? ' en Ligue ' + (mb.best.l + 1) : '') + (mb.best.n ? ' · ' + esc(mb.best.n) : ''));
-    if (mb.br) mom.push('🎯 Meilleure ronde : ' + (mb.br.par ? (mb.br.par + mb.br.v) + ' (' + fmt(mb.br.v) + ')' : fmt(mb.br.v)) + ' au tournoi ' + (mb.br.t + 1));
-    if (mc) mom.push('📈 Ton niveau : ' + tierName(mc[1]) + ' → ' + tierName(mc[2]));
-    if (talOn()) { const tm = talMine(); if (tm && tm.list && tm.list.length) { const t = tm.list[0]; mom.push((t.n ? '⚠️ Ton point faible selon tes cartes : ' : '⛳ Ta force selon tes cartes : ') + talLbl(t).toLowerCase() + ' (' + talLvName(t).toLowerCase() + ')'); } }
-    if (mom.length) h += '<div class="block"><h3 style="margin-top:0">Tes moments</h3>' + mom.map(m => '<div class="ofrow"><span>' + m + '</span></div>').join('') + '</div>';
-    if (s === S.season - 1 && canRetire()) h += retireBlock();
-    C.push({ id: 'me', ico: '🏌️', t: 'Ta saison ' + yr(s), sub: LEAGUE_NAMES[from], h });
-  }
+  /* 1. ta saison — v426 : page « télé » plein écran (maquette B2 choisie par Max) : ton rang géant, bandeau de stats,
+     ta carte de la saison (rondes, total, place, points et gains à chaque tournoi), tes moments et la saison qui vient. */
+  if (from >= 0) C.push({ id: 'me', ico: '🏌️', t: 'Ta saison ' + yr(s), full: 1, img: HERO_IMG, h: offMeHTML(s, H, E, x) });
   else if (E.prc) C.push({ id: 'me', ico: '\ud83c\udf93', t: 'Ta saison ' + yr(s), sub: 'Classe de recrues', h: '<div class="ofs jmp">' + rcEndHTML(H, E, s, false, true) + '</div>' });
-  /* 2. les champions */
-  { let h = '';
-    const c1 = E.tables[0][0];
-    if (c1) h += '<div class="ofs gold"><div class="tg">🏆 ' + (c1[0] === 0 ? 'Tu es champion de la Ligue 1' : 'Champion de la Ligue 1') + '</div><div class="nm big">' + offLnk(c1[0]) + '</div><p>' + ptsWord(c1[1]) + ' · ' + plural(c1[2], 'victoire') + (crownsOf(c1[0]) >= 2 ? ' · ' + ord(crownsOf(c1[0])) + ' titre de champion de ligue' : '') + '</p></div>';
-    let R = '';
-    for (let l = 1; l < 4; l++) { const c = E.tables[l] && E.tables[l][0]; if (c) R += offRow('<b>' + LEAGUE_SHORT[l] + '</b> · ' + offLnk(c[0]), ptsWord(c[1]) + ' · ' + plural(c[2], 'victoire')); }
-    const fw = H.fin && H.fin.lg && H.fin.lg[0] && H.fin.lg[0].rows[0];
-    if (fw) R += offRow('<b>Finale</b> · ' + offLnk(fw[0]), esc(H.fin.name || ''));
-    if (CFG.majors !== 0) MAJ_T.forEach(t => { const T = H.t[t], w = T && T.lg[0].rows[0]; if (w) R += offRow('<b>' + esc(majorName(t)) + '</b> · ' + offLnk(w[0]), esc(T.name || '')); });
-    h += '<div class="block"><h3 style="margin-top:0">Les autres titres</h3>' + R + '</div>';
-    C.push({ id: 'ch', ico: '🏆', t: 'Les champions', sub: 'Le classement final des quatre ligues', h });
+  /* 2. les champions — v425 : page « télé » plein écran (maquette A2 choisie par Max) : photo du trophée, nom géant du champion
+     de la Ligue 1, bandeau de stats, son parcours tournoi par tournoi, les trois autres champions et la Finale, puis le bandeau des majeurs. */
+  { const T0 = E.tables[0] || [], c1 = T0[0];
+    if (c1) C.push({ id: 'ch', ico: '🏆', t: 'Les champions', full: 1, img: CHAMP_IMG, h: offChampHTML(s, H, E, c1, T0[1]) });
   }
   /* 3. le Temple : la cérémonie, seulement s'il y a un élu */
   if ((E.hof || []).some(r => r[5])) { const kv = VIEW; VIEW = { name: 'hofCer', s }; let h = ''; try { h = vHofCer(); } catch (e) { } VIEW = kv; C.push({ id: 'hof', ico: '🏛️', t: 'Temple de la renommée', sub: 'Cérémonie d’intronisation', h: '<div class="ofcer">' + h + '</div>' }); }
-  /* 4. retraites */
-  if (x && x.rt.length) {
-    /* v261 : seuls les titres de Ligue 1 comptent (tournois + Finale), et on trie par gains de carrière */
-    const W1 = l1WinsUpTo(s), w1 = r => W1[r[0]] || 0;
-    const rt = x.rt.slice().sort((a, b) => (b[0] === 0) - (a[0] === 0) || b[4] - a[4] || w1(b) - w1(a) || b[2] - a[2]), nf = rt.filter(r => r[7]).length;
-    const sp = rt.slice(0, 2), rest = rt.filter(r => !sp.includes(r));
-    let h = sp.map(r => '<div class="ofs plq"><div class="tg">🚪 ' + (r[0] === 0 ? 'Ta carrière prend fin' : 'Une carrière qui s’achève') + '</div><div class="nm big">' + offLnk(r[0]) + '</div><p>' + r[1] + ' ans · ' + plural(r[2], 'saison') + (r[6] >= 0 ? ' · dernier niveau ' + tierName(r[6]) : '') + '</p><div class="oft"><div><b>' + w1(r) + '</b>' + (w1(r) === 1 ? 'titre de L1' : 'titres de L1') + '</div><div><b>' + fmtM(r[4]) + '</b>gains</div><div><b>L' + (r[5] + 1) + '</b>dernière ligue</div></div></div>').join('');
-    const row = r => offRow(offLnk(r[0]), r[1] + ' ans · ' + (w1(r) ? plural(w1(r), 'titre') + ' de L1' : 'aucun titre de L1') + (r[4] > 0 ? ' · ' + fmtM(r[4]) + ' de gains' : '') + (r[7] ? ' · forcée' : ''));   // v260 : gains de carrière
-    if (rest.length) h += '<div class="block"><h3 style="margin-top:0">' + (sp.length ? 'Les autres départs' : 'Les départs') + '</h3>' + rest.slice(0, 8).map(row).join('') + (rest.length > 8 ? detailsBox('Voir les ' + (rest.length - 8) + ' autres', rest.slice(8).map(row).join('')) : '') + '</div>';
-    C.push({ id: 'rt', ico: '🚪', t: 'Retraites', sub: plural(rt.length, 'golfeur') + ' quittent le circuit' + (nf ? ', dont ' + nf + ' forcé' + (nf > 1 ? 's' : '') : ''), h });
-  }
-  /* 5. progression */
-  if (x && x.tc.length) {
-    const tc = x.tc, gens = tc.filter(c => c[2] === 8 && c[1] < 8), hofs = tc.filter(c => c[2] === 7 && c[1] < 7);
-    const ups = tc.filter(c => c[2] > c[1]).sort((a, b) => (b[2] - b[1]) - (a[2] - a[1]) || b[2] - a[2]), dns = tc.filter(c => c[2] < c[1]).sort((a, b) => (a[2] - a[1]) - (b[2] - b[1]) || b[1] - a[1]);
-    const age = id => { const g = S.G[id]; return g ? ' <small>' + g.a + ' ans</small>' : ''; };
-    let h = '';
-    if (gens.length) h += '<div class="ofs gen"><div class="tg">💎 <span>Nouveaux Generational · ' + gens.length + '</span></div><div class="ofpills">' + gens.slice(0, 10).map(c => '<span>' + offLnk(c[0]) + age(c[0]) + '</span>').join('') + '</div></div>';
-    const jump = ups.find(c => c[2] - c[1] >= 2);
-    if (jump) h += '<div class="ofs jmp"><div class="tg">🚀 Le grand bond</div><div class="nm">' + offLnk(jump[0]) + age(jump[0]) + '</div><p>' + tierName(jump[1]) + ' → <b>' + tierName(jump[2]) + '</b> · <span>+' + (jump[2] - jump[1]) + ' paliers</span></p></div>';
-    if (hofs.length) h += '<div class="block"><h3 style="margin-top:0">⭐ <span>Nouveaux Hall Of Famer · ' + hofs.length + '</span></h3>' + hofs.slice(0, 6).map(c => offRow(offLnk(c[0]), tierName(c[1]) + ' → ' + tierName(c[2]))).join('') + '</div>';
-    const ur = c => offRow(offLnk(c[0]), tierName(c[1]) + ' → <b>' + tierName(c[2]) + '</b>');
-    const up2 = ups.filter(c => c !== jump && !gens.includes(c) && !hofs.includes(c));
-    if (up2.length) h += '<div class="block"><h3 style="margin-top:0">📈 <span>Ils montent · ' + ups.length + '</span></h3>' + up2.slice(0, 6).map(ur).join('') + (up2.length > 6 ? detailsBox('Voir les ' + (up2.length - 6) + ' autres', up2.slice(6).map(ur).join('')) : '') + '</div>';
-    if (dns.length) h += '<div class="block"><h3 style="margin-top:0">📉 <span>Ils reculent · ' + dns.length + '</span></h3>' + dns.slice(0, 4).map(ur).join('') + (dns.length > 4 ? detailsBox('Voir les ' + (dns.length - 4) + ' autres', dns.slice(4).map(ur).join('')) : '') + '</div>';
-    const sc = E.news.map((n, i) => [n, i]).filter(([n]) => /éclosion tardive|franchi un cap|déçoit|perd soudainement|année difficile/.test(n));
-    if (sc.length) h += '<div class="block"><h3 style="margin-top:0">Dans les coulisses</h3><ul class="news">' + sc.map(([n, i]) => '<li>' + newsHTML(n, (E.nids && E.nids[i]) || idsIn(n)) + '</li>').join('') + '</ul></div>';
-    C.push({ id: 'tc', ico: '📈', t: 'Progression', sub: plural(tc.length, 'golfeur') + ' changent de palier', h });
-  }
+  /* 4. retraites — v427 : page « télé » plein écran (maquette C choisie par Max) : le tableau des départs classés par gains
+     en carrière, les chiffres de la saison et un bandeau qui fait défiler les autres départs. */
+  if (x && x.rt.length) C.push({ id: 'rt', ico: '🚪', t: 'Retraites', full: 1, img: HERO_IMG, dim: 1, h: offRtHTML(s, x) });
+  /* 5. progression — v428 : page « télé » plein écran (maquette C choisie par Max) : le tableau de TOUS les golfeurs qui changent
+     de palier (les grands mouvements d'abord, puis ceux qui montent, puis ceux qui reculent), à faire défiler, avec les chiffres
+     de la saison et le bandeau « Dans les coulisses ». */
+  if (x && x.tc.length) C.push({ id: 'tc', ico: '📈', t: 'Progression', full: 1, img: HERO_IMG, h: offTcHTML(s, E, x) });
   /* 6. talents et tempéraments */
   let talH = '';
   if (talOn() && E.tal && E.tal.length) {
@@ -187,20 +146,159 @@ function l1WinsUpTo(s) {
   S.hist.forEach(H => { if (H.s > s) return; (H.t || []).forEach(t => add(t && t.lg && t.lg[0] && t.lg[0].rows[0])); add(H.fin && H.fin.lg && H.fin.lg[0] && H.fin.lg[0].rows[0]); });
   return m;
 }
+/* v428 : le chapitre « Progression » en page télé. Une ligne de x.tc : [id, palier avant, palier après, ligue de la saison, ligue suivante]. */
+const OFX_TCOL = ['#7d8a80', '#6fa05b', '#4e9a3a', '#2f8f7a', '#2e78b7', '#6b5bd1', '#c1852b', '#c9a227', '#b23a78'];
+function offTcHTML(s, E, x) {
+  const tc = x.tc, G8 = TIERS.length - 1, gens = tc.filter(c => c[2] === G8 && c[1] < G8), hofs = tc.filter(c => c[2] === G8 - 1 && c[1] < G8 - 1);
+  const ups = tc.filter(c => c[2] > c[1]).sort((a, b) => (b[2] - b[1]) - (a[2] - a[1]) || b[2] - a[2]), dns = tc.filter(c => c[2] < c[1]).sort((a, b) => (a[2] - a[1]) - (b[2] - b[1]) || b[1] - a[1]);
+  const jump = ups.find(c => c[2] - c[1] >= 2 && !gens.includes(c));
+  const lead = gens.concat(jump ? [jump] : [], hofs.filter(c => c !== jump)), upr = lead.concat(ups.filter(c => !lead.includes(c)));
+  const chip = t => '<span class="oftc" style="background:' + OFX_TCOL[t] + '">' + esc(tierName(t)) + '</span>';
+  const lg = l => l == null || l < 0 ? '—' : l === 4 ? 'Recrues' : 'L' + (l + 1);
+  const tag = c => c[0] === 0 ? '<span class="ofpill">Toi</span>' : gens.includes(c) ? '<span class="ofpill gn">Nouveau Generational</span>' : c === jump ? '<span class="ofpill jb">Le grand bond</span>' : hofs.includes(c) ? '<span class="ofpill">Nouveau Hall Of Famer</span>' : '';
+  const row = (c, up) => { const a = ageAt(c[0], s); return '<tr class="' + (up ? '' : 'dn') + (c[0] === 0 ? ' me' : '') + '"><td class="l n">' + offLnk(c[0]) + ' ' + tag(c) + '</td><td>' + (a != null ? a : '—') + '</td><td>' + lg(c[4]) + '</td><td>' + chip(c[1]) + '</td><td>' + chip(c[2]) + '</td><td class="e ' + (up ? 'up' : 'dw') + '">' + (up ? '▲ ' + (c[2] - c[1]) : '▼ ' + (c[1] - c[2])) + '</td></tr>'; };
+  let h = '<div class="ofxnm ofrth" role="heading" aria-level="2">La progression</div><p class="ofrtl"><span>' + plural(tc.length, 'golfeur') + ' changent de palier</span> · <span>Fais défiler le tableau pour les voir tous</span></p>';
+  h += '<div class="ofrtg"><div class="ofmsc ofrtt oftct"><div class="h"><div class="lab">Les mouvements</div></div><div class="scroll oftcs"><table>' +
+    '<thead><tr><th class="l">Golfeur</th><th>Âge</th><th>Ligue</th><th>Avant</th><th>Après</th><th class="e">Écart</th></tr></thead><tbody>' +
+    (upr.length ? '<tr class="sep up"><td colspan="6">▲ <span>Ils montent</span> · ' + upr.length + '</td></tr>' + upr.map(c => row(c, true)).join('') : '') +
+    (dns.length ? '<tr class="sep"><td colspan="6">▼ <span>Ils reculent</span> · ' + dns.length + '</td></tr>' + dns.map(c => row(c, false)).join('') : '') + '</tbody></table></div></div>';
+  const bx = (v, k, c) => '<div class="ofrtb" style="border-color:' + c + '"><b>' + v + '</b><span>' + k + '</span></div>';
+  h += '<div class="ofrts">' + bx(ups.length, 'montent de palier', '#5CC796') + bx(dns.length, dns.length > 1 ? 'reculent' : 'recule', '#c8473a') + bx(gens.length, gens.length > 1 ? 'nouveaux Generational' : 'nouveau Generational', '#b06ad6') + bx(hofs.length, hofs.length > 1 ? 'nouveaux Hall Of Famer' : 'nouveau Hall Of Famer', '#c9a227') + '</div></div>';
+  const sc = (E.news || []).map((n, i) => [n, i]).filter(([n]) => /éclosion tardive|franchi un cap|déçoit|perd soudainement|année difficile/.test(n));
+  if (sc.length) { const it = sc.map(([n, i]) => '<span>' + newsHTML(n, (E.nids && E.nids[i]) || idsIn(n)) + '</span>').join('');
+    h += '<div class="ofxtk ofrtk oftck"><div class="lab"><span>Dans les coulisses</span></div><div class="its"><div class="mq" style="animation-duration:' + Math.max(30, sc.length * 9) + 's"><div>' + it + '</div><div aria-hidden="true" class="dup">' + it.replace(/<a /g, '<a tabindex="-1" ') + '</div></div></div></div>'; }
+  return h;
+}
+/* v427 : le chapitre « Retraites » en page télé (tableau des départs). Une ligne de x.rt : [id, âge, saisons, …, gains, dernière ligue, dernier niveau, forcée]. */
+function offRtHTML(s, x) {
+  const W1 = l1WinsUpTo(s), w1 = r => W1[r[0]] || 0, ids = new Set(x.rt.map(r => r[0])), maj = {}, wr = {};
+  S.hist.forEach(H => { if (!H || H.s > s) return;
+    if (CFG.majors !== 0) MAJ_T.forEach(t => { const T = H.t && H.t[t], w = T && T.lg && T.lg[0] && T.lg[0].rows[0]; if (w && ids.has(w[0])) maj[w[0]] = (maj[w[0]] || 0) + 1; });
+    const e = H.end; if (e && e.wr) e.wr.forEach((id, i) => { if (ids.has(id) && !(wr[id] <= i + 1)) wr[id] = i + 1; }); });
+  const rt = x.rt.slice().sort((a, b) => (b[0] === 0) - (a[0] === 0) || b[4] - a[4] || w1(b) - w1(a) || b[2] - a[2]), nf = rt.filter(r => r[7]).length, N = 12;
+  const top = rt.slice(0, N), rest = rt.slice(N), totL1 = rt.reduce((a, r) => a + w1(r), 0), totE = rt.reduce((a, r) => a + (r[4] || 0), 0), dash = '—';
+  let h = '<div class="ofxnm ofrth" role="heading" aria-level="2">Ils raccrochent</div><p class="ofrtl"><span>' + plural(rt.length, 'départ') + '</span> · <span>Classés par gains en carrière</span></p>';
+  h += '<div class="ofrtg"><div class="ofmsc ofrtt"><div class="h"><div class="lab">' + (rest.length ? '<span>Les départs</span> · top ' + N : '<span>Les départs</span>') + '</div></div><div class="scroll"><table>' +
+    '<tr><th></th><th class="l">Golfeur</th><th>Âge</th><th>Carrière</th><th>Titres L1</th>' + (CFG.majors !== 0 ? '<th>Majeurs</th>' : '') + '<th>Mondial</th><th>Gains</th></tr>' +
+    top.map((r, i) => '<tr class="' + (r[0] === 0 ? 'me' : wr[r[0]] === 1 ? 'gold' : '') + '"><td class="r">' + (i + 1) + '</td><td class="l n">' + offLnk(r[0]) +
+      (r[0] === 0 ? ' <span class="ofpill">Toi</span>' : wr[r[0]] === 1 ? ' <span class="ofpill">Ex-n° 1</span>' : '') + (r[7] ? ' <span class="ofpill gr">Forcée</span>' : '') + '</td><td>' + r[1] + '</td><td>' + (yr(s) - r[2] + 1) + '–' + yr(s) + '</td><td>' + (w1(r) || dash) + '</td>' +
+      (CFG.majors !== 0 ? '<td>' + (maj[r[0]] || dash) + '</td>' : '') + '<td>' + (wr[r[0]] ? 'n° ' + wr[r[0]] : dash) + '</td><td><b>' + (r[4] > 0 ? fmtM(r[4]) : dash) + '</b></td></tr>').join('') + '</table></div></div>';
+  const bx = (v, k) => '<div class="ofrtb"><b>' + v + '</b><span>' + k + '</span></div>';
+  h += '<div class="ofrts">' + bx(rt.length, rt.length > 1 ? 'départs' : 'départ') + bx(nf, nf > 1 ? 'perdent leur place (forcés)' : 'perd sa place (forcé)') + bx(totL1, totL1 > 1 ? 'titres de L1 qui s’en vont' : 'titre de L1 qui s’en va') + bx(fmtM(totE), 'de gains en carrière, au total') + '</div></div>';
+  if (rest.length) {
+    const it = rest.map(r => '<span>' + offLnk(r[0]) + ' <i>' + r[1] + ' ans' + (r[7] ? ' · forcée' : '') + '</i></span>').join('');
+    h += '<div class="ofxtk ofrtk"><div class="lab"><span>Aussi</span> · ' + rest.length + '</div><div class="its"><div class="mq" style="animation-duration:' + Math.max(30, rest.length * 4) + 's"><div>' + it + '</div><div aria-hidden="true" class="dup">' + it.replace(/<a /g, '<a tabindex="-1" ') + '</div></div></div></div>';
+  }
+  return h;
+}
+/* v426 : le chapitre « Ta saison » en page télé, avec la carte de pointage de la saison. */
+function offMeHTML(s, H, E, x) {
+  const from = E.from, to = E.to, retired = to === -1, me = mySeason(H, E), mb = offMyBest(H), T = E.tables[from] || [];
+  const mc = x ? x.tc.find(c => c[0] === 0) : null, MJ = CFG.majors !== 0;
+  const badge = retired ? '<div class="ofxlive gry">■ <span>Ta carrière s’est terminée cette saison</span></div>'
+    : to < from ? '<div class="ofxlive up">▲ <span>Promotion</span> · <span>Tu montes en Ligue ' + (to + 1) + '</span></div>'
+    : to > from ? '<div class="ofxlive">▼ <span>Relégation</span> · <span>Tu descends en Ligue ' + (to + 1) + '</span></div>'
+    : '<div class="ofxlive gry">■ <span>Maintien</span> · <span>Tu restes en Ligue ' + (to + 1) + '</span></div>';
+  let h = badge + '<div class="ofxnat"><span>' + esc(LEAGUE_NAMES[from]) + '</span> · <span>Classement final</span></div>';
+  const rk = E.rank || 0, sup = LANG === 'en' ? ord(rk).replace(/^\d+/, '') : rk === 1 ? 'er' : 'e';
+  const st = [[me.row ? me.row[1] : 0, 'points'], [mb.w, mb.w > 1 ? 'victoires' : 'victoire'], [mb.t10, 'top 10'], [fmtM(me.earn), 'gains']];
+  h += '<div class="ofmtop"><div class="ofmrk"><b>' + rk + '<sup>' + sup + '</sup></b><div><strong class="notr">' + esc(nameOf(0)) + '</strong><span>sur ' + T.length + ' golfeurs</span>' + (from > 0 ? '<span>Les ' + MOVE + ' premiers montent</span>' : '') + '</div></div>' +
+    '<div class="ofxlow"><div class="k"><span>Saison</span> ' + yr(s) + '</div><div class="v">' + st.map(v => '<div><b>' + v[0] + '</b><span>' + v[1] + '</span></div>').join('') + '</div></div></div>';
+  /* la carte de la saison : une colonne par tournoi (et la Finale si tu y étais) */
+  const cols = [];
+  H.t.forEach((t, ti) => { if (!t) return; const lg = t.pl === 4 ? t.rc : t.lg && t.lg[t.pl], r = lg && lg.rows.find(z => z[0] === 0);
+    cols.push({ k: String(ti + 1), n: t.name || '', mj: MJ && MAJ_T.includes(ti), l: t.pl, par: t.par || 0, r, earn: r && lg.pay ? lg.pay[0] || 0 : 0 }); });
+  const fl = H.fin && H.fin.lg && H.fin.lg[0], fr = fl && fl.rows.find(z => z[0] === 0);
+  if (fr) cols.push({ k: 'F', n: H.fin.name || '', fin: 1, l: 0, par: H.fin.par || 0, r: fr, earn: fl.pay ? fl.pay[0] || 0 : 0 });
+  const rd = (c, k) => c.r && c.r[k] != null ? (c.par ? c.par + c.r[k] : fmt(c.r[k])) : '—';
+  const chip = c => !c.r ? '—' : c.r[1] === 1 ? '<span class="cp w">1</span>' : c.r[1] === 0 ? '<span class="cp mc">MC</span>' : '<span class="cp' + (c.r[1] <= 10 ? ' t' : '') + '">' + c.r[1] + '</span>';
+  const sum = k => cols.reduce((a, c) => a + (c.r && c.r[k] != null ? c.r[k] : 0), 0), tot = c => c.r ? c.r[2] + (c.r[3] || 0) : null;
+  const row = (lab, f, tt, cls) => '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td class="l">' + lab + '</td>' + cols.map(c => '<td' + (c.mj || c.fin ? ' class="mj"' : '') + '>' + f(c) + '</td>').join('') + '<td class="tot">' + tt + '</td></tr>';
+  h += '<div class="ofmsc"><div class="h"><div class="lab">Ta carte de la saison</div><div class="leg"><span><i class="cp w">1</i><span>victoire</span></span><span><i class="cp t">5</i><span>top 10</span></span><span><i class="cp mc">MC</i><span>coupure ratée</span></span>' + (MJ ? '<span class="mjk">★ <span>majeur</span></span>' : '') + '</div></div><div class="scroll"><table>' +
+    '<tr><th class="l">Tournoi</th>' + cols.map(c => '<th' + (c.mj || c.fin ? ' class="mj"' : '') + '>' + (c.fin ? 'Finale' : (c.mj ? '★ ' : '') + c.k) + '</th>').join('') + '<th class="tot">Saison</th></tr>' +
+    '<tr class="crs"><td class="l">Terrain</td>' + cols.map(c => '<td' + (c.mj || c.fin ? ' class="mj"' : '') + ' title="' + esc(c.n) + '"><span class="notr">' + esc(c.n) + '</span>' + (c.l !== from && !c.fin ? '<em>' + (c.l === 4 ? 'Recrues' : 'L' + (c.l + 1)) + '</em>' : '') + '</td>').join('') + '<td class="tot"></td></tr>' +
+    row('Ronde 1', c => rd(c, 2), fmt(sum(2))) + row('Ronde 2', c => rd(c, 3), fmt(sum(3))) +
+    row('Total', c => tot(c) == null ? '—' : fmt(tot(c)), fmt(sum(2) + sum(3)), 'big') +
+    row('Place', chip, ord(rk)) + row('Points', c => c.r ? c.r[4] || 0 : '—', me.row ? me.row[1] : 0) +
+    row('Gains', c => c.earn ? fmtM(c.earn) : '—', fmtM(me.earn), 'sm') + '</table></div></div>';
+  /* tes moments */
+  const M = [];
+  if (mb.best) M.push(['🏆', 'Meilleur résultat', (mb.best.p === 1 ? 'Victoire' : ord(mb.best.p)) + ' au tournoi ' + (mb.best.t + 1), mb.best.n]);
+  if (mb.br) M.push(['🎯', 'Meilleure ronde', mb.br.par ? (mb.br.par + mb.br.v) + ' (' + fmt(mb.br.v) + ')' : fmt(mb.br.v), 'Tournoi ' + (mb.br.t + 1) + (H.t[mb.br.t] && H.t[mb.br.t].name ? ' · ' + H.t[mb.br.t].name : mb.br.t === N_TOURN && H.fin ? ' · Finale' : '')]);
+  const pr = offMyProg(H, E); if (pr && pr[0] !== rk) M.push(['📈', pr[0] > rk ? 'Ta remontée' : 'Ta saison au classement', ord(pr[0]) + ' → ' + ord(rk), 'après le premier tournoi, puis à la fin']);
+  if (me.played) M.push(['⛳', 'Coupures', (me.played - me.cuts) + ' sur ' + me.played, me.cuts ? me.cuts + (me.cuts > 1 ? ' coupures ratées' : ' coupure ratée') : 'aucune coupure ratée']);
+  if (mc) M.push(['📊', 'Ton niveau', tierName(mc[2]), mc[1] !== mc[2] ? 'avant : ' + tierName(mc[1]) : 'inchangé']);
+  if (talOn()) { const tm = talMine(); if (tm && tm.list && tm.list.length) { const t = tm.list[0]; M.push([t.n ? '⚠️' : '⛳', t.n ? 'Ton point faible' : 'Ta force', talLbl(t), talLvName(t)]); } }
+  if (M.length) h += '<div class="ofxrow ofmrow">' + M.slice(0, 5).map(m => '<div class="ofxt" style="border-color:#5CC796"><div class="t">' + m[0] + ' <span>' + m[1] + '</span></div><div class="n">' + m[2] + '</div><div class="p">' + esc(m[3]) + '</div></div>').join('') + '</div>';
+  /* la saison qui vient, et la retraite (toujours possible, jamais imposée) */
+  const obj = retired ? '' : to === 0 ? (from === 0 ? 'jouer le titre et la Finale' : 'garder ta place en Ligue 1') : to < from ? 'garder ta place' : 'finir dans les ' + MOVE + ' premiers pour monter';
+  h += '<div class="ofxtk ofmtk"><div class="lab">' + (retired ? '<span>Fin de carrière</span>' : '<span>Saison</span> ' + yr(s + 1)) + '</div><div class="its">' + (retired ? '' : '<span><em>Ta ligue</em>' + esc(LEAGUE_NAMES[to]) + '</span><span><em>Objectif</em>' + obj + '</span>') + '</div>' +
+    (s === S.season - 1 && canRetire() ? '<button class="ofmret" data-a="retireask">Prendre ma retraite</button>' : '') + '</div>';
+  return h;
+}
+/* ton rang au classement de ta ligue après le premier tournoi (null si tu as changé de ligue en cours de saison) */
+function offMyProg(H, E) {
+  const T = E.tables[E.from]; if (!T || !H.t[0] || H.t[0].pl !== E.from) return null;
+  const lg = H.t[0].lg[E.from]; if (!lg) return null; const p = {}; lg.rows.forEach(r => p[r[0]] = r[4] || 0);
+  if (p[0] == null) return null; const ids = T.map(r => r[0]);
+  return [1 + ids.filter(i => (p[i] || 0) > p[0]).length];
+}
+/* v425 : le chapitre « Les champions » en page télé (photo du trophée, src/assets/champ-img.webp). */
+const CHAMP_IMG = '{{asset:champ-img.webp}}', OFX_LC = ['#3987e5', '#e2672f', '#1fae7a', '#e0a21a'];
+function offChampHTML(s, H, E, c1, c2) {
+  const id = c1[0], me = id === 0, nat = natOf(id), age = ageAt(id, s), nm = nameOf(id), sp = nm.indexOf(' ');
+  const win0 = T => T && T.lg && T.lg[0] && T.lg[0].rows[0];
+  const majW = CFG.majors !== 0 ? MAJ_T.filter(t => { const w = win0(H.t[t]); return w && w[0] === id; }).length : -1;
+  const crowns = crownsOf(id);
+  let h = '<div class="ofxlive">● <span>' + (me ? 'Tu es champion de la Ligue 1' : 'Champion de la Ligue 1') + '</span> · ' + yr(s) + '</div>';
+  h += '<div class="ofxnat">' + flagVisual(nat, 22) + (nat ? ' <span>' + esc(nat) + '</span>' : '') + (age != null ? ' · <span>' + age + ' ans</span>' : '') + (crowns >= 2 ? ' · <span>' + ord(crowns) + ' titre</span>' : '') + '</div>';
+  h += '<div class="ofxnm notr" role="heading" aria-level="2"><a href="#" data-a="golfer" data-id="' + id + '">' + (sp > 0 ? esc(nm.slice(0, sp)) + '<br>' + esc(nm.slice(sp + 1)) : esc(nm)) + '</a></div>';
+  const st = [[c1[1], 'points'], [c1[2], c1[2] > 1 ? 'victoires' : 'victoire']];
+  if (majW >= 0) st.push([majW, majW > 1 ? 'majeurs' : 'majeur']);
+  if (c2) st.push(['+' + (c1[1] - c2[1]), 'd’avance sur le 2e']);
+  h += '<div class="ofxlow"><div class="k"><span>Saison</span> ' + yr(s) + '</div><div class="v">' + st.map(x => '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div>').join('') + '</div></div>';
+  /* son parcours : sa place à chaque tournoi de la saison (et à la Finale) */
+  const bars = [];
+  H.t.forEach((T, ti) => { const r = T && T.lg && T.lg[0] && T.lg[0].rows.find(x => x[0] === id); if (r) bars.push({ p: r[1], n: (ti + 1) + '. ' + (T.name || ''), mj: CFG.majors !== 0 && MAJ_T.includes(ti) }); });
+  const fr = H.fin && H.fin.lg && H.fin.lg[0] && H.fin.lg[0].rows.find(x => x[0] === id);
+  if (fr) bars.push({ p: fr[1], n: 'Finale · ' + (H.fin.name || ''), f: 1 });
+  if (bars.length) h += '<div class="ofxch"><h4>Son parcours · place à chaque tournoi</h4><div class="ofxbars">' + bars.map(b => '<div class="' + (b.f ? 'f' : '') + '" title="' + esc(b.n) + '"><i style="height:' + (b.p ? Math.max(8, 100 - b.p * 2.4) : 0).toFixed(0) + '%;background:' + (b.p === 1 ? '#f0c419' : b.p && b.p <= 10 ? '#5aa9ff' : '#5d6b78') + '"></i><span>' + (b.p ? b.p : 'MC') + '</span><em>' + (b.f ? 'Finale' : b.mj ? 'Majeur' : '') + '</em></div>').join('') + '</div></div>';
+  /* les trois autres ligues et la Finale */
+  let R = '';
+  for (let l = 1; l < 4; l++) { const c = E.tables[l] && E.tables[l][0]; if (c) R += '<div class="ofxt" style="border-color:' + OFX_LC[l] + '"><div class="t"><span>' + (c[0] === 0 ? 'Tu es champion' : 'Champion') + '</span> · <span>' + LEAGUE_SHORT[l] + '</span></div><div class="n">' + offLnk(c[0]) + '</div><div class="p">' + ptsWord(c[1]) + ' · ' + plural(c[2], 'victoire') + '</div></div>'; }
+  const fw = win0(H.fin);
+  if (fw) R += '<div class="ofxt" style="border-color:#f0c419"><div class="t">Finale</div><div class="n">' + offLnk(fw[0]) + '</div><div class="p">' + esc(H.fin.name || '') + '</div></div>';
+  if (R) h += '<div class="ofxrow">' + R + '</div>';
+  /* le bandeau des majeurs */
+  if (CFG.majors !== 0) {
+    const M = MAJ_T.map(t => { const T = H.t[t], w = win0(T); if (!w) return ''; const sc = w[2] != null ? w[2] + (w[3] || 0) : null;
+      return '<span><em>' + esc(majorName(t)) + '</em><a href="#" data-a="golfer" data-id="' + w[0] + '" class="notr">' + esc(nameOf(w[0])) + '</a>' + (sc != null ? ' (' + fmt(sc) + ')' : '') + '</span>'; }).join('');
+    if (M) h += '<div class="ofxtk"><div class="lab"><span>Majeurs</span> ' + yr(s) + '</div><div class="its">' + M + '</div></div>';
+  }
+  return h;
+}
+function offFoot(C, i, s, cur) {
+  const nx = C[i + 1];
+  let h = '<div class="offoot">' + (i > 0 ? '<button class="btn sec" data-a="offgo" data-i="' + (i - 1) + '">‹ Précédent</button>' : '') +
+    (nx ? '<button class="btn next" data-a="offgo" data-i="' + (i + 1) + '"><span>' + esc(nx.t) + '</span> ›</button>' : cur ? '<button class="btn next" data-a="offdone">Commencer la saison ' + yr(s + 1) + '</button>' : '<button class="btn next" data-a="journal">Retour au journal</button>') + '</div>';
+  if (nx) h += '<div class="ofskip"><a href="#" data-a="offgo" data-i="' + (C.length - 1) + '">Passer à la fin ›</a></div>';
+  return h;
+}
 function vOff() {
   const s = VIEW.s, C = offChapters(s); if (!C.length) { VIEW = { name: 'seasonEnd', s }; return vSeasonEnd(); }
   const i = clamp(VIEW.i || 0, 0, C.length - 1), ch = C[i], cur = s === S.season - 1;
   if (cur && S.off && S.off.s === s) S.off.i = i;
   const dots = C.map((c, k) => '<a href="#" class="' + (k < i ? 'on' : k === i ? 'cur' : '') + '" data-a="offgo" data-i="' + k + '" title="' + esc(c.t) + '" aria-label="' + esc(c.t) + '"></a>').join('');
+  if (ch.full) return '<div class="ofw ofwx"><div class="ofx"><div class="ofxbg' + (ch.dim ? ' dim' : '') + '" aria-hidden="true"' + (ch.img ? ' style="background-image:url(' + ch.img + ')"' : '') + '></div><div class="ofxin"><div class="ofxk"><span>Chapitre ' + (i + 1) + '</span> · <span>' + esc(ch.t) + '</span> <span class="ofxy">· ' + yr(s) + ' → ' + yr(s + 1) + '</span></div><div class="ofdots">' + dots + '</div>' + ch.h + '</div></div>' + offFoot(C, i, s, cur) + '</div>';
   let h = '<div class="ofw"><div class="ofprog"><div class="pl">Intersaison ' + yr(s) + ' → ' + yr(s + 1) + ' · ' + (i + 1) + ' / ' + C.length + '</div><div class="ofdots">' + dots + '</div></div>' +
     '<div class="ofhero"><div class="k">' + ch.ico + ' <span>Chapitre ' + (i + 1) + '</span></div><h1>' + ch.t + '</h1>' + (ch.sub ? '<p>' + ch.sub + '</p>' : '') + '</div>';
   h += ch.R ? '<div class="ofgrid two"><div>' + ch.h + '</div><div>' + ch.R + '</div></div>' : ch.h;
-  const nx = C[i + 1];
-  h += '<div class="offoot">' + (i > 0 ? '<button class="btn sec" data-a="offgo" data-i="' + (i - 1) + '">‹ Précédent</button>' : '') +
-    (nx ? '<button class="btn next" data-a="offgo" data-i="' + (i + 1) + '"><span>' + esc(nx.t) + '</span> ›</button>' : cur ? '<button class="btn next" data-a="offdone">Commencer la saison ' + yr(s + 1) + '</button>' : '<button class="btn next" data-a="journal">Retour au journal</button>') + '</div>';
-  if (nx) h += '<div class="ofskip"><a href="#" data-a="offgo" data-i="' + (C.length - 1) + '">Passer à la fin ›</a></div>';
+  h += offFoot(C, i, s, cur);
   return h + '</div>';
 }
+/* v424 : tant que l'intersaison n'est pas terminée (« Commencer la saison »), la page Saison et le bouton Continuer ramènent au chapitre
+   où le joueur était rendu, même après être allé voir une autre page (golfeurs, ligues…). Avant, on tombait sur le premier tournoi. */
+function offPending() { try { return !!(S && S.off && S.off.s === S.season - 1 && S.t === 0 && !S.cur && !S.presim && offChapters(S.off.s).length); } catch (e) { return false; } }
 function offResumeHTML() {
   if (!S.off || S.off.s !== S.season - 1 || S.t !== 0 || S.cur || S.presim) return '';
   const C = offChapters(S.off.s); if (!C.length) return '';

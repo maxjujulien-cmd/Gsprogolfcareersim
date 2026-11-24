@@ -27,6 +27,7 @@ Ce fichier sert à mieux connaître Max d'une session à l'autre. **À la fin d'
 - Il pense en joueur : un dominant n'a pas besoin de gagner souvent, mais il doit faire beaucoup de points et finir souvent en haut. Il propose lui-même des pistes (constance, rondes exceptionnelles) : les tester honnêtement, même quand elles ne suffisent pas seules.
 - Il préfère l'imprévu cohérent à la perfection : des explosions et des surprises, mais qui ont un sens (le tempérament, une journée noire).
 - D'autres joueront aussi à son jeu : penser aux autres niveaux de handicap et aux autres défis, pas seulement aux siens.
+- En apparence, il aime le style « télé » (bandeaux, chiffres géants, photo) et mélange volontiers les options (« les infos de B avec le look de A »).
 - Il veut que tout soit au même endroit : un seul dépôt GitHub, tout y est enregistré à chaque changement.
 
 ## Décisions d'équilibre à respecter (novembre 2026)
@@ -53,16 +54,33 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 - Les fichiers `src/js/NN-*.js` sont concaténés dans **un seul** `<script>` : l'ordre compte et tout est global. Un nouveau module commence par un en-tête `/* ============ TITRE ============` et son nom de fichier doit correspondre à ce titre, sinon le test d'aller-retour échoue (il indique le nom attendu).
 - Pour tester avec une carrière remplie : démarrer une partie en mode manuel et jouer quelques tournois automatiquement (« Simuler jusqu'à mon départ », puis saisir des scores et « Valider le trou »).
 - Chaque push sur GitHub construit et teste le jeu (onglet Actions). Le fichier prêt à jouer, `IndoorGolfCareer`, se télécharge depuis la page de l'exécution.
+- **Attention aux commentaires en fin de ligne** : en v418, une modification a fait glisser du code dans un commentaire (`// …`) dans `loadState`. Le modèle de trous n'était plus construit au chargement d'une partie, et « Valider le trou » ne faisait plus rien (corrigé en v430). Après une modification, vérifier qu'aucun appel n'a disparu (comparer les appels de fonctions avant/après), et tester une vraie ronde jouée à partir d'une sauvegarde chargée.
 - **Sauvegardes existantes** : un changement d'équilibre ne doit pas casser une partie en cours. Utiliser un drapeau de migration dans `loadState` (exemples : `lkv`, `rpv`), et indiquer à Max ce qui s'applique tout de suite et ce qui ne vaut que pour les prochaines recrues.
 
 ## À chaque nouvelle version
 
-1. Numéro de version suivant (dernière : **v423**), noté dans les commentaires du code modifié.
+1. Numéro de version suivant (dernière : **v430**), noté dans les commentaires du code modifié.
 2. `npm run build`, puis `npm test`. Pour un changement d'équilibre, vérifier aussi dans le vrai jeu avec le banc d'essai.
 3. Mettre à jour `docs/parametres.md` (et le README si besoin).
 4. **Commit et push sur GitHub, toujours, à la fin de chaque changement.** Ne jamais laisser une version seulement dans l'artifact ou dans un fichier envoyé.
 5. Envoyer à Max le fichier autonome `IndoorGolfCareer-vNNN.html`.
 6. Republier l'artifact « Indoor Golf Career » (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) si Max le demande : publier `dist/index.html`. Republier aussi un fichier de données (`ootp-names.js`, `ootp-names-extra.js`, `terrains-data.js`) seulement s'il a changé.
+
+## Intersaison en pages « télé » (v425-v428, en cours)
+
+- Max refait les chapitres de l'intersaison un par un : 4 maquettes par chapitre, il en choisit une. « Les champions » = maquette A2 (v425) : page plein écran avec sa photo du trophée (`src/assets/champ-img.webp`), nom géant, bandeau de stats, parcours en barres, bandeau des majeurs.
+- « Ta saison » = maquette B2 (v426) : Max aimait les infos de la carte de pointage (option B) mais voulait le look télé de la A2. Ton rang géant, bandeau de stats, carte de la saison (rondes, total, place, points, gains par tournoi), moments, saison suivante et bouton de retraite discret.
+- « Retraites » = maquette C (v427) : tableau télé des départs classés par gains (âge, années de carrière, titres de L1, majeurs, meilleur rang mondial), 4 chiffres de la saison à droite, bandeau défilant des autres départs. Max a préféré le tableau clair à l'hommage plus émotif que je recommandais.
+- « Progression » = maquette C (v428), avec une demande de Max : pouvoir faire défiler pour voir TOUS les golfeurs qui changent de palier. Tableau défilant (grands mouvements d'abord, puis montées, puis reculs), 4 chiffres à droite, bandeau « Dans les coulisses ».
+- Max veut toujours pouvoir accéder à la liste complète : une page résumée ne doit pas cacher des golfeurs.
+- Chapitres suivants : on garde la liste actuelle des chapitres (Max a refusé d'en ajouter pour l'instant).
+- Un chapitre plein écran se déclare avec `full: 1` (et `img`) dans `offChapters` ; `vOff` garde les points de progression et les boutons.
+- La photo du trophée (Wanamaker) vient de Max et est probablement protégée : bien pour son usage personnel, à remplacer avant de partager le jeu publiquement.
+
+## Fiche du golfeur (v429)
+
+- Max a choisi le style « carte de collection » (option B), mais en gardant **toutes** les infos déjà visibles : une refonte pour embellir, pas pour retirer. Sur ordinateur : carte (photo ou initiales + niveau) à gauche, saison et carte handicap à droite, parcours et niveau/potentiel côte à côte dessous. Téléphone inchangé.
+- Les photos des golfeurs viennent de la bibliothèque de Max (dossier Graphics, `44-bibliotheque-de-photos.js`).
 
 ## Terrains
 
