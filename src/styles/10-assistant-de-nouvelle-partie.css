@@ -21,3 +21,8 @@
 .cards td.rt,i.lg.rt,.rsp.t,.sear1.t,.seamob .sear1.t,.ofmsc .cp.t,#hvcard .hvres .t{background:#22894F;color:#fff;border-color:#22894F}
 .cards td.rt5,i.lg.rt5,.rsp.t5,.sear1.t5,.seamob .sear1.t5,.ofmsc .cp.t5,#hvcard .hvres .t5{background:#3DDC84;color:#0B2A18;border-color:#3DDC84;font-weight:800}
 .cards td.rt20,i.lg.rt20,.rsp.t20,.sear1.t20,.seamob .sear1.t20,.ofmsc .cp.t20,#hvcard .hvres .t20{background:#173326;color:#9CC9AE;border-color:#2A5A40}
+
+/* v439 : carte du trou avec la photo de Max (option A2) */
+.hole{background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.15) 38%,rgba(0,0,0,.2) 60%,rgba(0,0,0,.62)),var(--holeimg,linear-gradient(#2a6a3a,#1d4f2a)) center 60%/cover;text-shadow:0 2px 4px rgba(0,0,0,.9),0 0 18px rgba(0,0,0,.6)}
+.hole .lbl{color:#fff;font-weight:700}
+.hole .pm{background:rgba(0,0,0,.3)}

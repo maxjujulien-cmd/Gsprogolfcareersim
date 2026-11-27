@@ -30,6 +30,7 @@ Ce fichier sert à mieux connaître Max d'une session à l'autre. **À la fin d'
 - En apparence, il aime le style « télé » (bandeaux, chiffres géants, photo) et mélange volontiers les options (« les infos de B avec le look de A »).
 - Il est prêt à commencer sa « vraie » carrière (fin novembre 2026, v430). Il préfère garder le jeu stable plutôt qu'ajouter des systèmes : il trouve le jeu déjà assez complet.
 - Pour les petites aides d'interface, il pense ordinateur d'abord : il refuse ce qui encombrerait le téléphone (fiche au survol : ordinateur seulement).
+- La lisibilité passe avant tout quand il joue : une belle photo, oui, mais le texte doit rester net (« mieux voir la calligraphie »).
 - Il retouche volontiers une option choisie (« A, mais avec plus de contraste ») : lui montrer 2 ou 3 variantes de l'option côte à côte, avec une recommandation.
 - Il veut que tout soit au même endroit : un seul dépôt GitHub, tout y est enregistré à chaque changement.
 
@@ -64,7 +65,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 
 ## À chaque nouvelle version
 
-1. Numéro de version suivant (dernière : **v438**), noté dans les commentaires du code modifié, **et dans `GAME_V` (`src/js/02-carriere-de-golf-moteur-de.js`)** : c'est le numéro affiché en bas à gauche du jeu (v432, choix de Max).
+1. Numéro de version suivant (dernière : **v439**), noté dans les commentaires du code modifié, **et dans `GAME_V` (`src/js/02-carriere-de-golf-moteur-de.js`)** : c'est le numéro affiché en bas à gauche du jeu (v432, choix de Max).
 2. **Vérifications en trois niveaux** (décision de Max, 27 novembre 2026 : les vérifications répétées coûtaient trop de temps et de données) :
    - **Toujours** (moins d'une minute) : `npm run build`, puis `npm test` **une seule fois** (aller-retour, démarrage, et un seul passage du test anglais).
    - **Seulement quand c'est pertinent** : **une seule** capture 1920 × 1080 pour un changement visible ; le test anglais relancé plusieurs fois seulement après un gros ajout de textes (nouvelle page) ; une ronde jouée depuis une sauvegarde chargée seulement si le changement touche au chargement des parties ou au déroulement d'une ronde ; le banc d'essai seulement pour un changement d'équilibre.
@@ -72,7 +73,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 3. Mettre à jour `docs/parametres.md` (et le README si besoin).
 4. **Commit et push sur GitHub, toujours, à la fin de chaque changement.** Ne jamais laisser une version seulement dans l'artifact ou dans un fichier envoyé.
 5. Envoyer à Max le fichier autonome `IndoorGolfCareer-vNNN.html`.
-6. **Republier l'artifact « Indoor Golf Career »** (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) **à chaque nouvelle version** (décision de Max, 27 novembre 2026) : publier `dist/index.html` avec `url`, et un fichier de données (`ootp-names.js`, `ootp-names-extra.js`, `terrains-data.js`) seulement s'il a changé (le relire d'abord avec `action: read` et `path`). L'artifact est partagé « toute personne ayant le lien » : attention à la photo du trophée (voir plus bas). Dernière publication : v438.
+6. **Republier l'artifact « Indoor Golf Career »** (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) **à chaque nouvelle version** (décision de Max, 27 novembre 2026) : publier `dist/index.html` avec `url`, et un fichier de données (`ootp-names.js`, `ootp-names-extra.js`, `terrains-data.js`) seulement s'il a changé (le relire d'abord avec `action: read` et `path`). L'artifact est partagé « toute personne ayant le lien » : attention à la photo du trophée (voir plus bas). Dernière publication : v439.
 
 ## Intersaison en pages « télé » (v425-v428, en cours)
 
@@ -91,6 +92,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 - Fiche rapide au survol (v436, maquette A « mini carte de collection ») : sur ordinateur seulement (Max n'en veut pas sur téléphone), elle s'ouvre après 0,5 s sur tout nom cliquable (`data-a="golfer"`) ; code à la fin de `46-mise-en-page-sur-ordinateur.js`.
 - Tableau en direct (v437) : en ronde 1, ceux qui ne sont pas partis n'ont pas de position (« – », `nop` dans `rankTies`) ; l'option « Épinglé » est retirée : sur ordinateur, ta ligne a une place fixe sous l'en-tête des cartes (`pinfix`) ; la case « Golfeurs » des ligues compte les golfeurs présents dans la ligue.
 - Couleurs des positions (v438, option A2 « dégradé de verts contrasté ») : or = victoire, vert éclatant = top 5, vert franc = top 10, vert foncé = top 20, brun = coupure ratée ; `posTc()` et les règles CSS à la fin de `src/styles/10-*.css`, partout où une position est colorée.
+- Carte du trou (v439, option A2) : photo de Max (`src/assets/hole-img.webp`, recadrée pour enlever un texte en bas à droite) en fond, haut et bas assombris, texte blanc ombré ; variable `--holeimg` posée dans `46-*.js`, règles à la fin de `src/styles/10-*.css`. Photo d'origine probablement générée ou tirée d'un site : à vérifier avant un partage public.
 - Les photos des golfeurs viennent de la bibliothèque de Max (dossier Graphics, `44-bibliotheque-de-photos.js`).
 
 ## Banc d'essai de Max avant publication

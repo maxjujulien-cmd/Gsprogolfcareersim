@@ -73,3 +73,8 @@ document.addEventListener('mouseover', e => {
 });
 document.addEventListener('mouseout', e => { if (HV_EL && !HV_EL.contains(e.relatedTarget) && e.target.closest && e.target.closest('[data-a="golfer"]') === HV_EL) hvHide(); });
 ['pointerdown', 'scroll', 'keydown'].forEach(k => document.addEventListener(k, hvHide, true));
+
+/* v439 : photo de Max dans la carte où l'on entre le score du trou (option A2 : photo en fond, haut et bas assombris
+   pour bien lire « Trou … sur 18 », « Par … » et le chiffre). Les règles sont à la fin de src/styles/10-*.css. */
+const HOLE_IMG = '{{asset:hole-img.webp}}';
+try { document.documentElement.style.setProperty('--holeimg', 'url("' + HOLE_IMG + '")'); } catch (e) { }
