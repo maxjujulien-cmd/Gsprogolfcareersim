@@ -63,7 +63,7 @@ li.it.done .t::after{content:" ✓";color:var(--green)}
 footer{color:var(--mute);font-size:13px;text-align:center}
 @media (max-width:640px){li.it{grid-template-columns:1fr}.v{justify-content:flex-start}.sh .cnt{display:none}}
 .mods{grid-column:1/-1;list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
-.mod{display:grid;grid-template-columns:auto auto auto minmax(0,1fr) auto;gap:8px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+.mod{display:grid;grid-template-columns:auto auto auto minmax(0,1fr) auto auto;gap:8px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 8px}
 .mod.af{border-color:var(--red)}.mod.fait{border-color:var(--green)}.mod.ver{opacity:.6}.mod.ver input.mt{text-decoration:line-through}
 .mod label{display:inline-flex;align-items:center;gap:4px;font:600 11px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--mute);cursor:pointer;white-space:nowrap}
 .mod label input{width:16px;height:16px;accent-color:var(--green);margin:0}
@@ -72,11 +72,19 @@ footer{color:var(--mute);font-size:13px;text-align:center}
 .mod input.mt:focus-visible,.mod button:focus-visible,.addm input:focus-visible,.addm button:focus-visible,.mod label input:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .mod .del{border:0;background:none;color:var(--mute);font-size:16px;cursor:pointer;padding:2px 6px;border-radius:6px;white-space:nowrap}
 .mod .del.sure{color:var(--red);font:600 12px var(--f-body)}
+.mod .clip{border:0;background:none;font-size:15px;cursor:pointer;padding:2px 6px;border-radius:6px}.mod .clip:focus-visible{outline:2px solid var(--green)}
+.shots{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;padding:2px 0 2px 2px}.shots:empty{display:none}
+.shot{position:relative;width:132px;height:80px;border-radius:6px;overflow:hidden;border:1px solid var(--line);background:var(--card)}
+.shot a{display:block;width:100%;height:100%}.shot img{width:100%;height:100%;object-fit:cover;display:block}
+.shot .rm{position:absolute;top:3px;right:3px;border:0;border-radius:4px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;line-height:1;padding:3px 5px;cursor:pointer}
+.shot.up{display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--mute)}
+.divers{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.divers h2{margin:0;font:800 20px/1.2 var(--f-disp)}.divers p{margin:0;color:var(--mute);font-size:14px}
 .addm{grid-column:1/-1;display:flex;gap:8px;align-items:center}
 .addm input{flex:1;min-width:0;font:14px var(--f-body);color:var(--ink);background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:8px 10px}
 .addm .add{flex:none;font:600 13px var(--f-body);border:1px solid var(--green);background:var(--green-soft);color:var(--green);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
 .pill.d b{color:var(--sand)}
-@media (max-width:640px){.mod{grid-template-columns:auto auto auto minmax(0,1fr) auto}.mod label span{display:none}}
+@media (max-width:640px){.mod{grid-template-columns:auto auto auto minmax(0,1fr) auto auto}.mod label span{display:none}}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}.mic.on{animation:none}}
 </style>
 
@@ -101,8 +109,15 @@ footer{color:var(--mute);font-size:13px;text-align:center}
     <div><b>Trois verdicts</b><span>J’aime : on garde. Bof : ça passe, mais ça pourrait être mieux. À changer : écris pourquoi dans la note.</span></div>
     <div id="micHow" hidden><b>Dicter une note</b><span>Clique sur 🎤 à côté d’une note, parle, puis clique de nouveau pour arrêter. Le texte s’ajoute à la note de ce point.</span></div>
     <div><b>Liste de modifications</b><span>Sous chaque point, ajoute une modification par ligne. Coche <b style="display:inline">À faire</b>, puis dis à Claude « règle ce qui est à faire ». Claude coche <b style="display:inline">Fait</b> quand c’est terminé ; toi, tu coches <b style="display:inline">Vérifié</b> quand c’est réglé à ton goût.</span></div>
-    <div><b>Une capture vaut mille mots</b><span>Si quelque chose cloche, fais une capture et garde-la : envoie-la à Claude avec tes notes.</span></div>
+    <div id="shotHow"><b>Une capture vaut mille mots</b><span>Joins une capture à un élément avec 📎, ou colle-la (Ctrl + V) pendant que tu es dans le texte de l’élément. Claude la verra en lisant ta liste.</span></div>
   </div>
+
+  <section class="divers" id="it-divers" aria-labelledby="dvh">
+    <h2 id="dvh">À faire ailleurs</h2>
+    <p>Ce qui ne va pas dans un point précis : idées, envies, corrections générales.</p>
+    <ul class="mods" id="ml-divers" aria-label="Modifications : à faire ailleurs"></ul>
+    <div class="addm"><input type="text" id="a-divers" data-add="divers" placeholder="Ajouter une chose à faire…" aria-label="Nouvelle chose à faire"><button type="button" class="mic" data-mic="a-divers" hidden aria-label="Dicter une chose à faire" aria-pressed="false">🎤</button><button type="button" class="add" data-addbtn="divers">+ Ajouter</button></div>
+  </section>
 
   <div id="steps"></div>
 
@@ -218,7 +233,7 @@ const STEPS = [
 ];
 
 const STATE = {};   // id -> { v: 'aime'|'bof'|'chg'|null, n: string }
-let db = null, onlyTodo = false, dict = null, dictId = null, dictBase = '';
+let db = null, assets = null, onlyTodo = false, dict = null, dictId = null, dictBase = '';
 const MODS = {};   // id -> { p: point, t: texte, o: ordre, af: à faire (Max), fait: fait (Claude), ver: vérifié (Max) }
 const LSM = 'banc-essai-mods-v1';
 const lsmSave = () => { try { localStorage.setItem(LSM, JSON.stringify(MODS)); } catch (e) { } };
@@ -271,6 +286,7 @@ function paint() {
     if (s.v) { done++; if (s.v === 'aime') a++; else if (s.v === 'bof') b++; else c++; }
   });
   STEPS.forEach((s, k) => { const n = s.items.filter(i => (STATE[i[0]] || {}).v).length; $('#cnt' + k).textContent = n + ' / ' + s.items.length; document.querySelector('section[data-k="' + k + '"]').hidden = onlyTodo && s.items.every(i => document.getElementById('it-' + i[0]).hidden); });
+  paintMods('divers');
   const M = Object.values(MODS); $('#mTodo').textContent = M.filter(m => m.af && !m.fait && !m.ver).length; $('#mDem').textContent = M.filter(m => m.fait && !m.ver).length; $('#mVer').textContent = M.filter(m => m.ver).length;
   $('#nDone').textContent = done; $('#nAll').textContent = ALL.length; $('#nAime').textContent = a; $('#nBof').textContent = b; $('#nChg').textContent = c;
   const pct = Math.round(done / ALL.length * 100); $('#barfill').style.width = pct + '%'; document.querySelector('.bar').setAttribute('aria-valuenow', String(pct));
@@ -302,12 +318,19 @@ function paintMods(pid) {
       const l2 = el('label', 'lv'); const c2 = el('input'); c2.type = 'checkbox'; c2.dataset.ck = 'ver'; c2.dataset.m = mid; l2.appendChild(c2); l2.appendChild(el('span', null, 'Vérifié'));
       const tx = el('input', 'mt'); tx.type = 'text'; tx.dataset.mt = mid; tx.setAttribute('aria-label', 'Modification');
       const del = el('button', 'del', '×'); del.type = 'button'; del.dataset.del = mid; del.setAttribute('aria-label', 'Supprimer cette modification');
-      li.append(l0, l1, l2, tx, del);
+      const clip = el('button', 'clip', '📎'); clip.type = 'button'; clip.dataset.clip = mid; clip.hidden = !assets; clip.setAttribute('aria-label', 'Joindre une capture'); clip.title = 'Joindre une capture';
+      const sh = el('div', 'shots'); sh.dataset.shots = mid;
+      li.append(l0, l1, l2, tx, clip, del, sh);
     }
     if (ul.children[i] !== li) ul.insertBefore(li, ul.children[i] || null);
     const c0 = li.querySelector('[data-ck="af"]'), c1 = li.querySelector('[data-ck="fait"]'), c2 = li.querySelector('[data-ck="ver"]'), tx = li.querySelector('.mt');
     c0.checked = !!m.af; c1.checked = !!m.fait; c2.checked = !!m.ver; c0.setAttribute('aria-label', 'À faire : ' + m.t); c1.setAttribute('aria-label', 'Fait : ' + m.t); c2.setAttribute('aria-label', 'Vérifié : ' + m.t);
     if (document.activeElement !== tx && tx.value !== m.t) tx.value = m.t;
+    const sh = li.querySelector('.shots'), imgs = m.img || [], up = UPL[mid] || 0;
+    const key = imgs.join(',') + '|' + up; if (sh.dataset.key !== key) { sh.dataset.key = key; sh.textContent = '';
+      imgs.forEach(aid => { const d = el('div', 'shot'); const a = el('a'); a.href = '/_blob/' + aid; a.target = '_blank'; a.rel = 'noopener'; const im = el('img'); im.src = '/_blob/' + aid; im.alt = 'Capture jointe'; im.loading = 'lazy'; a.appendChild(im); d.appendChild(a);
+        const rm = el('button', 'rm', '×'); rm.type = 'button'; rm.dataset.rmshot = mid + '|' + aid; rm.setAttribute('aria-label', 'Retirer cette capture'); d.appendChild(rm); sh.appendChild(d); });
+      for (let k = 0; k < up; k++) sh.appendChild(el('div', 'shot up', 'Envoi…')); }
     li.classList.toggle('af', !!m.af && !m.fait && !m.ver); li.classList.toggle('fait', !!m.fait && !m.ver); li.classList.toggle('ver', !!m.ver);
   });
 }
@@ -317,7 +340,7 @@ async function writeMod(mid) {
   if (!db) return;
   if (mbusy[mid]) { magain[mid] = true; return; }
   mbusy[mid] = true; $('#saveState').textContent = 'Enregistrement…';
-  try { const m = MODS[mid]; if (m) await db.doc('mods/' + mid).set({ p: m.p, t: m.t, o: m.o, af: !!m.af, fait: !!m.fait, ver: !!m.ver, at: new Date().toISOString() }); else await db.doc('mods/' + mid).delete(); $('#saveState').textContent = 'Enregistré'; }
+  try { const m = MODS[mid]; if (m) await db.doc('mods/' + mid).set({ p: m.p, t: m.t, o: m.o, af: !!m.af, fait: !!m.fait, ver: !!m.ver, img: (m.img || []).slice(0, 12), at: new Date().toISOString() }); else await db.doc('mods/' + mid).delete(); $('#saveState').textContent = 'Enregistré'; }
   catch (e) { $('#saveState').textContent = e && e.code === 'quota_exceeded' ? 'Stockage plein : ta liste reste dans ce navigateur.' : 'Pas enregistré en ligne pour l’instant : ta liste reste dans ce navigateur.'; }
   mbusy[mid] = false; if (magain[mid]) { magain[mid] = false; writeMod(mid); }
 }
@@ -326,6 +349,25 @@ function addMod(pid, text) {
   const mid = 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   MODS[mid] = { p: pid, t, o: Date.now(), af: false, fait: false, ver: false }; paint(); writeMod(mid); return true;
 }
+const UPL = {};
+async function attach(mid, files) {
+  if (!assets || !MODS[mid]) return;
+  for (const f of files) {
+    if (!f || !/^image\//.test(f.type)) continue;
+    UPL[mid] = (UPL[mid] || 0) + 1; paint();
+    try { const r = await assets.upload(f); const m = MODS[mid]; if (m) { m.img = (m.img || []).concat(r.id); writeMod(mid); } }
+    catch (e) { $('#saveState').textContent = e && e.code === 'quota_exceeded' ? 'Stockage des captures plein.' : 'La capture n’a pas pu être envoyée : réessaie.'; }
+    UPL[mid]--; paint();
+  }
+}
+const picker = document.createElement('input'); picker.type = 'file'; picker.accept = 'image/*'; picker.multiple = true; picker.hidden = true; document.body.appendChild(picker);
+let pickFor = null;
+picker.addEventListener('change', () => { if (pickFor) attach(pickFor, [...picker.files]); picker.value = ''; });
+document.addEventListener('paste', e => {
+  const tx = e.target.closest && e.target.closest('input[data-mt]'); if (!tx || !assets) return;
+  const fs = [...(e.clipboardData ? e.clipboardData.files : [])].filter(f => /^image\//.test(f.type)); if (!fs.length) return;
+  e.preventDefault(); attach(tx.dataset.mt, fs);
+});
 function addFromInput(pid) { const ai = document.getElementById('a-' + pid); if (ai && addMod(pid, ai.value)) { ai.value = ''; ai.focus(); } }
 document.addEventListener('change', e => { const c = e.target.closest('[data-ck]'); if (!c) return; const m = MODS[c.dataset.m]; if (!m) return; m[c.dataset.ck] = c.checked; paint(); writeMod(c.dataset.m); });
 document.addEventListener('keydown', e => {
@@ -349,6 +391,8 @@ document.addEventListener('click', e => {
     dict.start({ language: 'fr' }).catch(err => { const was = dictId; dictId = null; micPaint(); if (err && err.code === 'not_granted') { document.querySelectorAll('.mic').forEach(x => { x.hidden = true; }); $('#micHow').hidden = true; } else if (was) $('#saveState').textContent = 'Le micro n’a pas démarré : réessaie ou écris ta note.'; });
     return;
   }
+  const cp = e.target.closest('[data-clip]'); if (cp) { pickFor = cp.dataset.clip; picker.click(); return; }
+  const rs = e.target.closest('[data-rmshot]'); if (rs) { const [mid, aid] = rs.dataset.rmshot.split('|'); const m = MODS[mid]; if (m) { m.img = (m.img || []).filter(x => x !== aid); paint(); writeMod(mid); if (assets) assets.delete(aid).catch(() => { }); } return; }
   const ab = e.target.closest('[data-addbtn]'); if (ab) { addFromInput(ab.dataset.addbtn); return; }
   const dl = e.target.closest('[data-del]'); if (dl) { if (!dl.classList.contains('sure')) { dl.classList.add('sure'); dl.textContent = 'Supprimer ?'; setTimeout(() => { if (dl.isConnected) { dl.classList.remove('sure'); dl.textContent = '×'; } }, 3000); return; } delete MODS[dl.dataset.del]; paint(); writeMod(dl.dataset.del); return; }
   const b = e.target.closest('.v button'); if (b) { const id = b.dataset.id, s = STATE[id] = Object.assign({}, STATE[id]); s.v = s.v === b.dataset.v ? null : b.dataset.v; paint(); write(id); return; }
@@ -358,6 +402,7 @@ document.addEventListener('click', e => {
 document.addEventListener('input', e => { const ta = e.target.closest('textarea[data-id]'); if (!ta) return; const id = ta.dataset.id; STATE[id] = Object.assign({}, STATE[id], { n: ta.value }); clearTimeout(timers[id]); timers[id] = setTimeout(() => write(id), 900); });
 document.addEventListener('focusout', e => { const ta = e.target.closest && e.target.closest('textarea[data-id]'); if (ta && timers[ta.dataset.id]) { clearTimeout(timers[ta.dataset.id]); write(ta.dataset.id); } });
 
+(async () => { try { assets = window.claude && window.claude.use ? await window.claude.use('assets') : null; } catch (e) { assets = null; } if (assets) { document.querySelectorAll('.clip').forEach(c => { c.hidden = false; }); } else { const h = document.getElementById('shotHow'); if (h) h.querySelector('span').textContent = 'Si quelque chose cloche, fais une capture et envoie-la à Claude dans la conversation.'; } })();
 build();
 Object.assign(STATE, lsLoad()); Object.assign(MODS, lsmLoad()); paint();
 (async () => {
@@ -382,7 +427,7 @@ $('#saveState').textContent = 'Tes notes s’enregistrent dans ce navigateur.';
   db.collection('mods').onSnapshot(snap => {
     if (snap.metadata.fromCache && snap.empty) return;
     const seen = new Set();
-    snap.docs.forEach(d => { seen.add(d.id); if (mbusy[d.id]) return; const x = d.data() || {}; if (typeof x.p !== 'string' || typeof x.t !== 'string') return; MODS[d.id] = { p: x.p, t: x.t, o: +x.o || 0, af: !!x.af, fait: !!(x.fait || x.dem), ver: !!x.ver }; });
+    snap.docs.forEach(d => { seen.add(d.id); if (mbusy[d.id]) return; const x = d.data() || {}; if (typeof x.p !== 'string' || typeof x.t !== 'string') return; MODS[d.id] = { p: x.p, t: x.t, o: +x.o || 0, af: !!x.af, fait: !!(x.fait || x.dem), ver: !!x.ver, img: Array.isArray(x.img) ? x.img.filter(v => typeof v === 'string' && /^[A-Za-z0-9_-]{8,80}$/.test(v)) : [] }; });
     if (!snap.metadata.fromCache) Object.keys(MODS).forEach(k => { if (!seen.has(k) && !mbusy[k]) delete MODS[k]; });
     lsmSave(); paint();
   }, () => { });
