@@ -17,8 +17,8 @@ function tabGo(v) {
   else go(v);
 }
 /* v223 : le formulaire du menu garde ce qu'on y a tapé quand on change un choix (mode, format, langue…) */
-function newFormSave() { const g = id => document.getElementById(id); if (!g('nm')) return; { const dd = document.querySelector('.nfcrs'); if (dd) VIEW.nfOpen = dd.open; } VIEW.nf = { nm: g('nm').value, lg: g('lg') ? g('lg').value : null, sy: g('startyear') ? g('startyear').value : null, ps: g('presim') ? g('presim').value : null, hc: g('nhc') ? g('nhc').value : null, nat: g('nnat') ? g('nnat').value : (VIEW.nf && VIEW.nf.nat), ag: g('nage') ? g('nage').value : (VIEW.nf && VIEW.nf.ag) }; }
-function newFormLoad() { const f = VIEW.nf; if (!f) return; const g = id => document.getElementById(id); if (g('nm') && f.nm != null) g('nm').value = f.nm; if (g('lg') && f.lg != null && !VIEW.lgReset) g('lg').value = f.lg; if (g('startyear') && f.sy != null) g('startyear').value = f.sy; if (g('presim') && f.ps != null) { g('presim').value = f.ps; const h = g('presimHint'); if (h) h.textContent = presimHint(); } if (g('nhc') && f.hc != null) g('nhc').value = f.hc; if (g('nnat') && f.nat != null) g('nnat').value = f.nat; if (g('nage') && f.ag != null) g('nage').value = f.ag; VIEW.lgReset = false; }
+function newFormSave() { const g = id => document.getElementById(id); if (!g('nm')) return; { const dd = document.querySelector('.nfcrs'); if (dd) VIEW.nfOpen = dd.open; } VIEW.nf = { nm: g('nm').value, lg: g('lg') ? g('lg').value : null, sy: g('startyear') ? g('startyear').value : null, ps: g('presim') ? g('presim').value : null, hc: g('nhc') ? g('nhc').value : null, nat: g('nnat') ? g('nnat').value : (VIEW.nf && VIEW.nf.nat), ag: g('nage') ? g('nage').value : (VIEW.nf && VIEW.nf.ag), bio: ['Ct', 'Ht', 'Wt', 'Lf'].map(k => g('n' + k) ? g('n' + k).value : ((VIEW.nf && VIEW.nf.bio) || [])[['Ct', 'Ht', 'Wt', 'Lf'].indexOf(k)]) }; }
+function newFormLoad() { const f = VIEW.nf; if (!f) return; const g = id => document.getElementById(id); if (g('nm') && f.nm != null) g('nm').value = f.nm; if (g('lg') && f.lg != null && !VIEW.lgReset) g('lg').value = f.lg; if (g('startyear') && f.sy != null) g('startyear').value = f.sy; if (g('presim') && f.ps != null) { g('presim').value = f.ps; const h = g('presimHint'); if (h) h.textContent = presimHint(); } if (g('nhc') && f.hc != null) g('nhc').value = f.hc; if (g('nnat') && f.nat != null) g('nnat').value = f.nat; if (g('nage') && f.ag != null) g('nage').value = f.ag; if (f.bio) ['Ct', 'Ht', 'Wt', 'Lf'].forEach((k, i) => { if (g('n' + k) && f.bio[i] != null) g('n' + k).value = f.bio[i]; }); VIEW.lgReset = false; }
 async function act(a, el) {
   const d = el.dataset;
   if ((!S || VIEW.name === 'new') && document.getElementById('nm')) newFormSave();
@@ -42,7 +42,7 @@ async function act(a, el) {
       newGame(name, league, mode, startYear, presimN, VIEW.fmt === 1, later);
       if (nat0) { S.nat = nat0; persist(); }
       if (VIEW.ncrf && BANK.length) { S.crf = Object.assign({}, VIEW.ncrf); crfRemember(); const N = nfNeu(); S.cfg = S.cfg || {}; S.cfg.crRef = N.cr; S.cfg.slopeRef = N.sl; S.cfg.distRef = N.d; setCfg(S.cfg); persist(); }   // v269 : terrains et terrain moyen choisis à la création
-      if (mode === 'manual') { const ag = Math.round(+((document.getElementById('nage') || {}).value || 22)); S.pk = S.pk || { cur: [0, 0, 0], best: [0, 0, 0], cw: 0 }; S.pk.a = Math.max(15, Math.min(50, ag || 22)); persist(); }   // v268 : âge du joueur manuel
+      if (mode === 'manual') { const ag = Math.round(+((document.getElementById('nage') || {}).value || 22)); S.pk = S.pk || { cur: [0, 0, 0], best: [0, 0, 0], cw: 0 }; S.pk.a = Math.max(17, Math.min(50, ag || 22)); S.pk.bio = bioFromForm('n', S.nat); persist(); }   // v268 : âge du joueur manuel   // v434 : 17 ans minimum, ville, taille, poids, côté
       { const hv = parseFloat(String((document.getElementById('nhc') || {}).value || '').replace(',', '.')), k = VIEW.lvlk || 'l2c';   // v237 : aussi en mode simulé (niveau des adversaires seulement)
         if (!isNaN(hv)) { S.cfg.lvl = lvlDelta(hv, k); S.cfg.lvlH = hv; S.cfg.lvlK = k; setCfg(S.cfg); persist(); } }
       if (mode !== 'duo') { advPreset(npre, true); S.cfg.majPts = +(VIEW.nmaj || '1.25'); setCfg(S.cfg); S.lockOn = true; S.debut = S.season; persist(); }
@@ -90,7 +90,9 @@ async function act(a, el) {
       const league = leagueEl ? +leagueEl.value : (VIEW.league != null ? VIEW.league : 3);
       S.name = n;
       if (S.mode !== 'sim' && ptSwitchOK()) S.mode = 'sim';   // v254 : on passe au joueur simulé
+      const bioPc = bioFromForm('pc', nat);
       createPlayerGolfer({ n, a, nat, tierIdx, potIdx, league });
+      if (S.G[0]) { S.G[0].bio = Object.assign({}, S.G[0].bio || {}, { ct: bioPc.ct, h: bioPc.h, w: bioPc.w, lf: bioPc.lf }); persist(); }   // v434 : identité choisie
       go('home');
       break;
     }
@@ -124,7 +126,7 @@ async function act(a, el) {
       if (S.t !== 0 || S.cur || leagueOf(0) >= 0) break;
       const n = ((document.getElementById('mcName') || {}).value || 'Toi').trim() || 'Toi', lg = +((document.getElementById('mcLeague') || {}).value || 3);
       if (S.mode === 'sim') { S.mode = 'manual'; S.pk = { cur: [0, 0, 0], best: [0, 0, 0], cw: 0, earn: 0 }; }   // v254 : on passe au joueur manuel
-      S.name = n; S.nat = ((document.getElementById('mcNat') || {}).value || '').trim(); S.pk = S.pk || { cur: [0, 0, 0], best: [0, 0, 0], cw: 0 }; S.pk.a = Math.max(15, Math.min(50, Math.round(+((document.getElementById('mcAge') || {}).value || 22)) || 22)); if (lg === 4) plJoinRc(); else { makeRoom(lg); S.L[lg].push(0); } S.st[0] = newStanding(); S.spect = false; S.needsPlayerCreate = false;
+      S.name = n; S.nat = ((document.getElementById('mcNat') || {}).value || '').trim(); S.pk = S.pk || { cur: [0, 0, 0], best: [0, 0, 0], cw: 0 }; S.pk.a = Math.max(17, Math.min(50, Math.round(+((document.getElementById('mcAge') || {}).value || 22)) || 22)); S.pk.bio = bioFromForm('mc', S.nat); if (lg === 4) plJoinRc(); else { makeRoom(lg); S.L[lg].push(0); } S.st[0] = newStanding(); S.spect = false; S.needsPlayerCreate = false;
       if (!(S.playerCareers || []).length && !golferHistory(0).length) S.joinS = S.season;   // v253 : arrivée après des saisons suivies sans joueur
       persist(); go('home'); toast('Bienvenue en ' + lgNm(lg) + ', ' + n); break;
     }
@@ -694,6 +696,10 @@ document.addEventListener('keydown', e => {
     if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && it.length) { e.preventDefault(); const n = (k + (e.key === 'ArrowDown' ? 1 : -1) + it.length) % it.length; it.forEach((x, j) => x.classList.toggle('on', j === n)); return; }
     if (e.key === 'Enter') { e.preventDefault(); const x = it[k < 0 ? 0 : k]; if (x) splAdd(el.dataset.splac, BANK[+x.dataset.splpick].name); else if (el.value.trim()) splAdd(el.dataset.splac, el.value.trim()); return; }
     if (e.key === 'Escape' && box) { box.classList.remove('open'); box.innerHTML = ''; return; } }
+  if (el.id === 'topq') { const box = document.getElementById('topqres'), it = box ? [...box.querySelectorAll('.mtsr')] : [], k = it.findIndex(x => x.classList.contains('on'));   // v434 : recherche du haut
+    if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && it.length) { e.preventDefault(); const n = (k + (e.key === 'ArrowDown' ? 1 : -1) + it.length) % it.length; it.forEach((x, j) => x.classList.toggle('on', j === n)); return; }
+    if (e.key === 'Enter') { e.preventDefault(); const x = it[k < 0 ? 0 : k]; if (x) x.click(); return; }
+    if (e.key === 'Escape') { el.value = ''; topqRender(''); el.blur(); return; } }
   if (el.dataset && el.dataset.pnac && e.key === 'Enter') { e.preventDefault(); const x = document.querySelector('#pnac [data-pnpick]'); if (x) pnPick(+x.dataset.pnpick); return; }
   if (!(el.dataset && el.dataset.ac != null) || !S) return;
   const box = document.getElementById('ac' + el.dataset.ac); if (!box || !box.classList.contains('open')) return;
@@ -706,6 +712,7 @@ document.addEventListener('input', e => {
   const el = e.target;
   if (el.dataset && el.dataset.ac != null && S) { acRender(+el.dataset.ac, el.value); return; }
   if (el.dataset && el.dataset.pnac) { pnAcRender(el.value); return; }
+  if (el.id === 'topq' && S) { topqRender(el.value); return; }
   if (el.dataset && el.dataset.splac && S) { splAcRender(el.dataset.splac, el.value); return; }
   if (el.dataset && el.dataset.pnc === 'hc') { const C = pnCfg(); C.hc = el.value; pnSave(); const e = document.getElementById('pnest'); if (e) e.innerHTML = pnEstHTML(C); return; }
   if (el.id === 'bq' && S) { VIEW.bq = el.value; VIEW.bn = 30; const L = document.getElementById('bklist'); if (L) L.innerHTML = bankListHTML(); return; }
@@ -768,3 +775,5 @@ function bootRescue(why) {
   } catch (e) { clearTimeout(guard); bootRescue('Erreur : ' + (e && e.message || e)); }
 })();
 
+/* v434 : la liste de la recherche du haut se ferme quand on clique ailleurs */
+document.addEventListener('pointerdown', e => { const b = document.getElementById('topqres'); if (b && !b.hidden && !(e.target.closest && e.target.closest('.mtsrch'))) b.hidden = true; });

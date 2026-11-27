@@ -37,7 +37,7 @@ function mTopHTML(cur) {
   const crumb = sub ? esc(tl) + ' <i>›</i> <b>' + esc(sub) + '</b>' : '<b>' + esc(VIEW.name === 'records' && VIEW.rv === 'hof' ? 'Temple de la renommée' : tl) + '</b>';
   const pl = plLeague(), tn = Math.min(S.t + 1, N_TOURN);
   return '<div class="mtnav"><button class="mtar" data-a="backview"' + (NAV.length ? '' : ' disabled') + ' aria-label="Retour">‹</button></div><div class="mtcrumb">' + crumb + '</div>' +
-    '<button class="mtsearch" data-a="tab" data-v="golfers">🔍 Rechercher un golfeur…</button>' +
+    '<div class="mtsrch"><input type="search" id="topq" class="mtsearch" placeholder="🔍 Rechercher un golfeur…" autocomplete="off" spellcheck="false" aria-label="Rechercher un golfeur" aria-controls="topqres" aria-expanded="false"><div id="topqres" class="mtsres" role="listbox" hidden></div></div>' +   // v434 : recherche directe
     '<div class="mtdate"><b>Saison ' + yr(S.season) + ' · ' + (S.t >= N_TOURN ? (finalePending() || (S.cur && S.cur.fin) ? 'Finale' : 'saison terminée') : 'Tournoi ' + tn + '/' + N_TOURN + (isMajorT(S.t) ? ' ★' : '')) + '</b><span>' + (S.duo ? 'Duo · ' : '') + (lgNm(pl) || '') + '</span></div>' +
     '<button class="mtfs" data-a="fullscr" aria-label="Plein écran" title="Plein écran">⛶</button><button class="mtgo" data-a="mgrgo">Continuer ▶</button>';
 }

@@ -156,6 +156,22 @@ function vGolfers() {
   h += '<button class="btn sec" data-a="golfer" data-id="0" style="margin-top:14px">Mon profil</button>';
   return h;
 }
+/* v434 : recherche partagée (page Golfeurs et champ du haut). Le joueur n'apparaît qu'une fois, en premier. */
+function qMatches(q) {
+  const norm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const nq = norm(q.trim()), res = []; if (nq.length < 2) return res;
+  Object.values(S.G).forEach(g => { if (g.id !== 0 && norm(g.n).includes(nq)) res.push({ id: g.id, n: g.n, sub: TIERS[tierOf(g)][1] + ' \u00b7 ' + (leagueOf(g.id) >= 0 ? LEAGUE_SHORT[leagueOf(g.id)] : g.rcl ? 'Recrues' : '\u2013') + ' \u00b7 ' + g.a + ' ans' }); });
+  Object.keys(S.old || {}).forEach(id => { if (+id === 0) return; const o = S.old[id]; if (norm(o.n).includes(nq)) res.push({ id: +id, n: o.n, sub: 'retrait\u00e9' + (o.a ? ' \u00e0 ' + o.a + ' ans' : '') }); });
+  const me = (S.G[0] && S.G[0].n) || S.name; if ((S.G[0] || leagueOf(0) >= 0 || S.pk) && norm(me).includes(nq)) res.unshift({ id: 0, n: me, sub: 'toi' });
+  return res;
+}
+function topqRender(v) {
+  const box = document.getElementById('topqres'), inp = document.getElementById('topq'); if (!box) return;
+  if (v.trim().length < 2) { box.hidden = true; box.innerHTML = ''; if (inp) inp.setAttribute('aria-expanded', 'false'); return; }
+  const res = qMatches(v).slice(0, 8);
+  box.innerHTML = res.length ? res.map((r, i) => '<a href="#" class="mtsr' + (i === 0 ? ' on' : '') + '" role="option" data-a="golfer" data-id="' + r.id + '"><span class="flg-i">' + flagOf(r.id, 18) + '</span><b class="notr">' + esc(r.n) + '</b><small>' + r.sub + '</small></a>').join('') : '<p class="mtsnone">Aucun golfeur trouv\u00e9.</p>';
+  box.hidden = false; if (inp) inp.setAttribute('aria-expanded', 'true');
+}
 function qResults(q) {
   q = q.trim().toLowerCase();
   if (q.length < 2) {
@@ -174,11 +190,7 @@ function qResults(q) {
     for (let l = 0; l < 4; l++) { h += '<h3>' + LEAGUE_NAMES[l] + '</h3><table class="plain">' + rankAll(l).slice(0, 3).map(r => r.id).map((id, i) => '<tr><td>' + (i + 1) + '</td><td><a href="#" data-a="golfer" data-id="' + id + '">' + esc(nameOf(id)) + '</a></td><td class="r">' + lgSt(id).pts + ' pts</td></tr>').join('') + '</table>'; }
     return isMgr() ? mgrPanels(h, 'gside') : h;
   }
-  const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  const nq = norm(q), res = [];
-  Object.values(S.G).forEach(g => { if (norm(g.n).includes(nq)) res.push({ id: g.id, n: g.n, sub: TIERS[tierOf(g)][1] + ' \u00b7 ' + (leagueOf(g.id) >= 0 ? LEAGUE_SHORT[leagueOf(g.id)] : g.rcl ? 'Recrues' : '\u2013') + ' \u00b7 ' + g.a + ' ans' }); });
-  Object.keys(S.old).forEach(id => { const o = S.old[id]; if (norm(o.n).includes(nq)) res.push({ id: +id, n: o.n, sub: 'retrait\u00e9' + (o.a ? ' \u00e0 ' + o.a + ' ans' : '') }); });
-  if (norm(S.name).includes(nq)) res.unshift({ id: 0, n: S.name, sub: 'toi' });
+  const res = qMatches(q);
   if (!res.length) return '<p class="mute">Aucun golfeur trouv\u00e9.</p>';
   return '<table class="plain" style="margin-top:8px">' + res.slice(0, 30).map(r => '<tr><td><a href="#" data-a="golfer" data-id="' + r.id + '">' + esc(r.n) + '</a></td><td class="r mute">' + r.sub + '</td></tr>').join('') + '</table>';
 }

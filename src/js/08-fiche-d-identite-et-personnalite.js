@@ -199,8 +199,25 @@ function bioMigrate() { if (!S || S.biov === 1) return; Object.values(S.G).forEa
 const fmtHt = h => { const t = Math.round(h / 2.54); return Math.floor(t / 12) + '\u2032' + (t % 12) + '\u2033'; };   // v287 : pieds et pouces, livres
 const htIn = v => { const m = String(v || '').trim().match(/^(\d+)(?:['\u2032pi.,\s-]+(\d+))?/i); if (!m) return 0; const a = +m[1], b = m[2] != null ? +m[2] : null; const inch = b != null ? a * 12 + b : a < 10 ? a * 12 : a; return inch ? Math.round(inch * 2.54) : 0; };
 const ftStr = h => { const t = Math.round(h / 2.54); return Math.floor(t / 12) + "'" + (t % 12); };
-const fmtWt = w => Math.round(w * 2.2046) + '\u00a0lb';
-function bioOf(id) { const g = S.G[id] || (S.old && S.old[id]); return g && g.bio ? g.bio : null; }
+const fmtWt = w => Math.round(w * 2.2046) + ' lb';
+/* v434 : ville natale, taille, poids et côté choisis à la création du golfeur (facultatifs ; laissés vides = tirés au hasard) */
+function bioFieldsHTML(px) {
+  const hs = []; for (let t = 60; t <= 82; t++) hs.push('<option value="' + t + '">' + Math.floor(t / 12) + '′' + (t % 12) + '″</option>');
+  return '<div class="bioflds"><label for="' + px + 'Ct">Ville natale <span class="mute small">(facultatif)</span></label><input type="text" id="' + px + 'Ct" maxlength="40" autocomplete="off" placeholder="Ex. Québec">' +
+    '<div class="row" style="gap:10px;flex-wrap:wrap"><div><label for="' + px + 'Ht">Taille</label><select id="' + px + 'Ht"><option value="">Au hasard</option>' + hs.join('') + '</select></div>' +
+    '<div><label for="' + px + 'Wt">Poids (lb)</label><input type="number" id="' + px + 'Wt" min="90" max="350" inputmode="numeric" placeholder="Au hasard"></div>' +
+    '<div><label for="' + px + 'Lf">Côté</label><select id="' + px + 'Lf"><option value="">Au hasard</option><option value="0">Droitier</option><option value="1">Gaucher</option></select></div></div></div>';
+}
+function bioFromForm(px, nat) {
+  const v = id => ((document.getElementById(px + id) || {}).value || '').trim();
+  const base = bioRoll({ nat: nat || '' }).bio, ct = v('Ct'), ht = +v('Ht'), wt = +v('Wt'), lf = v('Lf');
+  if (ct) base.ct = ct.slice(0, 40);
+  if (ht >= 60 && ht <= 82) base.h = Math.round(ht * 2.54);
+  if (wt >= 90 && wt <= 350) base.w = Math.round(wt / 2.2046);
+  if (lf === '0' || lf === '1') base.lf = +lf;
+  return base;
+}
+function bioOf(id) { const g = S.G[id] || (S.old && S.old[id]); return g && g.bio ? g.bio : id === 0 && S.pk && S.pk.bio ? S.pk.bio : null; }   // v434 : joueur manuel (S.pk.bio)
 function mediaQuote(g, kind) {
   const b = g && g.bio, m = b && MEDIA_BY[b.pm]; if (!m) return null;
   const L = kind === 'b' ? m.b : m.q, x = L[Math.floor(Math.random() * L.length)];
