@@ -1425,3 +1425,11 @@ Object.assign(I18N_EN, { 'Résultats': 'Results', 'Cartes ronde 1': 'Round 1 car
   'La prolongation repart du trou 1 et suit la carte jusqu’au bris d’égalité.': 'The playoff restarts at hole 1 and follows the card until the tie is broken.',
   'Ton tournoi rapide est gardé : reprends-le quand tu veux avec « Reprendre Play Now »': 'Your quick tournament is kept: resume it any time with “Resume Play Now”' });
 I18N_RX.push([/^(.+) remporte le tournoi en prolongation à (\S+)$/, '$1 wins the tournament in a playoff at $2'], [/^Trou de prolongation (\d+)$/, 'Playoff hole $1'], [/^au trou de prolongation (\d+)$/, 'on playoff hole $1'], [/^trou (\d+)$/, 'hole $1'], [/^index (\d+)$/, 'index $1'], [/^Trou (\d+)$/, 'Hole $1']);
+/* v443 : tournoi rapide (préparation en colonnes, cartes des joueurs) */
+Object.assign(I18N_EN, { 'Ton tournoi': 'Your tournament', '1 ronde': '1 round', 'Aucun adversaire': 'No opponents', 'Vos cartes': 'Your cards', 'Retour (9)': 'In' });
+I18N_RX.push([/^(\d+) adversaires$/, '$1 opponents'], [/^après (\d+) trous?$/, (m, n) => 'thru ' + n]);
+/* v443 : tournoi rapide, bande « Moments clés » */
+Object.assign(I18N_EN, { 'Moments clés': 'Key moments' });
+const PN_HW = { 'trou d’un coup': 'hole-in-one', 'albatros': 'albatross', 'aigle': 'eagle', 'birdie': 'birdie', 'par': 'par', 'bogey': 'bogey', 'double bogey': 'double bogey', 'triple bogey': 'triple bogey', 'quadruple bogey ou pire': 'quadruple bogey or worse' };
+I18N_RX.push([/^(.+) : (trou d’un coup|albatros|aigle|birdie|par|bogey|double bogey|triple bogey|quadruple bogey ou pire)( \(.+\))?$/, (m, n, w, x) => n + ': ' + (PN_HW[w] || w) + (x || '')],
+  [/^(.+) prend la tête à (\S+)$/, '$1 takes the lead at $2'], [/^En tête : (.+)$/, 'Leader: $1'], [/^(\d+) golfeurs à égalité en tête à (\S+)$/, '$1 golfers tied for the lead at $2']);

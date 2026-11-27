@@ -41,3 +41,24 @@
 /* v442 : noms des pays et des provinces sur la carte du trajet */
 .dnext .dart svg.vmap .vmc{font:600 11px Arimo,Arial,sans-serif;letter-spacing:.08em;fill:rgba(201,214,222,.55)}
 .dnext .dart svg.vmap .vms{font:italic 400 10.5px Arimo,Arial,sans-serif;fill:rgba(201,214,222,.45)}
+
+/* v443 : préparation du tournoi rapide en colonnes sur ordinateur (option D) */
+.pnsum{display:none}
+html.pc .pnsum{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 16px;padding:14px 18px;border-radius:14px;background:linear-gradient(90deg,#16301e,#1b2128);border:1px solid #2c4636;position:sticky;top:8px;z-index:5}
+html.pc .pnsum .pnsk{font:800 12px Arimo,Arial,sans-serif;letter-spacing:.12em;color:#F0C419;text-transform:uppercase}
+html.pc .pnsum .pnsi{padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.08);font:600 14px Arimo,Arial,sans-serif;color:#e9eef2}
+html.pc .pnsum .btn{margin:0 0 0 auto;width:auto;padding:0 34px}
+html.pc .pnset{max-width:none;width:auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;align-items:start;grid-template-areas:"f c d" "p c r" "y go r"}
+html.pc .pnset>.block{margin:0}
+html.pc .pnset>.pnb-f{grid-area:f}html.pc .pnset>.pnb-p{grid-area:p}html.pc .pnset>.pnb-y{grid-area:y}html.pc .pnset>.pnb-c{grid-area:c}
+html.pc .pnset>.crfb:not(.pige){grid-area:r}html.pc .pnset>.pige{grid-area:d}
+html.pc .pnset>.pnb-go{grid-area:go}
+html.pc .pnset>.pnb-go .btn[data-a="pnstart"]{display:none}
+/* v443 : cartes des joueurs manuels du tournoi rapide */
+.pnmc{margin:10px 0 0;padding:10px 12px;border-left:4px solid var(--pc)}
+.pnmc .pnmt{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}.pnmc .pnmt b{font-size:17px}
+.pnmc .pnmtot{margin-left:auto;font:800 20px Arimo,Arial,sans-serif}
+.pnmc table.pnmini{width:100%;table-layout:fixed;font-size:14px;min-width:0}
+.pnmc table.pnmini th,.pnmc table.pnmini td{min-width:0;height:28px}
+.pnmc .pnmh{text-align:left;padding:0 4px;color:var(--mute);font:600 11px Arimo,Arial,sans-serif;text-transform:uppercase;width:52px}
+.pnmc .pnmp{color:var(--mute);font-size:12px;opacity:.6}.pnmc .pnms{font-weight:800}

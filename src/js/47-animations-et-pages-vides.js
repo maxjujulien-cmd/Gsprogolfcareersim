@@ -22,11 +22,11 @@ const animOff = () => { try { return matchMedia('(prefers-reduced-motion: reduce
 function animRows() {
   const m = new Map(), tabs = [...document.querySelectorAll('#app table')];
   document.querySelectorAll('#app tr').forEach(tr => {
-    const a = tr.querySelector('[data-a=golfer][data-id]'); if (!a) return;
+    const a = tr.querySelector('[data-a=golfer][data-id]') || tr.querySelector('[data-pk]'); if (!a) return;   // v443 : lignes du tournoi rapide
     const pe = tr.querySelector('.pp, td.pos'), pos = pe ? parseInt(pe.textContent.replace(/\D/g, ''), 10) : NaN;
     const sig = [...tr.children].filter(td => !td.classList.contains('pos') && !td.querySelector('[data-a=golfer]')).map(td => td.textContent).join('|');
     const te = tr.querySelector('td.s2, td.tot');
-    m.set(tabs.indexOf(tr.closest('table')) + ':' + a.dataset.id, { top: tr.getBoundingClientRect().top, tr, id: +a.dataset.id, pos: isFinite(pos) ? pos : null, sig, tot: te ? te.textContent : null });
+    m.set(tabs.indexOf(tr.closest('table')) + ':' + (a.dataset.id || a.dataset.pk), { top: tr.getBoundingClientRect().top, tr, id: +a.dataset.id, pos: isFinite(pos) ? pos : null, sig, tot: te ? te.textContent : null });
   });
   return m;
 }
@@ -146,7 +146,7 @@ function arwPaint() {
     try { if (typeof kmRender === 'function') kmRender(); if (typeof rdLayout === 'function') rdLayout(); } catch (e) { }
     const now = VIEW ? VIEW.name : null, same = now === last; last = now;
     if (before) try {
-      if (same) { if (/^(play|spec|tourn)$/.test(now)) animFlip(before, now !== 'tourn'); }
+      if (same) { if (/^(play|spec|tourn|pnPlay)$/.test(now)) animFlip(before, now !== 'tourn'); }
       else { ANIM.tr.clear(); animEnter(); }
       animCount();
     } catch (e) { }
