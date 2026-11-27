@@ -211,7 +211,7 @@ function offMeHTML(s, H, E, x) {
   const fl = H.fin && H.fin.lg && H.fin.lg[0], fr = fl && fl.rows.find(z => z[0] === 0);
   if (fr) cols.push({ k: 'F', n: H.fin.name || '', fin: 1, l: 0, par: H.fin.par || 0, r: fr, earn: fl.pay ? fl.pay[0] || 0 : 0 });
   const rd = (c, k) => c.r && c.r[k] != null ? (c.par ? c.par + c.r[k] : fmt(c.r[k])) : '—';
-  const chip = c => !c.r ? '—' : c.r[1] === 1 ? '<span class="cp w">1</span>' : c.r[1] === 0 ? '<span class="cp mc">MC</span>' : '<span class="cp' + (c.r[1] <= 10 ? ' t' : '') + '">' + c.r[1] + '</span>';
+  const chip = c => !c.r ? '—' : c.r[1] === 1 ? '<span class="cp w">1</span>' : c.r[1] === 0 ? '<span class="cp mc">MC</span>' : '<span class="cp ' + posTc(c.r[1]) + '">' + c.r[1] + '</span>';
   const sum = k => cols.reduce((a, c) => a + (c.r && c.r[k] != null ? c.r[k] : 0), 0), tot = c => c.r ? c.r[2] + (c.r[3] || 0) : null;
   const row = (lab, f, tt, cls) => '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td class="l">' + lab + '</td>' + cols.map(c => '<td' + (c.mj || c.fin ? ' class="mj"' : '') + '>' + f(c) + '</td>').join('') + '<td class="tot">' + tt + '</td></tr>';
   h += '<div class="ofmsc"><div class="h"><div class="lab">Ta carte de la saison</div><div class="leg"><span><i class="cp w">1</i><span>victoire</span></span><span><i class="cp t">5</i><span>top 10</span></span><span><i class="cp mc">MC</i><span>coupure ratée</span></span>' + (MJ ? '<span class="mjk">★ <span>majeur</span></span>' : '') + '</div></div><div class="scroll"><table>' +

@@ -502,7 +502,7 @@ function offCell(t, id) {
 }
 function resCell(x, mode) {
   if (!x) return '<td class="r"></td>';
-  const c = x.pos === 1 ? 'rw' : x.pos === 0 || x.out ? 'rm' : x.pos <= 10 ? 'rt' : '';
+  const c = x.pos === 1 ? 'rw' : x.pos === 0 || x.out ? 'rm' : x.pos <= 5 ? 'rt rt5' : x.pos <= 10 ? 'rt' : x.pos <= 20 ? 'rt20' : '';   // v438 : top 5 / 10 / 20
   const val = mode === 'pts' ? x.pts : mode === 'score' ? fmt(x.tot) : mode === 'pay' ? (x.pay ? fmtMoney(x.pay) : '\u2013') : (x.pos === 0 ? (x.mcr ? (x.mct ? 'T' : '') + x.mcr : 'CUT') : (x.tie ? 'T' : '') + x.pos);
   return '<td class="r ' + c + '"' + (x.pos === 0 ? ' title="Coupure rat\u00e9e"' : x.out ? ' title="Hors des places pay\u00e9es : aucun point"' : '') + '>' + val + '</td>';
 }
@@ -531,7 +531,7 @@ function leagueGrid(l, s, opts) {
     h += '<tr' + (r.id === 0 ? ' class="me"' : '') + '><td class="s1 ' + r.zone + '"><span class="nmr"><span class="pp">' + (r.idx === null ? '\u2013' : r.idx) + '</span><span class="flg">' + flagOf(r.id, 20, opts.tableRows ? [s, N_TOURN - 1] : null) + '</span><span class="nmb"><a class="nmt" data-a="golfer" data-id="' + r.id + '" style="color:inherit;text-decoration:none">' + esc(nameOf(r.id)) + '</a>' + (r.gh ? mvPill(r.id, s, l, 'gh') : r.mv ? mvPill(r.id, s, l, 'mv') : '') + hxTag(r.id, opts.tableRows ? [s, N_TOURN - 1] : null, '') + (opts.tableRows ? '' : exBadge(r.id, l) + mvBadge(r.id, l)) + '</span>' + fmark(r.id) + '</span></td><td class="s2">' + r.pts + '</td>' +
       res.map((m, i) => !m ? '<td class="r"></td>' : m[r.id] ? resCell(m[r.id], mode) : offCell(H.t[i], r.id)).join('') + '<td class="cp">' + (r.w || '') + '</td>' + statCells(res, r.id) + '</tr>';
   });
-  h += '</tbody></table></div><div class="legend cl"><span><i class="lg rw"></i>Victoire</span><span><i class="lg rt"></i>Top 10</span><span><i class="lg rm"></i>Coupure rat\u00e9e</span><span><i class="lg roff"></i>Jouait dans une autre ligue (L1 \u00e0 L4)</span>' +
+  h += '</tbody></table></div><div class="legend cl"><span><i class="lg rw"></i>Victoire</span><span><i class="lg rt rt5"></i>Top 5</span><span><i class="lg rt"></i>Top 10</span><span><i class="lg rt20"></i>Top 20</span><span><i class="lg rm"></i>Coupure rat\u00e9e</span><span><i class="lg roff"></i>Jouait dans une autre ligue (L1 \u00e0 L4)</span>' +
     (l > 0 ? '<span><i style="background:#5CC796"></i>' + lgUpTxt(l) + '</span><span>' + (CFG.varLg && CFG.gpCount ? 'promus en cours de saison : gardent leur rang et comptent dans le top ' + vlCand(l) : 'promus en cours de saison : gardent leur rang, sans prendre de place') + '</span>' : '') + (l < 3 ? '<span><i style="background:var(--underB)"></i>' + lgDnTxt(l) + '</span><span>arriv\u00e9s en cours de saison : prot\u00e9g\u00e9s</span>' + (CFG.exWin || CFG.exChamp || CFG.exCar ? '<span>\ud83d\udee1 exempt\u00e9 : jamais rel\u00e9gu\u00e9</span>' : '') : '') + (CFG.showForm ? '<span>\u25B2 en forme \u00b7 \u25BC en m\u00e9forme</span>' : '') + (CFG.showIdx ? '<span>Pastille : handicap</span>' : '') + '</div><p class="small mute" style="margin:0 0 6px">Top 10 et Top 20 comptent aussi les victoires. Coupure = coupures r\u00e9ussies sur tournois jou\u00e9s.</p>';
   return h;
 }

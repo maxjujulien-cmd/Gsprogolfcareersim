@@ -437,6 +437,9 @@ function rankTies(rows, noNs) {
   }
   return rows;
 }
+/* v438 : couleur d'une position (option A2 de Max) : top 5 vert éclatant, top 10 vert franc, top 20 vert foncé.
+   Renvoie le suffixe de classe (« t5 », « t », « t20 ») ; la victoire et la coupure ratée gardent leurs classes. */
+function posTc(p) { return !p || p < 2 ? '' : p <= 5 ? 't t5' : p <= 10 ? 't' : p <= 20 ? 't20' : ''; }
 const posLbl = r => r.nop ? '\u2013' : (r.tie ? 'T' : '') + r.pos;   // v437 : « – » pour qui n'est pas encore parti (ronde 1)
 
 const HOLE_WORD = { '-2': 'aigle', '-1': 'birdie', '0': 'par', '1': 'bogey', '2': 'double bogey', '3': 'triple bogey' };

@@ -47,7 +47,7 @@ function hvCardHTML(id) {
   const name = nameOf(id), ini = name.split(/\s+/).map(w => w[0] || '').join('').slice(0, 2).toUpperCase();
   const hc = hcAt(id), wr = wrPub(id), rk = l >= 0 ? seasonRank(l, id) : 0, st = getSt(id);
   const H = golferHistory(id, true, true).slice(-6).reverse();
-  const res = H.map(x => { const mc = x.mc || !x.pos; return '<span class="' + (mc ? 'mc' : x.pos === 1 ? 'w' : x.pos <= 10 ? 't' : '') + '">' + (mc ? 'MC' : x.pos) + '</span>'; }).join('');
+  const res = H.map(x => { const mc = x.mc || !x.pos; return '<span class="' + (mc ? 'mc' : x.pos === 1 ? 'w' : posTc(x.pos)) + '">' + (mc ? 'MC' : x.pos) + '</span>'; }).join('');
   const box = (v, k) => '<div><b>' + v + '</b><span>' + k + '</span></div>';
   return '<div class="hvin" data-c="' + col + '"><div class="hvtop"><div class="hvav">' + (phFrameHTML(id, 'phhv') || '<span>' + esc(ini) + '</span>') + '</div><div class="hvid"><div class="hvnm">' + esc(name) + '</div>' +
     '<div class="hvsub">' + (g.nat ? flagVisual(g.nat, 18) + ' ' : '') + '<span>' + g.a + ' ans</span>' + (g.nat ? ' · <span>' + esc(g.nat) + '</span>' : '') + ' · <span>' + (l >= 0 ? 'L' + (l + 1) : 'Recrues') + '</span></div>' +

@@ -83,7 +83,7 @@ function seaPanel(id, l, T, earn, mob) {
   const ch = (v, t) => '<span class="seac"><b>' + v + '</b> <span>' + t + '</span></span>';
   const chips = played ? '<div class="seacs">' + ch(st.w || 0, 'victoire' + ((st.w || 0) > 1 || (LANG === 'en' && !st.w) ? 's' : '')) + ch(st.t10 || 0, 'top 10') + (nT ? ch((nT - mc) + '/' + nT, 'coupures') : '') + ch(tzMoney(sEarn), 'cette saison') + '</div>' : '';
   const rs = shF.slice().sort((a, b) => (a.fin ? 99 : a.t) - (b.fin ? 99 : b.t));   // résultats de la saison, tournoi par tournoi
-  const pill = x => { const ps = x.pos > 0, c = !ps || (!x.pts && !x.fin && x.l !== 4 && x.pos > 1) ? 'mc' : x.pos === 1 ? 'w' : x.pos <= 10 ? 't' : '';   /* v344 : une ronde, sans points = rouge comme une coupure ratée */ return '<a href="#" class="sear1 ' + c + (x.fin ? ' fin' : '') + '" data-a="ptab" data-v="log" title="' + (x.fin ? 'Finale \u00b7 ' : '') + esc(x.name) + '">' + (x.fin ? '<small>F</small>' : '') + (ps ? (x.pos === 1 ? '\ud83c\udfc6' : x.pos) : 'CUT') + '</a>'; };
+  const pill = x => { const ps = x.pos > 0, c = !ps || (!x.pts && !x.fin && x.l !== 4 && x.pos > 1) ? 'mc' : x.pos === 1 ? 'w' : posTc(x.pos);   /* v344 : une ronde, sans points = rouge comme une coupure ratée */ return '<a href="#" class="sear1 ' + c + (x.fin ? ' fin' : '') + '" data-a="ptab" data-v="log" title="' + (x.fin ? 'Finale \u00b7 ' : '') + esc(x.name) + '">' + (x.fin ? '<small>F</small>' : '') + (ps ? (x.pos === 1 ? '\ud83c\udfc6' : x.pos) : 'CUT') + '</a>'; };
   let res = rs.length ? '<div class="sears"><span class="seark">R\u00e9sultats</span>' + rs.map(pill).join('') + '</div>' : '';
   /* v323 : saison partagée entre plusieurs ligues → un bloc par ligue (ligue actuelle d'abord) */
   const lgs = [...new Set(rs.map(x => x.l))];
