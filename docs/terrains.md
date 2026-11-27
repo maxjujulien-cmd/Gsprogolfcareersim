@@ -4,7 +4,7 @@ La liste incluse dans le jeu est `public/terrains-data.js` (`window.CG_TERRAINS`
 
 ## Où sont les données
 
-- **La liste des terrains** est dans la page `https://simulatorgolftour.com/courses/`, dans la balise `<script id='courses-data' type='application/json'>`. Chaque terrain est un tableau : `[id, nom, lieu, par, difficulté, …, date d'ajout (AAAA-MM-JJ), concepteur, …, latitude, longitude]`. La date d'ajout change aussi quand un terrain reçoit une nouvelle version.
+- **La liste des terrains** est dans la page `https://simulatorgolftour.com/courses/`, dans la balise `<script id='courses-data' type='application/json'>`, sous la clé `courses` (depuis novembre 2026). Chaque terrain est un tableau : `[id, nom, lieu, par, difficulté, …, date d'ajout (AAAA-MM-JJ), concepteur, …, latitude, longitude]`. La date d'ajout change aussi quand un terrain reçoit une nouvelle version.
 - **La carte de pointage** est une image : `https://simulatorgolftour.com/public/assets/courseImages/scorecards/scorecard_{ID}.jpg?v=1.1`. Elle donne le par et l'index de chaque trou, puis, pour chaque tee, la distance de chaque trou, le total et « rating / slope ». Certaines cartes sont en mètres (« METRIC »).
 - La fiche détaillée (`/sgt-api/courses/courseDetails/{ID}`) ne donne que le par total et les records. Elle n'est pas utile ici.
 - Le réseau de l'environnement doit autoriser `simulatorgolftour.com`. C'est le cas de l'environnement cloud « Gsprogolfcareersim ».
@@ -16,6 +16,7 @@ La liste incluse dans le jeu est `public/terrains-data.js` (`window.CG_TERRAINS`
 3. Télécharger la carte de chaque terrain restant et la transcrire. Vérifier automatiquement que la somme des pars donne le total de la carte, que l'index contient 1 à 18 une seule fois, et que la somme des distances de chaque tee donne son total.
 4. Règles de la liste :
    - **Pas de parcours par 3** (par 54) : le plus petit par de la liste est 60.
+   - **Pas de parcours de 9 trous** : la liste n'a que des parcours de 18 trous (un 9 trous joué deux fois sur SGT, avec 18 trous sur la carte, est accepté).
    - **Pas de parcours incomplets** (« Featured Holes » ou trous sans par).
    - **Tee « PAR3 » écarté.** Un tee auquel il manque des trous (« --- ») est aussi écarté.
    - **Tee écarté si son rating est invalide** (0,0/0) ou incohérent (par exemple 80/120 pour moins de 1 000 verges).
@@ -35,3 +36,4 @@ La liste incluse dans le jeu est `public/terrains-data.js` (`window.CG_TERRAINS`
 |---|---|---|---|
 | 2026-11-09 | 2 476 | | Liste reçue avec la v416 |
 | 2026-11-22 | 2 494 | 18 | Terrains ajoutés sur SGT du 9 au 20 novembre. Écartés : Ballyowen (« Featured Holes », 4 trous), Madge Lake (pas encore de carte sur SGT), La Cala Par 3's et Eagle Dunes Par 3 (par 54). Index estimé : Metropolis Country Club. Tees écartés : Junior de Newport News (0,0/0), Junior de We Ko Pa Saguro (80/120, 954 verges), Yellow (0,0/0) et Junior (1 113 verges) de Baltus Roll North. Pléneuf-Val-André converti de mètres en verges. |
+| 2026-11-27 | 2 516 | 22 | Terrains ajoutés sur SGT du 22 au 25 novembre. Écartés : Sandy Lake (9 trous seulement) et RTJ Hampton Cove - Short Course (par 54) ; 9 autres étaient déjà dans la liste (mises à jour de version sur SGT). Carrollwood - Cypress - Meadows converti de mètres en verges. Kenai Fjords HD est fictif : pas de position. Le format de la page SGT a changé : la liste est maintenant dans `courses` d'un objet (`{v, updated, cardUrl, splashUrl, courses}`). |
