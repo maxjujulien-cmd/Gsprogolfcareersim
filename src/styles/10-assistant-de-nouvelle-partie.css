@@ -15,3 +15,26 @@
 .nfnav .btn.sec{flex:0 0 140px}
 .nfoff{display:none!important}
 @media (max-width:520px){.nfstep>button span:last-child{display:none}.nfnav .btn.sec{flex-basis:96px}}
+
+/* v438 : couleurs des positions (option A2, choix de Max) : top 5 vert éclatant, top 10 vert franc, top 20 vert foncé.
+   Placé en dernier pour l'emporter sur les anciennes couleurs du top 10. */
+.cards td.rt,i.lg.rt,.rsp.t,.sear1.t,.seamob .sear1.t,.ofmsc .cp.t,#hvcard .hvres .t{background:#22894F;color:#fff;border-color:#22894F}
+.cards td.rt5,i.lg.rt5,.rsp.t5,.sear1.t5,.seamob .sear1.t5,.ofmsc .cp.t5,#hvcard .hvres .t5{background:#3DDC84;color:#0B2A18;border-color:#3DDC84;font-weight:800}
+.cards td.rt20,i.lg.rt20,.rsp.t20,.sear1.t20,.seamob .sear1.t20,.ofmsc .cp.t20,#hvcard .hvres .t20{background:#173326;color:#9CC9AE;border-color:#2A5A40}
+
+/* v439 : carte du trou avec la photo de Max (option A2) */
+.hole{background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.15) 38%,rgba(0,0,0,.2) 60%,rgba(0,0,0,.62)),var(--holeimg,linear-gradient(#2a6a3a,#1d4f2a)) center 60%/cover;text-shadow:0 2px 4px rgba(0,0,0,.9),0 0 18px rgba(0,0,0,.6)}
+.hole .lbl{color:#fff;font-weight:700}
+.hole .pm{background:rgba(0,0,0,.3)}
+
+/* v440 : carte du trajet dans la carte du prochain tournoi (option B) */
+.dnext.dmap .dart{height:230px;background:#0b1a2a;overflow:hidden;border-radius:inherit;border-bottom-left-radius:0;border-bottom-right-radius:0}
+.dnext.dmap .dart::after{display:none}
+.dnext.dmap .block.hero{margin-top:10px}
+.dnext .dart svg.vmap .vml1{font:800 13px Arimo,Arial,sans-serif;letter-spacing:.08em;paint-order:stroke;stroke:#0b1622;stroke-width:4px}
+.dnext .dart svg.vmap .vml2{font:600 12px Arimo,Arial,sans-serif;fill:#c9d6de;paint-order:stroke;stroke:#0b1622;stroke-width:4px}
+.dnext .dart svg.vmap .vmpulse{transform-box:fill-box;transform-origin:center;animation:vmpulse 1.8s ease-out infinite}
+@keyframes vmpulse{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.6);opacity:0}}
+@media (prefers-reduced-motion:reduce){.dnext .dart svg.vmap .vmpulse{animation:none}}
+.dnext .dart .vmbar{position:absolute;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;gap:4px 18px;padding:18px 16px 8px;background:linear-gradient(0deg,rgba(6,12,18,.92),rgba(6,12,18,0));font:700 12px Arimo,Arial,sans-serif;color:#e9eef2;letter-spacing:.06em;text-transform:uppercase}
+.dnext .dart .vmbar b{color:#F0C419}

@@ -87,7 +87,7 @@ function mgrPanels(html, cls) {   // découpe un contenu en sections <h2> et met
 function homeDash(h, hero, pl, lastH, prvH) {
   const g0 = S.G[0], rk = seasonRank(pl, 0), st = lgSt(0);
   // prochain tournoi (le bloc d'origine, avec ses boutons)
-  const next = '<section class="dpn dnext"><div class="dart">' + DART + '</div>' + hero + '</section>';
+  const vm = voyMapHTML(S.t), next = '<section class="dpn dnext' + (vm ? ' dmap' : '') + '"><div class="dart">' + (vm || DART) + '</div>' + hero + '</section>';   // v440 : carte du trajet
   // boîte de réception : les nouvelles du circuit
   ibxSync();
   const inbox = ibxVis().slice(0, 6).map(n => { const tg = dNewsTag(n.text); return '<div class="dmsg' + (n.rd ? '' : ' new') + '" data-a="ibxopen" data-id="' + n.id + '"><i></i><div><span class="dtg ' + tg[0] + '">' + tg[1] + '</span>' + newsHTML(n.text, n.ids) + '</div></div>'; }).join('') || emptyCard('📬', 'Aucune nouvelle pour l’instant', 'Les nouvelles du circuit arrivent dès ta première ronde.', false, 'small1');

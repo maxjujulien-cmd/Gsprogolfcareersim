@@ -1401,3 +1401,13 @@ I18N_RX.push([/^Ligne de paye \(top (\d+)\) à (.+)$/, 'Pay line (top $1) at $2'
 const I18N_ORDSFX = n => { n = +n; return n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'; };
 I18N_RX.unshift([/^([^.]+)\. (.+)$/, (m, l, x) => I18N_TALLBL[l.toLowerCase()] ? I18N_TALLBL[l.toLowerCase()] + '. ' + trText(x) : m]);   // v431 : bulle d'aide d'un talent : nom + description
 I18N_RX.push([/^Toi : (.+) → (.+) · (promu|relégué) en Ligue (\d)$/, (m, a, b, k, l) => 'You: ' + trText(a) + ' → ' + trText(b) + ' · ' + (k === 'promu' ? 'promoted' : 'relegated') + ' to League ' + l]);   // v431
+/* v434 : identité choisie à la création du golfeur */
+Object.assign(I18N_EN, { '(facultatif)': '(optional)', 'Ex. Québec': 'e.g. Quebec City', 'Poids (lb)': 'Weight (lb)' });
+Object.assign(I18N_EN, { '🔍 Rechercher un golfeur…': '🔍 Search golfers…', 'Rechercher un golfeur': 'Search golfers' });
+I18N_RX.push([/^retraité(?: à (\d+) ans)?$/, (m, a) => 'retired' + (a ? ' at ' + a : '')]);   // v434 : recherche
+Object.assign(I18N_EN, { 'Cartes combinées': 'Combined cards', 'cartes combinées': 'combined cards' });   // v435
+
+/* v436 : fiche rapide au survol */
+Object.assign(I18N_EN, { 'Sommet en carrière': 'Career peak' });
+I18N_RX.push([/^(\d+)(er|e)$/, (m, n) => { n = +n; const t = n % 100; return n + (t >= 11 && t <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'); }]);
+Object.assign(I18N_EN, { 'Prochain arrêt': 'Next stop' });   // v440

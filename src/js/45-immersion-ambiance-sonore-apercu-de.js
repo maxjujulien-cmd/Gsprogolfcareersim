@@ -94,8 +94,8 @@ function fanAdd(c, key, v, hi) {
 /* un pas de jeu (trou, heure de départ) : réactions + sons */
 function fanStep(before, after, k) {
   const c = S.cur; if (!c) return;
-  const bn = {}, bp = {}; before.forEach(r => { bn[r.id] = r.n; bp[r.id] = r.pos; });
-  const lb = new Set(before.filter(r => r.pos === 1).map(r => r.id));
+  const bn = {}, bp = {}; before.forEach(r => { bn[r.id] = r.n; bp[r.id] = r.nop ? 0 : r.pos; });   // v437 : pas de position avant le départ
+  const lb = new Set(before.filter(r => r.pos === 1 && !r.nop).map(r => r.id));
   const out = [];   // [prio, key, v, mine]
   let chg = null;
   const holesOf = id => id === 0 ? myHoles(c) : c.ai[id];

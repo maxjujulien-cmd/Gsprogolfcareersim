@@ -1,0 +1,435 @@
+<title>Liste des tests Indoor Golf Career</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Mise en page : une carte de pointage par étape — chaque vérification est une ligne avec trois verdicts et une note. */
+:root{
+  --bg:#f4f6f1; --card:#ffffff; --ink:#18231b; --mute:#5b6a5f; --line:#dbe3d9;
+  --green:#1f6b3f; --green-soft:#e2efe5; --sand:#c79a3a; --sand-soft:#f6ecd6; --red:#b4412f; --red-soft:#f7e2dd;
+  --f-disp:"Archivo","Arial Narrow",Arial,sans-serif; --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1511; --card:#161f19; --ink:#e7eee8; --mute:#9aab9f; --line:#27342b;
+  --green:#5cc796; --green-soft:#173426; --sand:#e0b65a; --sand-soft:#33290f; --red:#ec7b68; --red-soft:#3a1d18; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1511; --card:#161f19; --ink:#e7eee8; --mute:#9aab9f; --line:#27342b;
+  --green:#5cc796; --green-soft:#173426; --sand:#e0b65a; --sand-soft:#33290f; --red:#ec7b68; --red-soft:#3a1d18; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 60px}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+header h1{font:800 clamp(30px,5vw,46px)/1.02 var(--f-disp);letter-spacing:-.01em;margin:6px 0 8px;text-wrap:balance}
+.eyebrow{font:600 12px var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--green)}
+header p{margin:0;color:var(--mute);max-width:68ch}
+.sum{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-size:13px;color:var(--mute)}
+.pill b{color:var(--ink);font-variant-numeric:tabular-nums}
+.pill.g b{color:var(--green)}.pill.s b{color:var(--sand)}.pill.r b{color:var(--red)}
+.bar{flex:1 1 220px;height:8px;border-radius:5px;background:var(--line);overflow:hidden;min-width:160px}.bar i{display:block;height:100%;width:0;background:var(--green);transition:width .3s}
+.save{font-size:13px;color:var(--mute)}
+.how{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 22px;font-size:14px}
+.how b{display:block;font:600 13px var(--f-body);color:var(--ink)}
+.how span{color:var(--mute)}
+section.step{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.sh{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--line)}
+.num{flex:none;width:38px;height:38px;border-radius:50%;background:var(--green-soft);color:var(--green);display:flex;align-items:center;justify-content:center;font:800 17px var(--f-disp)}
+.sh h2{margin:0;font:800 20px/1.2 var(--f-disp)}
+.sh p{margin:3px 0 0;color:var(--mute);font-size:14px}
+.sh .cnt{margin-left:auto;flex:none;font:500 12px var(--f-mono);color:var(--mute);padding-top:4px}
+ul.items{list-style:none;margin:0;padding:0}
+li.it{padding:12px 18px;border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:start}
+li.it:first-child{border-top:0}
+.t{font-weight:600}
+.d{color:var(--mute);font-size:14px;margin-top:2px}
+.d code,.t code{font:500 12.5px var(--f-mono);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:0 4px;color:var(--ink)}
+.v{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.v button{font:600 13px var(--f-body);border:1px solid var(--line);background:var(--bg);color:var(--mute);border-radius:8px;padding:6px 10px;cursor:pointer;min-height:34px}
+.v button:hover{border-color:var(--mute)}
+.v button:focus-visible,.note textarea:focus-visible,.tools button:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.v button[aria-pressed="true"].aime{background:var(--green-soft);border-color:var(--green);color:var(--green)}
+.v button[aria-pressed="true"].bof{background:var(--sand-soft);border-color:var(--sand);color:var(--sand)}
+.v button[aria-pressed="true"].chg{background:var(--red-soft);border-color:var(--red);color:var(--red)}
+li.it.done .t::after{content:" ✓";color:var(--green)}
+.note{grid-column:1/-1;display:flex;gap:8px;align-items:flex-start}
+.note textarea{flex:1;min-width:0}
+.mic{flex:none;width:40px;height:38px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:17px;cursor:pointer}
+.mic:hover{border-color:var(--mute)}.mic:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.mic.on{background:var(--red-soft);border-color:var(--red);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 4px var(--red-soft)}}
+.note textarea{width:100%;min-height:38px;resize:vertical;font:14px/1.45 var(--f-body);color:var(--ink);background:var(--bg);border:1px dashed var(--line);border-radius:8px;padding:7px 10px}
+.note textarea:not(:placeholder-shown){border-style:solid}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.tools button{font:600 13px var(--f-body);border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer}
+footer{color:var(--mute);font-size:13px;text-align:center}
+@media (max-width:640px){li.it{grid-template-columns:1fr}.v{justify-content:flex-start}.sh .cnt{display:none}}
+.mods{grid-column:1/-1;list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.mod{display:grid;grid-template-columns:auto auto auto minmax(0,1fr) auto auto;gap:8px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+.mod.af{border-color:var(--red)}.mod.fait{border-color:var(--green)}.mod.ver{opacity:.6}.mod.ver input.mt{text-decoration:line-through}
+.mod label{display:inline-flex;align-items:center;gap:4px;font:600 11px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--mute);cursor:pointer;white-space:nowrap}
+.mod label input{width:16px;height:16px;accent-color:var(--green);margin:0}
+.mod label.la input{accent-color:var(--red)}
+.mod input.mt{font:14px/1.4 var(--f-body);color:var(--ink);background:transparent;border:0;padding:4px 2px;min-width:0;width:100%}
+.mod input.mt:focus-visible,.mod button:focus-visible,.addm input:focus-visible,.addm button:focus-visible,.mod label input:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.mod .del{border:0;background:none;color:var(--mute);font-size:16px;cursor:pointer;padding:2px 6px;border-radius:6px;white-space:nowrap}
+.mod .del.sure{color:var(--red);font:600 12px var(--f-body)}
+.mod .clip{border:0;background:none;font-size:15px;cursor:pointer;padding:2px 6px;border-radius:6px}.mod .clip:focus-visible{outline:2px solid var(--green)}
+.shots{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;padding:2px 0 2px 2px}.shots:empty{display:none}
+.shot{position:relative;width:132px;height:80px;border-radius:6px;overflow:hidden;border:1px solid var(--line);background:var(--card)}
+.shot a{display:block;width:100%;height:100%}.shot img{width:100%;height:100%;object-fit:cover;display:block}
+.shot .rm{position:absolute;top:3px;right:3px;border:0;border-radius:4px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;line-height:1;padding:3px 5px;cursor:pointer}
+.shot.up{display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--mute)}
+.divers{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.divers h2{margin:0;font:800 20px/1.2 var(--f-disp)}.divers p{margin:0;color:var(--mute);font-size:14px}
+.addm{grid-column:1/-1;display:flex;gap:8px;align-items:center}
+.addm input{flex:1;min-width:0;font:14px var(--f-body);color:var(--ink);background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:8px 10px}
+.addm .add{flex:none;font:600 13px var(--f-body);border:1px solid var(--green);background:var(--green-soft);color:var(--green);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
+.pill.d b{color:var(--sand)}
+@media (max-width:640px){.mod{grid-template-columns:auto auto auto minmax(0,1fr) auto auto}.mod label span{display:none}}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}.mic.on{animation:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Indoor Golf Career · v433</div>
+    <h1>Banc d’essai avant publication</h1>
+    <p>Tout ce qu’il faut essayer toi-même avant de publier le jeu, dans l’ordre où tu le vivras en jouant. Pour chaque point, donne ton verdict et note ce que tu changerais. Claude peut relire tes notes : dis-lui simplement « regarde mes notes du banc d’essai ».</p>
+    <div class="sum" aria-live="polite">
+      <div class="bar" role="progressbar" aria-label="Points vérifiés" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="barfill"></i></div>
+      <span class="pill"><b id="nDone">0</b>&nbsp;/&nbsp;<b id="nAll">0</b> vérifiés</span>
+      <span class="pill g">J’aime <b id="nAime">0</b></span>
+      <span class="pill s">Bof <b id="nBof">0</b></span>
+      <span class="pill r">À changer <b id="nChg">0</b></span>
+      <span class="pill r">À faire <b id="mTodo">0</b></span><span class="pill g">Faites, à vérifier <b id="mDem">0</b></span><span class="pill">Vérifiées <b id="mVer">0</b></span>
+      <span class="save" id="saveState">Chargement de tes notes…</span>
+    </div>
+  </header>
+
+  <div class="how">
+    <div><b>Avant de commencer</b><span>Exporte ta partie actuelle (<code>Save the game</code>) : tu pourras y revenir. Fais les essais dans une nouvelle carrière.</span></div>
+    <div><b>Trois verdicts</b><span>J’aime : on garde. Bof : ça passe, mais ça pourrait être mieux. À changer : écris pourquoi dans la note.</span></div>
+    <div id="micHow" hidden><b>Dicter une note</b><span>Clique sur 🎤 à côté d’une note, parle, puis clique de nouveau pour arrêter. Le texte s’ajoute à la note de ce point.</span></div>
+    <div><b>Liste de modifications</b><span>Sous chaque point, ajoute une modification par ligne. Coche <b style="display:inline">À faire</b>, puis dis à Claude « règle ce qui est à faire ». Claude coche <b style="display:inline">Fait</b> quand c’est terminé ; toi, tu coches <b style="display:inline">Vérifié</b> quand c’est réglé à ton goût.</span></div>
+    <div id="shotHow"><b>Une capture vaut mille mots</b><span>Joins une capture à un élément avec 📎, ou colle-la (Ctrl + V) pendant que tu es dans le texte de l’élément. Claude la verra en lisant ta liste.</span></div>
+  </div>
+
+  <section class="divers" id="it-divers" aria-labelledby="dvh">
+    <h2 id="dvh">À faire ailleurs</h2>
+    <p>Ce qui ne va pas dans un point précis : idées, envies, corrections générales.</p>
+    <ul class="mods" id="ml-divers" aria-label="Modifications : à faire ailleurs"></ul>
+    <div class="addm"><input type="text" id="a-divers" data-add="divers" placeholder="Ajouter une chose à faire…" aria-label="Nouvelle chose à faire"><button type="button" class="mic" data-mic="a-divers" hidden aria-label="Dicter une chose à faire" aria-pressed="false">🎤</button><button type="button" class="add" data-addbtn="divers">+ Ajouter</button></div>
+  </section>
+
+  <div id="steps"></div>
+
+  <div class="tools">
+    <button type="button" id="onlyTodo">Voir seulement ce qui reste</button>
+    <button type="button" id="showAll" hidden>Tout afficher</button>
+  </div>
+  <footer>Tes verdicts et tes notes s’enregistrent tout seuls, au fur et à mesure.</footer>
+</div>
+
+<script>
+const STEPS = [
+  { t: 'Créer une carrière', d: 'L’assistant du premier lancement, comme le verra un nouveau joueur.', items: [
+    ['c-assist', 'Parcourir l’assistant de nouvelle partie', 'Est-ce clair pour quelqu’un qui découvre le jeu ? Chaque choix est-il expliqué ?'],
+    ['c-format', 'Choisir le format des tournois', '1 ronde ou 2 rondes avec coupure. Teste au moins une carrière de chaque.'],
+    ['c-majeurs', 'Poids des majeurs', 'Le multiplicateur de points des majeurs (×1 à ×2) : le choix est-il compréhensible ?'],
+    ['c-defi', 'Choisir ton handicap et ton défi', 'Le défi correspond-il à ton vrai niveau sur GSPro ? Le texte explique-t-il ce qui t’attend ?'],
+    ['c-arrivee', 'Arriver maintenant ou plus tard', 'Créer ton joueur tout de suite, ou regarder le circuit d’abord et créer ton joueur à une intersaison.'],
+    ['c-presim', 'Saisons cachées avant ton arrivée', 'Le nombre de saisons jouées sans toi pour bâtir l’histoire du circuit. Le temps d’attente est-il acceptable ?'],
+    ['c-joueur', 'Ton golfeur : nom, pays, âge', 'La création de ton profil, et ta place de départ dans la ligue.'],
+    ['c-photos', 'Bibliothèque de photos', 'Options › photos : choisir le dossier Graphics, puis vérifier que les golfeurs ont un visage et un décor.'],
+  ]},
+  { t: 'Jouer un tournoi sur GSPro', d: 'Le cœur du jeu : une vraie ronde jouée sur le simulateur.', items: [
+    ['j-cond', 'Conditions à régler dans GSPro', 'Tee, drapeau (jour), vent, longueur, CR et slope : tout est-il clair pour reproduire les conditions dans GSPro ?'],
+    ['j-depart', 'Ordre des départs et groupes vedettes', 'Ton heure de départ, ton groupe, les groupes à suivre (☆).'],
+    ['j-simdep', 'Simulate until my tee time', 'Les groupes partis avant toi avancent : le tableau bouge-t-il de façon crédible ?'],
+    ['j-score', 'Entrer ton score trou par trou', 'Les boutons de score, puis Confirm hole. Rapide et sans erreur sur ton écran de simulateur ?'],
+    ['j-stats', 'Suivi de tes stats', 'Fairway touché, putts, pénalités : utile ou trop long à entrer ?'],
+    ['j-undo', 'Corriger un trou', 'Fix the previous hole : refais un trou mal entré.'],
+    ['j-reveal', 'Révélation des scores adverses', 'Tous d’un coup, en séquence, golfeur par golfeur : laquelle préfères-tu ? Le rythme est-il bon ?'],
+    ['j-tableau', 'Le tableau en direct', 'Ligue, vue (cartes de score, classement), golfeurs épinglés, watchlist du tournoi.'],
+    ['j-moments', 'Les moments clés', 'Le bandeau du bas (meneurs, records, remontées) : intéressant ou envahissant ?'],
+    ['j-coupure', 'La coupure et la ronde 2', 'Passer ou rater la coupure, puis la ronde 2 avec les meneurs en dernier.'],
+    ['j-playoff', 'Une prolongation', 'Si l’occasion se présente : l’égalité en tête et le trou de prolongation.'],
+    ['j-fin', 'Fin de tournoi', 'Le résumé, tes gains, tes points, ta place au classement de la saison.'],
+    ['j-hcp', 'Ta carte handicap', 'Ton index qui évolue avec tes vraies rondes : crédible ?'],
+  ]},
+  { t: 'Une saison complète', d: 'Alterner tournois joués et simulés, jusqu’à la Finale.', items: [
+    ['s-continuer', 'Le bouton Continue', 'Est-ce toujours clair où il t’amène (prochain tournoi, ronde en cours, intersaison) ?'],
+    ['s-simuler', 'Simuler un tournoi sans le jouer', 'Simulate the tournament : quand tu n’as pas le temps de jouer.'],
+    ['s-classement', 'Le classement de ta ligue', 'Zones de promotion et de relégation, exemptions, écarts de points.'],
+    ['s-majeurs', 'Les majeurs', 'Leur nom, leur bourse, leur poids : se sentent-ils plus importants ?'],
+    ['s-finale', 'La Finale', 'Les meilleurs de la Ligue 1 et les points doublés.'],
+    ['s-une', 'La une et le journal', 'Les nouvelles après chaque tournoi, la boîte de réception.'],
+    ['s-voyage', 'Le voyage', 'Les terrains de la saison sur la carte, les distances, le décalage horaire.'],
+    ['s-difficulte', 'Ton niveau face aux autres', 'Après quelques tournois : le défi est-il trop facile, trop dur, juste ?'],
+  ]},
+  { t: 'L’intersaison', d: 'Les chapitres entre deux saisons, dont ceux refaits en style télé.', items: [
+    ['o-tasaison', 'Ta saison', 'Ton rang géant, ta carte de la saison, tes moments.'],
+    ['o-champions', 'Les champions', 'La page télé avec la photo du trophée.'],
+    ['o-temple', 'Temple de la renommée', 'La cérémonie, quand un golfeur est élu.'],
+    ['o-retraites', 'Retraites', 'Le tableau des départs et le bandeau qui défile.'],
+    ['o-progression', 'Progression', 'Le tableau de tous les changements de niveau, à faire défiler.'],
+    ['o-talents', 'Talents et tempéraments', 'Pas encore refait en style télé : à refaire ou pas ?'],
+    ['o-bouge', 'Mouvements, World Ranking, recrues, familles', 'Les autres chapitres, dans l’ancien style : lesquels méritent une refonte ?'],
+    ['o-reprise', 'Reprendre où tu étais', 'Quitter l’intersaison pour une autre page, puis revenir : tu reprends au bon chapitre ?'],
+    ['o-retraite', 'Le bouton Retire', 'Ouvre la fenêtre de retraite, lis-la, puis annule. Clair et rassurant ?'],
+  ]},
+  { t: 'Simuler des années', d: 'Une carrière en mode simulation (ton golfeur joue seul) ou en spectateur, sur plusieurs dizaines de saisons.', items: [
+    ['a-10', '10 saisons d’affilée', 'Le temps d’attente, et ce que tu vois défiler. Lassant ou captivant ?'],
+    ['a-carrieres', 'Des carrières variées', 'Phénomènes, éclosions tardives, golfeurs qui plafonnent, recrues brutes ou prêtes à jouer.'],
+    ['a-generational', 'Les vedettes', 'Environ 4 Generational à la fois : présents sans écraser le circuit ?'],
+    ['a-familles', 'Les familles', 'Pères, fils, frères, cousins sur le circuit : les remarques-tu ?'],
+    ['a-50', 'Une très longue partie (50 saisons et plus)', 'La rapidité du jeu et la taille de la sauvegarde avec le temps.'],
+  ]},
+  { t: 'Les menus du circuit', d: 'Toutes les pages, à visiter avec une partie bien remplie.', items: [
+    ['m-season', 'Season', 'L’accueil : la saison en cours, le prochain tournoi, les nouvelles.'],
+    ['m-leagues', 'Leagues', 'Les quatre ligues et leurs classements.'],
+    ['m-history', 'History', 'Ton palmarès, ta vitrine de trophées, tes records.'],
+    ['m-almanac', 'Almanac', 'L’histoire du circuit : saisons, champions, terrains, records.'],
+    ['m-golfers', 'Golfers', 'La liste des golfeurs : filtres, tris, recherche.'],
+    ['m-fiche', 'La fiche d’un golfeur', 'La carte de collection et les 7 onglets (Overview, Results, Timeline, Log, Stats, Rivals, Bio).'],
+    ['m-records', 'Records', 'Les meilleures rondes, totaux et séries.'],
+    ['m-courses', 'Courses', 'Choisir les terrains de la saison, la banque de terrains, le résumé d’un terrain.'],
+    ['m-watch', 'Watchlist', 'Suivre des golfeurs sur toute la saison.'],
+    ['m-hof', 'Hall of Fame', 'Les membres du Temple et leurs carrières.'],
+    ['m-class', 'Latest class', 'La dernière classe de recrues et le rapport des dépisteurs.'],
+    ['m-recherche', 'La recherche', 'Le champ de recherche en haut : trouver un golfeur rapidement.'],
+  ]},
+  { t: 'Options et sauvegardes', d: 'Ce qui protège ta carrière.', items: [
+    ['g-save', 'Save the game', 'Enregistrer dans un dossier (par exemple ton Google Drive), puis recharger cette sauvegarde.'],
+    ['g-import', 'Import a save', 'Recharger une partie à partir d’un fichier, comme sur un autre ordinateur.'],
+    ['g-backup', 'Copies automatiques', 'Les sauvegardes de secours : sais-tu où les retrouver ?'],
+    ['g-avances', 'Réglages avancés', 'À lire sans rien changer : les explications sont-elles claires pour un autre joueur ?'],
+    ['g-commissaire', 'Le mode commissaire', 'Modifier le circuit à la main : utile, ou à cacher aux nouveaux joueurs ?'],
+    ['g-majeurs', 'Noms des majeurs', 'Renommer les majeurs : le résultat apparaît-il partout ?'],
+    ['g-ecran', 'Plein écran et affichage', 'Le bouton plein écran et la lisibilité sur ton écran de 1920 × 1080.'],
+  ]},
+  { t: 'Les autres façons de jouer', d: 'Les modes qu’un autre joueur pourrait choisir.', items: [
+    ['x-rapide', 'Quick tournament', 'Un tournoi rapide hors carrière, pour une soirée entre amis.'],
+    ['x-duo', 'La partie à deux', 'Deux joueurs dans la même carrière, avec les coups de handicap.'],
+    ['x-spect', 'Spectateur', 'Suivre le circuit sans joueur, puis créer ton joueur plus tard.'],
+    ['x-sim', 'Ton golfeur simulé', 'Une carrière où ton golfeur joue seul : pour ceux qui n’ont pas de simulateur.'],
+  ]},
+  { t: 'Sur d’autres écrans', d: 'Le jeu est pensé pour ton PC, mais d’autres l’ouvriront ailleurs.', items: [
+    ['e-tel', 'Sur ton téléphone', 'Ouvrir le fichier et entrer quelques scores : lisible et pratique ?'],
+    ['e-tablette', 'Sur une tablette', 'Si tu en as une : la mise en page tient-elle ?'],
+    ['e-portable', 'Sur ton portable', 'Un écran plus petit que celui du simulateur.'],
+  ]},
+  { t: 'Pour les autres joueurs', d: 'Penser à ceux qui découvrent le jeu sans toi à côté.', items: [
+    ['p-handicap', 'Un autre handicap', 'Crée une carrière avec un handicap de 15, puis une avec un handicap de 0 : le défi reste-t-il juste ?'],
+    ['p-defis', 'Les autres défis', 'Joueur établi, Aspirant, et les autres niveaux : chacun a-t-il du sens ?'],
+    ['p-premier', 'Le tout premier lancement', 'Sans rien savoir du jeu : comprend-on quoi faire dans les 5 premières minutes ?'],
+    ['p-anglais', 'Tout en anglais', 'Vois-tu encore un mot en français quelque part ? Capture-le.'],
+  ]},
+  { t: 'Avant de publier', d: 'Les dernières vérifications, une fois les essais terminés.', items: [
+    ['z-photo', 'La photo du trophée', 'Elle vient probablement d’un photographe : la remplacer avant de partager le jeu publiquement.'],
+    ['z-terrains', 'Les terrains à jour', 'Demander à Claude une mise à jour depuis Simulator Golf Tour juste avant de publier.'],
+    ['z-github', 'La version finale sur GitHub', 'Fusionner la dernière version dans la version principale.'],
+    ['z-ou', 'Où publier', 'Lien vers l’artifact en ligne, ou fichier à télécharger : décider comment les autres l’obtiendront.'],
+    ['z-guide', 'Un petit guide', 'Écrire ou demander un court guide : installation, réglages GSPro, premiers pas.'],
+  ]},
+];
+
+const STATE = {};   // id -> { v: 'aime'|'bof'|'chg'|null, n: string }
+let db = null, assets = null, onlyTodo = false, dict = null, dictId = null, dictBase = '';
+const MODS = {};   // id -> { p: point, t: texte, o: ordre, af: à faire (Max), fait: fait (Claude), ver: vérifié (Max) }
+const LSM = 'banc-essai-mods-v1';
+const lsmSave = () => { try { localStorage.setItem(LSM, JSON.stringify(MODS)); } catch (e) { } };
+const lsmLoad = () => { try { return JSON.parse(localStorage.getItem(LSM) || '{}') || {}; } catch (e) { return {}; } };
+const $ = s => document.querySelector(s);
+const ALL = STEPS.flatMap(s => s.items.map(i => i[0]));
+const LS = 'banc-essai-v1';
+const lsLoad = () => { try { return JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch (e) { return {}; } };
+const lsSave = () => { try { localStorage.setItem(LS, JSON.stringify(STATE)); } catch (e) { } };
+
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+/* le texte des points peut contenir des noms de boutons du jeu : on les met en forme de code */
+function rich(node, text) { text.split(/(Save the game|Import a save|Confirm hole|Fix the previous hole|Simulate until my tee time|Simulate the tournament|Continue|Retire|Quick tournament|Season|Leagues|History|Almanac|Golfers|Records|Courses|Watchlist|Hall of Fame|Latest class)/).forEach((p, i) => { if (i % 2) node.appendChild(el('code', null, p)); else if (p) node.appendChild(document.createTextNode(p)); }); return node; }
+
+function build() {
+  const root = $('#steps'); root.textContent = '';
+  STEPS.forEach((s, k) => {
+    const sec = el('section', 'step'); sec.dataset.k = k;
+    const sh = el('div', 'sh'); sh.appendChild(el('div', 'num', String(k + 1)));
+    const hd = el('div'); hd.appendChild(el('h2', null, s.t)); hd.appendChild(el('p', null, s.d)); sh.appendChild(hd);
+    const cnt = el('span', 'cnt'); cnt.id = 'cnt' + k; sh.appendChild(cnt); sec.appendChild(sh);
+    const ul = el('ul', 'items');
+    s.items.forEach(([id, t, d]) => {
+      const li = el('li', 'it'); li.id = 'it-' + id;
+      const tx = el('div'); tx.appendChild(rich(el('div', 't'), t)); tx.appendChild(rich(el('div', 'd'), d)); li.appendChild(tx);
+      const v = el('div', 'v'); v.setAttribute('role', 'group'); v.setAttribute('aria-label', 'Verdict : ' + t);
+      [['aime', 'J’aime'], ['bof', 'Bof'], ['chg', 'À changer']].forEach(([c, lab]) => { const b = el('button', c, lab); b.type = 'button'; b.dataset.id = id; b.dataset.v = c; b.setAttribute('aria-pressed', 'false'); v.appendChild(b); });
+      li.appendChild(v);
+      const nt = el('div', 'note'); const ta = el('textarea'); ta.id = 'n-' + id; ta.rows = 1; ta.placeholder = 'Ta note (ce que tu aimes, ce que tu changerais)…'; ta.setAttribute('aria-label', 'Note : ' + t); ta.dataset.id = id; nt.appendChild(ta);
+      const mic = el('button', 'mic', '🎤'); mic.type = 'button'; mic.dataset.mic = 'n-' + id; mic.hidden = !dict; mic.setAttribute('aria-label', 'Dicter la note : ' + t); mic.setAttribute('aria-pressed', 'false'); nt.appendChild(mic); li.appendChild(nt);
+      const ml = el('ul', 'mods'); ml.id = 'ml-' + id; ml.setAttribute('aria-label', 'Modifications : ' + t); li.appendChild(ml);
+      const ad = el('div', 'addm'); const ai = el('input'); ai.type = 'text'; ai.id = 'a-' + id; ai.dataset.add = id; ai.placeholder = 'Ajouter une modification à faire…'; ai.setAttribute('aria-label', 'Nouvelle modification : ' + t); ad.appendChild(ai);
+      const am = el('button', 'mic', '🎤'); am.type = 'button'; am.dataset.mic = 'a-' + id; am.hidden = !dict; am.setAttribute('aria-label', 'Dicter une modification : ' + t); am.setAttribute('aria-pressed', 'false'); ad.appendChild(am);
+      const ab = el('button', 'add', '+ Ajouter'); ab.type = 'button'; ab.dataset.addbtn = id; ad.appendChild(ab); li.appendChild(ad);
+      ul.appendChild(li);
+    });
+    sec.appendChild(ul); root.appendChild(sec);
+  });
+}
+
+function paint() {
+  let done = 0, a = 0, b = 0, c = 0;
+  ALL.forEach(id => {
+    const s = STATE[id] || {}, li = document.getElementById('it-' + id); if (!li) return;
+    li.querySelectorAll('.v button').forEach(btn => btn.setAttribute('aria-pressed', String(s.v === btn.dataset.v)));
+    const ta = li.querySelector('textarea'); if (document.activeElement !== ta && ta.value !== (s.n || '')) ta.value = s.n || '';
+    li.classList.toggle('done', !!s.v);
+    paintMods(id);
+    li.hidden = onlyTodo && !!s.v && !Object.values(MODS).some(m => m.p === id && !m.ver);
+    if (s.v) { done++; if (s.v === 'aime') a++; else if (s.v === 'bof') b++; else c++; }
+  });
+  STEPS.forEach((s, k) => { const n = s.items.filter(i => (STATE[i[0]] || {}).v).length; $('#cnt' + k).textContent = n + ' / ' + s.items.length; document.querySelector('section[data-k="' + k + '"]').hidden = onlyTodo && s.items.every(i => document.getElementById('it-' + i[0]).hidden); });
+  paintMods('divers');
+  const M = Object.values(MODS); $('#mTodo').textContent = M.filter(m => m.af && !m.fait && !m.ver).length; $('#mDem').textContent = M.filter(m => m.fait && !m.ver).length; $('#mVer').textContent = M.filter(m => m.ver).length;
+  $('#nDone').textContent = done; $('#nAll').textContent = ALL.length; $('#nAime').textContent = a; $('#nBof').textContent = b; $('#nChg').textContent = c;
+  const pct = Math.round(done / ALL.length * 100); $('#barfill').style.width = pct + '%'; document.querySelector('.bar').setAttribute('aria-valuenow', String(pct));
+}
+
+/* une écriture à la fois par point ; la note s'enregistre après une pause de frappe */
+const busy = {}, again = {};
+async function write(id) {
+  lsSave();
+  if (!db) return;
+  if (busy[id]) { again[id] = true; return; }
+  busy[id] = true; $('#saveState').textContent = 'Enregistrement…';
+  try { const s = STATE[id] || {}; await db.doc('avis/' + id).set({ v: s.v || null, n: s.n || '', at: new Date().toISOString() }); $('#saveState').textContent = 'Enregistré'; }
+  catch (e) { $('#saveState').textContent = e && e.code === 'quota_exceeded' ? 'Stockage plein : tes notes restent dans ce navigateur.' : 'Pas enregistré en ligne pour l’instant : tes notes restent dans ce navigateur.'; }
+  busy[id] = false; if (again[id]) { again[id] = false; write(id); }
+}
+/* liste de modifications : un document par modification (collection « mods ») */
+function paintMods(pid) {
+  const ul = document.getElementById('ml-' + pid); if (!ul) return;
+  const list = Object.entries(MODS).filter(([, m]) => m.p === pid).sort((a, b) => (a[1].o || 0) - (b[1].o || 0));
+  const keep = new Set(list.map(x => x[0]));
+  ul.querySelectorAll('li.mod').forEach(li => { if (!keep.has(li.dataset.m)) li.remove(); });
+  list.forEach(([mid, m], i) => {
+    let li = ul.querySelector('li.mod[data-m="' + mid + '"]');
+    if (!li) {
+      li = el('li', 'mod'); li.dataset.m = mid;
+      const l0 = el('label', 'la'); const c0 = el('input'); c0.type = 'checkbox'; c0.dataset.ck = 'af'; c0.dataset.m = mid; l0.appendChild(c0); l0.appendChild(el('span', null, 'À faire'));
+      const l1 = el('label', 'lf'); const c1 = el('input'); c1.type = 'checkbox'; c1.dataset.ck = 'fait'; c1.dataset.m = mid; l1.appendChild(c1); l1.appendChild(el('span', null, 'Fait'));
+      const l2 = el('label', 'lv'); const c2 = el('input'); c2.type = 'checkbox'; c2.dataset.ck = 'ver'; c2.dataset.m = mid; l2.appendChild(c2); l2.appendChild(el('span', null, 'Vérifié'));
+      const tx = el('input', 'mt'); tx.type = 'text'; tx.dataset.mt = mid; tx.setAttribute('aria-label', 'Modification');
+      const del = el('button', 'del', '×'); del.type = 'button'; del.dataset.del = mid; del.setAttribute('aria-label', 'Supprimer cette modification');
+      const clip = el('button', 'clip', '📎'); clip.type = 'button'; clip.dataset.clip = mid; clip.hidden = !assets; clip.setAttribute('aria-label', 'Joindre une capture'); clip.title = 'Joindre une capture';
+      const sh = el('div', 'shots'); sh.dataset.shots = mid;
+      li.append(l0, l1, l2, tx, clip, del, sh);
+    }
+    if (ul.children[i] !== li) ul.insertBefore(li, ul.children[i] || null);
+    const c0 = li.querySelector('[data-ck="af"]'), c1 = li.querySelector('[data-ck="fait"]'), c2 = li.querySelector('[data-ck="ver"]'), tx = li.querySelector('.mt');
+    c0.checked = !!m.af; c1.checked = !!m.fait; c2.checked = !!m.ver; c0.setAttribute('aria-label', 'À faire : ' + m.t); c1.setAttribute('aria-label', 'Fait : ' + m.t); c2.setAttribute('aria-label', 'Vérifié : ' + m.t);
+    if (document.activeElement !== tx && tx.value !== m.t) tx.value = m.t;
+    const sh = li.querySelector('.shots'), imgs = m.img || [], up = UPL[mid] || 0;
+    const key = imgs.join(',') + '|' + up; if (sh.dataset.key !== key) { sh.dataset.key = key; sh.textContent = '';
+      imgs.forEach(aid => { const d = el('div', 'shot'); const a = el('a'); a.href = '/_blob/' + aid; a.target = '_blank'; a.rel = 'noopener'; const im = el('img'); im.src = '/_blob/' + aid; im.alt = 'Capture jointe'; im.loading = 'lazy'; a.appendChild(im); d.appendChild(a);
+        const rm = el('button', 'rm', '×'); rm.type = 'button'; rm.dataset.rmshot = mid + '|' + aid; rm.setAttribute('aria-label', 'Retirer cette capture'); d.appendChild(rm); sh.appendChild(d); });
+      for (let k = 0; k < up; k++) sh.appendChild(el('div', 'shot up', 'Envoi…')); }
+    li.classList.toggle('af', !!m.af && !m.fait && !m.ver); li.classList.toggle('fait', !!m.fait && !m.ver); li.classList.toggle('ver', !!m.ver);
+  });
+}
+const mbusy = {}, magain = {};
+async function writeMod(mid) {
+  lsmSave();
+  if (!db) return;
+  if (mbusy[mid]) { magain[mid] = true; return; }
+  mbusy[mid] = true; $('#saveState').textContent = 'Enregistrement…';
+  try { const m = MODS[mid]; if (m) await db.doc('mods/' + mid).set({ p: m.p, t: m.t, o: m.o, af: !!m.af, fait: !!m.fait, ver: !!m.ver, img: (m.img || []).slice(0, 12), at: new Date().toISOString() }); else await db.doc('mods/' + mid).delete(); $('#saveState').textContent = 'Enregistré'; }
+  catch (e) { $('#saveState').textContent = e && e.code === 'quota_exceeded' ? 'Stockage plein : ta liste reste dans ce navigateur.' : 'Pas enregistré en ligne pour l’instant : ta liste reste dans ce navigateur.'; }
+  mbusy[mid] = false; if (magain[mid]) { magain[mid] = false; writeMod(mid); }
+}
+function addMod(pid, text) {
+  const t = (text || '').replace(/^\s*[-–•]\s*/, '').trim(); if (!t) return false;
+  const mid = 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  MODS[mid] = { p: pid, t, o: Date.now(), af: false, fait: false, ver: false }; paint(); writeMod(mid); return true;
+}
+const UPL = {};
+async function attach(mid, files) {
+  if (!assets || !MODS[mid]) return;
+  for (const f of files) {
+    if (!f || !/^image\//.test(f.type)) continue;
+    UPL[mid] = (UPL[mid] || 0) + 1; paint();
+    try { const r = await assets.upload(f); const m = MODS[mid]; if (m) { m.img = (m.img || []).concat(r.id); writeMod(mid); } }
+    catch (e) { $('#saveState').textContent = e && e.code === 'quota_exceeded' ? 'Stockage des captures plein.' : 'La capture n’a pas pu être envoyée : réessaie.'; }
+    UPL[mid]--; paint();
+  }
+}
+const picker = document.createElement('input'); picker.type = 'file'; picker.accept = 'image/*'; picker.multiple = true; picker.hidden = true; document.body.appendChild(picker);
+let pickFor = null;
+picker.addEventListener('change', () => { if (pickFor) attach(pickFor, [...picker.files]); picker.value = ''; });
+document.addEventListener('paste', e => {
+  const tx = e.target.closest && e.target.closest('input[data-mt]'); if (!tx || !assets) return;
+  const fs = [...(e.clipboardData ? e.clipboardData.files : [])].filter(f => /^image\//.test(f.type)); if (!fs.length) return;
+  e.preventDefault(); attach(tx.dataset.mt, fs);
+});
+function addFromInput(pid) { const ai = document.getElementById('a-' + pid); if (ai && addMod(pid, ai.value)) { ai.value = ''; ai.focus(); } }
+document.addEventListener('change', e => { const c = e.target.closest('[data-ck]'); if (!c) return; const m = MODS[c.dataset.m]; if (!m) return; m[c.dataset.ck] = c.checked; paint(); writeMod(c.dataset.m); });
+document.addEventListener('keydown', e => {
+  const ai = e.target.closest && e.target.closest('input[data-add]'); if (ai && e.key === 'Enter') { e.preventDefault(); addFromInput(ai.dataset.add); return; }
+  const tx = e.target.closest && e.target.closest('input[data-mt]'); if (tx && e.key === 'Enter') { e.preventDefault(); tx.blur(); }
+});
+document.addEventListener('focusout', e => { const tx = e.target.closest && e.target.closest('input[data-mt]'); if (!tx) return; const m = MODS[tx.dataset.mt]; const v = tx.value.trim(); if (!m || v === m.t) return; if (!v) { tx.value = m.t; return; } m.t = v; writeMod(tx.dataset.mt); paint(); });
+const timers = {};
+/* dictée : le texte dicté s'ajoute à la note du point choisi */
+const joinTxt = (a, b) => { a = a || ''; b = (b || '').trim(); if (!b) return a; return a && !/\s$/.test(a) ? a + ' ' + b : a + b; };
+function micPaint() { document.querySelectorAll('.mic').forEach(m => { const on = m.dataset.mic === dictId; m.classList.toggle('on', on); m.setAttribute('aria-pressed', String(on)); m.textContent = on ? '■' : '🎤'; }); }
+function setNote(tid, v) { const ta = document.getElementById(tid); if (ta) ta.value = v; if (tid.startsWith('n-')) { const id = tid.slice(2); STATE[id] = Object.assign({}, STATE[id], { n: v }); } }
+function dictDone(tid) { if (tid.startsWith('n-')) write(tid.slice(2)); else if (tid.startsWith('a-')) addFromInput(tid.slice(2)); }
+document.addEventListener('click', e => {
+  const m = e.target.closest('.mic');
+  if (m && dict) {
+    const id = m.dataset.mic;
+    if (dictId === id) { dict.stop().catch(() => { }); return; }
+    if (dictId) dict.stop().catch(() => { });
+    dictId = id; dictBase = (document.getElementById(id) || {}).value || ''; micPaint();
+    dict.start({ language: 'fr' }).catch(err => { const was = dictId; dictId = null; micPaint(); if (err && err.code === 'not_granted') { document.querySelectorAll('.mic').forEach(x => { x.hidden = true; }); $('#micHow').hidden = true; } else if (was) $('#saveState').textContent = 'Le micro n’a pas démarré : réessaie ou écris ta note.'; });
+    return;
+  }
+  const cp = e.target.closest('[data-clip]'); if (cp) { pickFor = cp.dataset.clip; picker.click(); return; }
+  const rs = e.target.closest('[data-rmshot]'); if (rs) { const [mid, aid] = rs.dataset.rmshot.split('|'); const m = MODS[mid]; if (m) { m.img = (m.img || []).filter(x => x !== aid); paint(); writeMod(mid); if (assets) assets.delete(aid).catch(() => { }); } return; }
+  const ab = e.target.closest('[data-addbtn]'); if (ab) { addFromInput(ab.dataset.addbtn); return; }
+  const dl = e.target.closest('[data-del]'); if (dl) { if (!dl.classList.contains('sure')) { dl.classList.add('sure'); dl.textContent = 'Supprimer ?'; setTimeout(() => { if (dl.isConnected) { dl.classList.remove('sure'); dl.textContent = '×'; } }, 3000); return; } delete MODS[dl.dataset.del]; paint(); writeMod(dl.dataset.del); return; }
+  const b = e.target.closest('.v button'); if (b) { const id = b.dataset.id, s = STATE[id] = Object.assign({}, STATE[id]); s.v = s.v === b.dataset.v ? null : b.dataset.v; paint(); write(id); return; }
+  if (e.target.id === 'onlyTodo') { onlyTodo = true; $('#onlyTodo').hidden = true; $('#showAll').hidden = false; paint(); }
+  if (e.target.id === 'showAll') { onlyTodo = false; $('#onlyTodo').hidden = false; $('#showAll').hidden = true; paint(); }
+});
+document.addEventListener('input', e => { const ta = e.target.closest('textarea[data-id]'); if (!ta) return; const id = ta.dataset.id; STATE[id] = Object.assign({}, STATE[id], { n: ta.value }); clearTimeout(timers[id]); timers[id] = setTimeout(() => write(id), 900); });
+document.addEventListener('focusout', e => { const ta = e.target.closest && e.target.closest('textarea[data-id]'); if (ta && timers[ta.dataset.id]) { clearTimeout(timers[ta.dataset.id]); write(ta.dataset.id); } });
+
+(async () => { try { assets = window.claude && window.claude.use ? await window.claude.use('assets') : null; } catch (e) { assets = null; } if (assets) { document.querySelectorAll('.clip').forEach(c => { c.hidden = false; }); } else { const h = document.getElementById('shotHow'); if (h) h.querySelector('span').textContent = 'Si quelque chose cloche, fais une capture et envoie-la à Claude dans la conversation.'; } })();
+build();
+Object.assign(STATE, lsLoad()); Object.assign(MODS, lsmLoad()); paint();
+(async () => {
+  try { dict = window.claude && window.claude.use ? await window.claude.use('dictation') : null; } catch (e) { dict = null; }
+  if (!dict) return;
+  document.querySelectorAll('.mic').forEach(m => { m.hidden = false; }); $('#micHow').hidden = false;
+  dict.onPartial(({ text }) => { if (dictId) { const ta = document.getElementById(dictId); if (ta) ta.value = joinTxt(dictBase, text); } });
+  dict.onFinal(({ text }) => { if (!dictId) return; dictBase = joinTxt(dictBase, text); setNote(dictId, dictBase); lsSave(); });
+  dict.onState(({ state }) => { if (state === 'idle' && dictId) { const id = dictId; dictId = null; setNote(id, dictBase); micPaint(); dictDone(id); } });
+})();
+$('#saveState').textContent = 'Tes notes s’enregistrent dans ce navigateur.';
+(async () => {
+  try { db = window.claude && window.claude.use ? await window.claude.use('db') : null; } catch (e) { db = null; }
+  if (!db) { $('#saveState').textContent = 'Tes notes s’enregistrent dans ce navigateur.'; return; }
+  $('#saveState').textContent = 'Chargement de tes notes…';
+  const t = setTimeout(() => { $('#saveState').textContent = 'Tes notes en ligne ne répondent pas encore ; celles de ce navigateur sont affichées.'; }, 10000);
+  db.collection('avis').onSnapshot(snap => {
+    snap.docs.forEach(d => { const x = d.data() || {}; if (busy[d.id] || timers[d.id] && document.activeElement && document.activeElement.dataset.id === d.id) return; STATE[d.id] = { v: x.v || null, n: typeof x.n === 'string' ? x.n : '' }; });
+    if (!snap.metadata.fromCache) { clearTimeout(t); if (!/Enregistr/.test($('#saveState').textContent)) $('#saveState').textContent = 'Notes à jour · Claude peut les lire'; }
+    lsSave(); paint();
+  }, () => { clearTimeout(t); db = null; $('#saveState').textContent = 'Tes notes s’enregistrent dans ce navigateur.'; });
+  db.collection('mods').onSnapshot(snap => {
+    if (snap.metadata.fromCache && snap.empty) return;
+    const seen = new Set();
+    snap.docs.forEach(d => { seen.add(d.id); if (mbusy[d.id]) return; const x = d.data() || {}; if (typeof x.p !== 'string' || typeof x.t !== 'string') return; MODS[d.id] = { p: x.p, t: x.t, o: +x.o || 0, af: !!x.af, fait: !!(x.fait || x.dem), ver: !!x.ver, img: Array.isArray(x.img) ? x.img.filter(v => typeof v === 'string' && /^[A-Za-z0-9_-]{8,80}$/.test(v)) : [] }; });
+    if (!snap.metadata.fromCache) Object.keys(MODS).forEach(k => { if (!seen.has(k) && !mbusy[k]) delete MODS[k]; });
+    lsmSave(); paint();
+  }, () => { });
+})();
+</script>

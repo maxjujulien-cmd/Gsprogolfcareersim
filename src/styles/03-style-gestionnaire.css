@@ -678,3 +678,14 @@ html.mgr.pc .gtop.gccb{display:grid;grid-template-columns:minmax(0,1.65fr) minma
 html.mgr.pc .gtop.gccb>.dpn{margin:0}
 html.mgr.pc .gcchc .hcard>.hcsvg{max-height:250px;width:100%}
 html.mgr.pc .gcchc .hcard{grid-template-columns:minmax(0,320px) minmax(0,1fr)}
+/* v432 : numéro de version en bas du menu */
+html.mgr.pc .msver{font:500 12px Inter,Arial,sans-serif;color:var(--mute,#7d8a96);letter-spacing:.04em;padding:4px 2px}html.mgr.pc .msver b{color:var(--ink);font-weight:600}
+html.mgr.pc .msfoot>a+.msver{margin-top:8px}
+/* v434 : recherche directe dans la barre du haut */
+html.mgr.pc .mtsrch{margin-left:auto;position:relative}
+html.mgr.pc .mtsrch .mtsearch{margin-left:0;cursor:text;color:var(--ink)}html.mgr.pc .mtsrch .mtsearch::placeholder{color:var(--mute)}
+html.mgr.pc .mtsres{position:absolute;top:calc(100% + 6px);left:0;width:360px;max-width:80vw;background:var(--paper);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 34px rgba(0,0,0,.45);padding:6px;z-index:60}
+html.mgr.pc .mtsr{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 10px;border-radius:7px;color:var(--ink);text-decoration:none}
+html.mgr.pc .mtsr b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}html.mgr.pc .mtsr small{color:var(--mute);font-size:12px;white-space:nowrap}
+html.mgr.pc .mtsr.on,html.mgr.pc .mtsr:hover{background:color-mix(in srgb,var(--acc) 18%,transparent)}
+html.mgr.pc .mtsnone{margin:6px 8px;color:var(--mute);font-size:13px}

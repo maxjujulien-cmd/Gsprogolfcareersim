@@ -52,7 +52,7 @@ function vRcLeague(s) {
   if (so !== 'x') rows = rows.slice().sort((a, b) => ((so === 'o' ? oOf : pOf)(gOf(b.id)) ?? -1) - ((so === 'o' ? oOf : pOf)(gOf(a.id)) ?? -1));
   const tierB = (v, L) => v == null ? '<span class="mute">–</span>' : gsTier(scale(L, v), L);
   const tbl = chipRow([['x', 'Index'], ['o', 'Niveau'], ['p', 'Potentiel']], so, 'rcsort') + '<div class="scroll"><table class="plain rct"><tr><th class="r">#</th><th>Golfeur</th><th class="r">Âge</th><th>Niveau</th><th>Potentiel</th><th class="r">Tourn.</th><th class="r">Moy.</th><th class="r">V</th><th class="r">Index</th><th class="r">' + (done ? 'Ligue' : 'Projetée') + '</th></tr>' +
-    rows.map(r => { const g = S.G[r.id] || (S.old && S.old[r.id]) || {}, o = st[r.id]; return '<tr' + (r.id === 0 ? ' class="me"' : r.l === 0 ? ' class="rcl1"' : '') + '><td class="r">' + r.rk + '</td><td><span class="flg-i">' + flagOf(r.id, 18) + '</span><a href="#" data-a="golfer" data-id="' + r.id + '">' + esc(nameOf(r.id) || g.n || '') + '</a>' + (g.prd ? ' <span class="rcprd" title="Arrivé déjà prêt">★</span>' : '') + (r.id !== 0 ? '<div class="rctp">' + tierB(oOf(g), TIERS) + ' ' + tierB(pOf(g), POTS) + '</div>' : '') + '</td><td class="r">' + (g.a || '–') + '</td><td>' + (r.id === 0 ? '' : tierB(oOf(g), TIERS)) + '</td><td>' + (r.id === 0 ? '' : tierB(pOf(g), POTS)) + '</td><td class="r">' + (o ? o.n : 0) + '</td><td class="r">' + (o && o.rd ? fmt1(o.sum / o.rd) : '–') + '</td><td class="r">' + (o && o.w ? o.w : '') + '</td><td class="r"><b>' + (r.x == null ? '–' : fmtHI(r.x)) + '</b></td><td class="r">' + rcLgTag(r.l) + (r.j ? ' <span class="small mute">de justesse</span>' : '') + '</td></tr>'; }).join('') + '</table></div>';
+    rows.map(r => { const g = S.G[r.id] || (S.old && S.old[r.id]) || {}, o = st[r.id], hide = r.id === 0 && !(S.mode === 'sim' && S.G[0]); return '<tr' + (r.id === 0 ? ' class="me"' : r.l === 0 ? ' class="rcl1"' : '') + '><td class="r">' + r.rk + '</td><td><span class="flg-i">' + flagOf(r.id, 18) + '</span><a href="#" data-a="golfer" data-id="' + r.id + '">' + esc(nameOf(r.id) || g.n || '') + '</a>' + (g.prd ? ' <span class="rcprd" title="Arrivé déjà prêt">★</span>' : '') + (!hide ? '<div class="rctp">' + tierB(oOf(g), TIERS) + ' ' + tierB(pOf(g), POTS) + '</div>' : '') + '</td><td class="r">' + (g.a || (r.id === 0 && S.pk && S.pk.a) || '–') + '</td><td>' + (hide ? '<span class="mute">—</span>' : tierB(oOf(g), TIERS)) + '</td><td>' + (hide ? '<span class="mute">—</span>' : tierB(pOf(g), POTS)) + '</td><td class="r">' + (o ? o.n : 0) + '</td><td class="r">' + (o && o.rd ? fmt1(o.sum / o.rd) : '–') + '</td><td class="r">' + (o && o.w ? o.w : '') + '</td><td class="r"><b>' + (r.x == null ? '–' : fmtHI(r.x)) + '</b></td><td class="r">' + rcLgTag(r.l) + (r.j ? ' <span class="small mute">de justesse</span>' : '') + '</td></tr>'; }).join('') + '</table></div>';
   let R = '<h2>Tournois</h2>';
   if (!ts.length) R += '<p class="mute">Aucun tournoi joué par la classe pour l’instant.</p>';
   else R += '<div class="scroll"><table class="plain"><tr><th>#</th><th>Terrain</th><th>Meilleur score</th><th class="r">Score</th></tr>' + ts.slice().reverse().map(([t, i]) => { const w = t.rc.rows[0]; return '<tr><td>' + (i + 1) + '</td><td><a href="#" data-a="tourn" data-s="' + s + '" data-t="' + i + '" data-l="4">' + esc(t.name) + '</a></td><td>' + esc(nameOf(w[0]) || '') + '</td><td class="r ' + cls(w[2] + (w[3] || 0)) + '">' + fmt(w[2] + (w[3] || 0)) + '</td></tr>'; }).join('') + '</table></div>';
@@ -73,7 +73,7 @@ function leaguesMgr(l, s, H, cur, seasons, R) {
   const tile = (v, k, cls) => '<div' + (cls ? ' class="' + cls + '"' : '') + '><b>' + v + '</b><span>' + k + '</span></div>';
   let brief = '<div class="lgbrief">';
   if (list[0]) brief += '<div class="lglead">' + flagOf(list[0].id, 22) + '<div><small>' + (cur && played < N_TOURN ? 'EN TÊTE' : 'CHAMPION') + '</small><a href="#" data-a="golfer" data-id="' + list[0].id + '">' + esc(nameOf(list[0].id)) + '</a></div><b>' + list[0].pts + ' pts</b></div>';
-  brief += '<div class="dst3">' + tile(played + '/' + N_TOURN, 'Tournois joués') + tile(me >= 0 ? ord(me + 1) : '–', 'Ton rang') + tile(list.length, 'Golfeurs') + '</div>';
+  brief += '<div class="dst3">' + tile(played + '/' + N_TOURN, 'Tournois joués') + tile(me >= 0 ? ord(me + 1) : '–', 'Ton rang') + tile(cur && S.L[l] ? S.L[l].length : list.length, 'Golfeurs') + '</div>';
   const VP = CFG.varLg && cur ? planNow() : null, vu = VP && l > 0 ? VP.up[l] : null, vlast = vu && vu.length ? list.find(r => r.id === vu[vu.length - 1]) : null;
   if (VP) brief += '<div class="dst3">' + (l > 0 ? tile(vlast ? vlast.pts + ' pts' : '–', 'Dernier promu (' + vu.length + ' en ce moment)', 'up') : tile('–', 'Pas de promotion')) + (l < 3 ? (() => { const D = new Set(VP.down[l] || []), fd = list.findIndex(r => D.has(r.id)); return tile(fd > 0 ? list[fd - 1].pts + ' pts' : '–', 'Ligne de maintien (' + relBot() + ' derniers relégués)', 'dn'); })() : tile('–', 'Pas de relégation')) + tile(me >= 0 ? list[me].pts + ' pts' : '–', 'Tes points') + '</div>';
   const pro = !VP && l > 0 && list[MOVE - 1] ? list[MOVE - 1].pts : null, rel = !VP && l < 3 && list[FIELD - MOVE - 1] ? list[FIELD - MOVE - 1].pts : null;
@@ -122,13 +122,25 @@ function rcLastHTML(t) {
     (w && w[0] !== 0 ? '<p class="small mute" style="margin:0"><span>Meilleur score de la classe</span> : ' + esc(nameOf(w[0])) + ' (' + fmt(w[2] + (w[3] || 0)) + ')</p>' : '') +
     '<p class="small" style="margin:8px 0 0"><a href="#" data-a="tourn" data-s="' + S.last.s + '" data-t="' + S.last.t + '" data-l="4">Résultats complets</a> \u00b7 <a href="#" data-a="journal">Journal</a></p></div>';
 }
+/* v435 : cartes de scores. « Ronde 1 » et « Ronde 2 » montrent seulement cette ronde, classée selon le score de la ronde
+   (la ronde 2 seulement pour ceux qui ont passé la coupure) ; « Cartes combinées » montre le total du tournoi (l'ancien « ronde 2 »). */
+function cardsList(res, mode) {
+  const rd = mode === 'c1' || res.one ? 0 : 1;
+  if (mode === 'cc') { const cnt = {}; res.rows.forEach(r => { cnt[r[1]] = (cnt[r[1]] || 0) + 1; });
+    return { rd, list: res.rows.filter(r => r[3] !== null).map(r => ({ id: r[0], pos: r[1] === 0 ? 'CUT' : (cnt[r[1]] > 1 ? 'T' : '') + r[1], tot: r[2] + r[3], me: r[0] === 0, holes: res.h[r[0]] ? (decHoles(res.h[r[0]], 18) || []) : [], r1: r[2] })) }; }
+  const fpos = {}; res.rows.forEach((r, i) => { fpos[r[0]] = i; });
+  const sc = res.rows.filter(r => rd === 0 || r[3] !== null).map(r => ({ id: r[0], tot: rd === 0 ? r[2] : r[3] }));
+  sc.sort((a, b) => a.tot - b.tot || fpos[a.id] - fpos[b.id]);
+  let i = 0; while (i < sc.length) { let j = i; while (j + 1 < sc.length && sc[j + 1].tot === sc[i].tot) j++; for (let k = i; k <= j; k++) { sc[k].pos = i + 1; sc[k].tie = j > i; } i = j + 1; }
+  return { rd, list: sc.map(x => ({ id: x.id, pos: (x.tie ? 'T' : '') + x.pos, tot: x.tot, me: x.id === 0, holes: res.h[x.id] ? (decHoles(res.h[x.id], rd * 18) || []) : [], r1: null })) };
+}
 function vTourn() {
   if (!tGet(S.hist[VIEW.s - 1], VIEW.t)) return '<div class="top"><div><h1>Tournoi</h1></div></div><p class="mute">Ce tournoi n’a pas encore été joué.</p><button class="btn sec" data-a="backview">Retour</button>';   // v347 : lien vers un tournoi pas encore joué
   const { s, t } = VIEW, T = tGet(S.hist[s - 1], t), l = T && T.fin ? 0 : (VIEW.l === 4 && !T.rc ? 0 : VIEW.l); const res = l === 4 ? T.rc : T.lg[l], mode = VIEW.mode || 'res';
   if (isMgr()) return tournMgr(s, t, l, T, res, mode);
   let h = '<div class="top"><div><h1>' + esc(T.name) + (T.fin ? '<span class="mjb">Finale</span>' : T.maj && l === 0 ? '<span class="mjb">Majeur</span>' : '') + '</h1><div class="ctx"><a href="#" data-a="lgseason" data-s="' + s + '" data-l="' + (T.fin ? 0 : l) + '">Saison ' + yr(s) + '</a> \u00b7 ' + (T.fin ? 'Finale, top ' + FIN.n + ' de la L1' : 'tournoi ' + (t + 1)) + (T.maj && l === 0 ? ' \u00b7 ' + esc(T.maj) : '') + ' \u00b7 par ' + T.par + (T.purse ? ' \u00b7 bourse totale ' + fmtMoney(Math.round(T.purse * (l === 0 && T.pm ? T.pm : 1))) : '') + '</div></div></div>';
   if (!T.fin) h += chipRow(LEAGUE_SHORT.map((n, i) => [i, 'L' + (i + 1)]).concat(T.rc ? [[4, 'Recrues']] : []), l, 'tournleague');
-  h += chipRow((res.one ? [['res', 'R\u00e9sultats'], ['c1', 'Cartes de scores']] : [['res', 'R\u00e9sultats'], ['c1', 'Cartes ronde 1'], ['c2', 'Cartes ronde 2']]).concat(res.po ? [['po', 'Prolongation']] : []).concat(res.sx ? [['st', 'Stats']] : []), mode, 'tmode');
+  h += chipRow((res.one ? [['res', 'R\u00e9sultats'], ['c1', 'Cartes de scores']] : [['res', 'R\u00e9sultats'], ['c1', 'Cartes ronde 1'], ['c2', 'Cartes ronde 2'], ['cc', 'Cartes combin\u00e9es']]).concat(res.po ? [['po', 'Prolongation']] : []).concat(res.sx ? [['st', 'Stats']] : []), mode, 'tmode');
   h += '<p class="small mute">' + (T.fin ? 'Aucune coupure \u00b7 points doubl\u00e9s' : (l === 4 ? 'Classe de recrues \u00b7 aucune coupure, ni points, ni bourse : les rondes comptent pour l\u2019index' : (res.one ? 'Une ronde \u00b7 pay\u00e9s jusqu\u2019\u00e0 ' : 'Coupure \u00e0 ') + fmt(res.cut)) + (T.maj && l === 0 && (CFG.majPts || 2) !== 1 ? ' \u00b7 Majeur : ' + ((CFG.majPts || 2) === 2 ? 'points doubl\u00e9s' : 'points \u00d7' + String(Math.round(CFG.majPts * 100) / 100).replace('.', ',')) : '')) + (res.playoff ? ' \u00b7 prolongation pour la victoire' : '') + '</p>';
   if (mode === 'po' && res.po) h += '<h2>Prolongation</h2><p class="small mute" style="margin:0 0 8px">Repart du trou 1 et suit la carte jusqu’au bris d’égalité.</p>' + poCardHTML(res.po, T.pars, T.index, res.rows[0] && res.rows[0][0]);
   else if (mode === 'st') h += tStatsHTML(res, T);
@@ -138,9 +150,8 @@ function vTourn() {
   } else if (!res.h || !T.pars) {
     h += '<p class="mute">Les cartes de scores ne sont pas conserv\u00e9es pour ce tournoi (jou\u00e9 avant cette mise \u00e0 jour, ou plus ancien que trois saisons).</p>';
   } else {
-    const rd = mode === 'c1' ? 0 : 1, cnt = {}; res.rows.forEach(r => { cnt[r[1]] = (cnt[r[1]] || 0) + 1; });
-    let list = res.rows.filter(r => rd === 0 || r[3] !== null).map(r => ({ id: r[0], pos: r[1] === 0 ? 'CUT' : (cnt[r[1]] > 1 ? 'T' : '') + r[1], tot: rd === 0 ? r[2] : r[2] + r[3], me: r[0] === 0, holes: res.h[r[0]] ? (decHoles(res.h[r[0]], rd * 18) || []) : [], r1: rd === 1 ? r[2] : null }));
-    h += cardsHTML(cardFocus(list), T.pars, { showR1: rd === 1, index: T.index, at: [s, t] });
+    const { list, rd } = cardsList(res, mode);
+    h += cardsHTML(cardFocus(list), T.pars, { showR1: mode === 'cc', index: T.index, at: [s, t] });
   }
   h += NAV.length ? '<button class="btn sec" data-a="backview" style="margin-top:14px">Retour</button>' : VIEW.from === 'journal' ? '<button class="btn sec" data-a="journal" style="margin-top:14px">Retour au journal</button>' : '<button class="btn sec" data-a="leagues" style="margin-top:14px">Retour aux ligues</button>';
   return h;
@@ -164,7 +175,7 @@ function tournMgr(s, t, l, T, res, mode) {
     (W ? '<div class="thwin">' + flagOf(W[0], 34) + '<div><small>VAINQUEUR</small><a href="#" data-a="golfer" data-id="' + W[0] + '">' + esc(nameOf(W[0])) + '</a><span>' + fmt(wt) + (res.pay && res.pay[W[0]] ? ' · ' + fmtMoney(res.pay[W[0]]) : '') + '</span></div><div class="cup">' + ico('trophy') + '</div></div>' : '') + '</div>' +
     '<div class="thmeta">' + meta.map(m => '<div><span>' + m[0] + '</span><b>' + m[1] + '</b></div>').join('') + '</div></div></div>';
   x += '<div class="lgbar"><div class="lgtabs">' + LEAGUE_SHORT.map((n, i) => T.fin && i ? '' : '<button class="lgt' + (i === l ? ' on' : '') + '" data-a="tournleague" data-v="' + i + '"><i style="background:var(--lg' + (i + 1) + ')"></i>L' + (i + 1) + ' · ' + n + '</button>').join('') + (T.rc && !T.fin ? '<button class="lgt' + (l === 4 ? ' on' : '') + '" data-a="tournleague" data-v="4"><i style="background:var(--me)"></i>Recrues</button>' : '') + '</div>' +
-    '<div class="lgtabs">' + (res.one ? [['res', 'Résultats'], ['c1', 'Cartes de scores']] : [['res', 'Résultats'], ['c1', 'Cartes ronde 1'], ['c2', 'Cartes ronde 2']]).concat(res.po ? [['po', 'Prolongation']] : []).concat(res.sx ? [['st', 'Stats']] : []).map(m => '<button class="lgt' + (m[0] === mode ? ' on' : '') + '" data-a="tmode" data-v="' + m[0] + '">' + m[1] + '</button>').join('') + '</div></div>';
+    '<div class="lgtabs">' + (res.one ? [['res', 'Résultats'], ['c1', 'Cartes de scores']] : [['res', 'Résultats'], ['c1', 'Cartes ronde 1'], ['c2', 'Cartes ronde 2'], ['cc', 'Cartes combinées']]).concat(res.po ? [['po', 'Prolongation']] : []).concat(res.sx ? [['st', 'Stats']] : []).map(m => '<button class="lgt' + (m[0] === mode ? ' on' : '') + '" data-a="tmode" data-v="' + m[0] + '">' + m[1] + '</button>').join('') + '</div></div>';
   if (mode === 'po' && res.po) x += dPanel('Prolongation \u00b7 ' + lgNm(l), '<div style="padding:10px 14px"><p class="small mute" style="margin:0 0 8px">Repart du trou 1 et suit la carte jusqu’au bris d’égalité.</p>' + poCardHTML(res.po, T.pars, T.index, res.rows[0] && res.rows[0][0]) + '</div>', '', 'tg-po');
   else if (mode === 'st') x += dPanel('Statistiques de jeu \u00b7 ' + lgNm(l), '<div style="padding:10px 14px">' + tStatsHTML(res, T) + '</div>', '', 'tg-st');
   else if (mode === 'res') {
@@ -173,9 +184,8 @@ function tournMgr(s, t, l, T, res, mode) {
   } else if (!res.h || !T.pars) {
     x += dPanel('Cartes de scores', '<p class="mute" style="padding:12px 14px;margin:0">Les cartes de scores ne sont pas conservées pour ce tournoi (joué avant cette mise à jour, ou plus ancien que trois saisons).</p>');
   } else {
-    const rd = mode === 'c1' ? 0 : 1, cnt = {}; res.rows.forEach(r => { cnt[r[1]] = (cnt[r[1]] || 0) + 1; });
-    const list = res.rows.filter(r => rd === 0 || r[3] !== null).map(r => ({ id: r[0], pos: r[1] === 0 ? 'CUT' : (cnt[r[1]] > 1 ? 'T' : '') + r[1], tot: rd === 0 ? r[2] : r[2] + r[3], me: r[0] === 0, holes: res.h[r[0]] ? (decHoles(res.h[r[0]], rd * 18) || []) : [], r1: rd === 1 ? r[2] : null }));
-    x += dPanel('Cartes de scores · ' + (res.one ? 'ronde unique' : 'ronde ' + (rd + 1)), cardsHTML(cardFocus(list), T.pars, { showR1: rd === 1, index: T.index, at: [s, t] }), '', 'tg-cards');
+    const { list, rd } = cardsList(res, mode);
+    x += dPanel('Cartes de scores · ' + (res.one ? 'ronde unique' : mode === 'cc' ? 'cartes combinées' : 'ronde ' + (rd + 1)), cardsHTML(cardFocus(list), T.pars, { showR1: mode === 'cc', index: T.index, at: [s, t] }), '', 'tg-cards');
   }
   return x;
 }
