@@ -1405,3 +1405,4 @@ I18N_RX.push([/^Toi : (.+) → (.+) · (promu|relégué) en Ligue (\d)$/, (m, a,
 Object.assign(I18N_EN, { '(facultatif)': '(optional)', 'Ex. Québec': 'e.g. Quebec City', 'Poids (lb)': 'Weight (lb)' });
 Object.assign(I18N_EN, { '🔍 Rechercher un golfeur…': '🔍 Search golfers…', 'Rechercher un golfeur': 'Search golfers' });
 I18N_RX.push([/^retraité(?: à (\d+) ans)?$/, (m, a) => 'retired' + (a ? ' at ' + a : '')]);   // v434 : recherche
+Object.assign(I18N_EN, { 'Cartes combinées': 'Combined cards', 'cartes combinées': 'combined cards' });   // v435
