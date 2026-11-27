@@ -73,7 +73,7 @@ function leaguesMgr(l, s, H, cur, seasons, R) {
   const tile = (v, k, cls) => '<div' + (cls ? ' class="' + cls + '"' : '') + '><b>' + v + '</b><span>' + k + '</span></div>';
   let brief = '<div class="lgbrief">';
   if (list[0]) brief += '<div class="lglead">' + flagOf(list[0].id, 22) + '<div><small>' + (cur && played < N_TOURN ? 'EN TÊTE' : 'CHAMPION') + '</small><a href="#" data-a="golfer" data-id="' + list[0].id + '">' + esc(nameOf(list[0].id)) + '</a></div><b>' + list[0].pts + ' pts</b></div>';
-  brief += '<div class="dst3">' + tile(played + '/' + N_TOURN, 'Tournois joués') + tile(me >= 0 ? ord(me + 1) : '–', 'Ton rang') + tile(list.length, 'Golfeurs') + '</div>';
+  brief += '<div class="dst3">' + tile(played + '/' + N_TOURN, 'Tournois joués') + tile(me >= 0 ? ord(me + 1) : '–', 'Ton rang') + tile(cur && S.L[l] ? S.L[l].length : list.length, 'Golfeurs') + '</div>';
   const VP = CFG.varLg && cur ? planNow() : null, vu = VP && l > 0 ? VP.up[l] : null, vlast = vu && vu.length ? list.find(r => r.id === vu[vu.length - 1]) : null;
   if (VP) brief += '<div class="dst3">' + (l > 0 ? tile(vlast ? vlast.pts + ' pts' : '–', 'Dernier promu (' + vu.length + ' en ce moment)', 'up') : tile('–', 'Pas de promotion')) + (l < 3 ? (() => { const D = new Set(VP.down[l] || []), fd = list.findIndex(r => D.has(r.id)); return tile(fd > 0 ? list[fd - 1].pts + ' pts' : '–', 'Ligne de maintien (' + relBot() + ' derniers relégués)', 'dn'); })() : tile('–', 'Pas de relégation')) + tile(me >= 0 ? list[me].pts + ' pts' : '–', 'Tes points') + '</div>';
   const pro = !VP && l > 0 && list[MOVE - 1] ? list[MOVE - 1].pts : null, rel = !VP && l < 3 && list[FIELD - MOVE - 1] ? list[FIELD - MOVE - 1].pts : null;

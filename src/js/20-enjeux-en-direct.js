@@ -109,7 +109,7 @@ function cutMark(list, rows, k, lv, other) {
   return list;
 }
 function roundBlock(k) {
-  const c = S.cur, pjOk = true,   /* v382 : « Saison en direct » aussi en mode 1 ronde ; v410 : aussi depuis la classe de recrues (voir le message plus bas) */ pv = S.ui.pv === 'proj' && !pjOk ? 'board' : S.ui.pv, lbmode = S.ui.lbmode === 'all' ? 'all' : S.ui.lbmode === 'left' ? 'left' : 'pin';   // « Top 25 » et « Autour de moi » retirés
+  const c = S.cur, pjOk = true,   /* v382 : « Saison en direct » aussi en mode 1 ronde ; v410 : aussi depuis la classe de recrues (voir le message plus bas) */ pv = S.ui.pv === 'proj' && !pjOk ? 'board' : S.ui.pv, lbmode = S.ui.lbmode === 'left' ? 'left' : 'all';   // v437 : « Épinglé » retiré, ta ligne a sa place fixe au-dessus du tableau   // « Top 25 » et « Autour de moi » retirés
   const lv = S.ui.lgv != null && S.ui.lgv !== c.pl ? S.ui.lgv : c.pl, other = lv !== c.pl;
   let top = c.fin ? '<p class="small mute" style="margin:0 0 6px">\ud83c\udfc6 Finale \u00b7 top ' + FIN.n + ' de la Ligue 1 (' + fld(c).length + ' golfeurs) \u00b7 points doubl\u00e9s</p>' : chipRow((c.rc ? [[4, 'Recrues \u00b7 toi']] : []).concat(LEAGUE_SHORT.map((n, i) => [i, 'L' + (i + 1) + (i === c.pl && !c.sw ? ' \u00b7 toi' : '')])), lv, 'lgv');
   const rows = other ? othRows(lv, k) : liveRows(k);
@@ -126,8 +126,8 @@ function roundBlock(k) {
   if (pv === 'proj' && c.rc && !other) return h + '<div class="block pjna" style="margin-top:10px"><b>La saison en direct ne s’applique pas à la classe de recrues</b><p class="small mute" style="margin:4px 0 0">Les recrues n’accumulent aucun point de classement : c’est leur index qui décidera de leur ligue à la fin de la saison. Choisis une ligue dans le menu pour voir son classement en direct.</p></div>';
   if (pv === 'proj') { try { return h + projBoard(lv, rows); } catch (e) { return h + '<p class="mute">Projection indisponible.</p>'; } }
   const nLeft = teeRows ? rows.filter(r => r.n < 18).length : 0;   // v312 : « À jouer » épingle en haut tous ceux qui n'ont pas terminé
-  const lbm = lbmode === 'left' && !nLeft ? 'pin' : lbmode;
-  h += chipRow([['pin', '\u00c9pingl\u00e9'], ['all', 'Tous']].concat(nLeft ? [['left', '\u00c0 jouer (' + nLeft + ')']] : []), lbm, 'lbmode');
+  const lbm = lbmode === 'left' && !nLeft ? 'all' : lbmode;
+  h += chipRow([['all', 'Tous']].concat(nLeft ? [['left', '\u00c0 jouer (' + nLeft + ')']] : []), lbm, 'lbmode');
   let nsBar = '';
   const vis = teeRows ? (() => {   // v217 : où en est le champ ; ceux qui ne sont pas encore partis sont regroupés sur une ligne repliable
     const fin = rows.filter(r => r.n >= 18).length, ns = rows.filter(r => r.ns && r.id !== 0), on = rows.length - fin - ns.length;
@@ -137,7 +137,7 @@ function roundBlock(k) {
     nsBar = '<button class="nsbar" data-a="teens" aria-expanded="' + !!S.ui.nsOpen + '">' + '<span>' + (S.ui.nsOpen ? '\u25be ' : '\u25b8 ') + ns.length + ' pas encore parti' + (ns.length > 1 ? 's' : '') + '</span> \u00b7 <span>' + (t0 === t1 ? 'd\u00e9part \u00e0 ' + t0 : 'd\u00e9parts de ' + t0 + ' \u00e0 ' + t1) + '</span> \u00b7 <span>' + (S.ui.nsOpen ? 'masquer' : 'afficher') + '</span></button>';
     return S.ui.nsOpen ? rows : rows.filter(r => !r.ns || r.id === 0);
   })() : rows;
-  const list = cutMark(lbm === 'left' ? rows.filter(r => r.n < 18).map((r, i, A) => Object.assign({}, r, { pinned: i === A.length - 1 ? 'LE' : 'L' })).concat([{ gap: true }], pickRows(vis, 25, 3)) : lbm === 'all' ? vis : lbmode === 'me' ? pickAround(vis, 20) : lbmode === 'pin' ? pinMe(vis, vis) : pickRows(vis, 25, 3), rows, k, lv, other);
+  const list = cutMark(lbm === 'left' ? rows.filter(r => r.n < 18).map((r, i, A) => Object.assign({}, r, { pinned: i === A.length - 1 ? 'LE' : 'L' })).concat([{ gap: true }], pickRows(vis, 25, 3)) : lbm === 'all' ? pinMe(vis, vis) : lbmode === 'me' ? pickAround(vis, 20) : lbmode === 'pin' ? pinMe(vis, vis) : pickRows(vis, 25, 3), rows, k, lv, other);
   if (pv === 'cards') {
     const cr = list.map(r => r.gap ? r : { id: r.id, pos: posLbl(r), tot: r.tot, me: r.id === 0, pinned: r.pinned, cutAfter: r.cutAfter, pending: r.pending, holes: (other ? othHoles(lv, r.id) : r.id === 0 ? myHoles(c) : c.ai[r.id]).slice(0, r.n != null ? r.n : r.pending ? k - 1 : k), r1: c.r === 1 ? (other ? c.oth[lv].r1[r.id] : c.r1[r.id]) : null });
     if (dmap) h += duoPurseStrip();

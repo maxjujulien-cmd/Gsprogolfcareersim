@@ -381,7 +381,7 @@ function othRows(l, k) {
   const c = S.cur, o = c.oth && c.oth[l]; if (!o || !o.h1) return null;
   const ord = c.r === 0 ? o.o1 : o.o2, olm = c.r === 0 ? o.lm1 : o.lm2, T = ord ? teeT(c, k) : null, st = T != null ? teeStarts(ord, null, olm) : null;
   const n = id => st ? teeHoles(st, T, id) : k, row = (id, tot, nn) => st ? { id, tot, n: nn, g: teeGix(ord, ord.indexOf(id), olm), ns: nn === 0 } : { id, tot };
-  if (c.r === 0) return rankTies(o.ids.map(id => { const nn = n(id); return row(id, relTo(o.h1[id], c.pars, nn), nn); }));
+  if (c.r === 0) return rankTies(o.ids.map(id => { const nn = n(id); return row(id, relTo(o.h1[id], c.pars, nn), nn); }), true);
   othR1(l); if (!o.h2) return null;
   return rankTies(o.alive.map(id => { const nn = n(id); return row(id, o.r1[id] + relTo(o.h2[id], c.pars, nn), nn); }));
 }
@@ -417,9 +417,17 @@ function liveRows(k) {
     const tot = relTo(holes, c.pars, useK) + (c.r === 1 ? c.r1[id] : 0);
     rows.push({ id, tot, pending });
   });
-  return rankTies(rows);
+  return rankTies(rows, c.r === 0);
 }
-function rankTies(rows) {
+function rankTies(rows, noNs) {
+  /* v437 : en ronde 1 (noNs), ceux qui ne sont pas encore partis n'ont pas de position (affichée « – ») : ils passent
+     après les autres, et les positions ne comptent que ceux qui ont joué au moins un trou, comme au PGA Tour. */
+  const ns = noNs ? rows.filter(r => r.ns) : [];
+  if (ns.length) {
+    const on = rankTies(rows.filter(r => !r.ns)), p = on.length + 1;
+    ns.sort((a, b) => nameOf(a.id).localeCompare(nameOf(b.id))).forEach(r => { r.pos = p; r.tie = false; r.nop = true; });
+    return on.concat(ns);
+  }
   rows.sort((a, b) => a.tot - b.tot || (b.n || 0) - (a.n || 0) || nameOf(a.id).localeCompare(nameOf(b.id)));
   let i = 0;
   while (i < rows.length) {
@@ -429,7 +437,7 @@ function rankTies(rows) {
   }
   return rows;
 }
-const posLbl = r => (r.tie ? 'T' : '') + r.pos;
+const posLbl = r => r.nop ? '\u2013' : (r.tie ? 'T' : '') + r.pos;   // v437 : « – » pour qui n'est pas encore parti (ronde 1)
 
 const HOLE_WORD = { '-2': 'aigle', '-1': 'birdie', '0': 'par', '1': 'bogey', '2': 'double bogey', '3': 'triple bogey' };
 function holeWord(rel, strokes) {
@@ -536,7 +544,8 @@ function simSpectHole() {
   let line = 'Trou ' + (k + 1) + ' (par ' + par + ') : ' + nameOf(lead.id) + ' m\u00e8ne \u00e0 ' + fmt(lead.tot) + (after[1] && after[1].tot === lead.tot ? ', \u00e0 \u00e9galit\u00e9.' : '.');
   const ev = [];
   let best = null;
-  after.slice(0, 30).forEach(r => { const d = bpos[r.id] - r.pos; if (d >= 8 && (!best || d > best.d)) best = { r, d }; });
+  const bnop = new Set(before.filter(r => r.nop).map(r => r.id));
+  after.slice(0, 30).forEach(r => { if (bnop.has(r.id) || r.nop) return; const d = bpos[r.id] - r.pos; if (d >= 8 && (!best || d > best.d)) best = { r, d }; });
   if (best) ev.push(nameOf(best.r.id) + ' gagne ' + best.d + ' places (' + posLbl(best.r) + ').');
   holeEvents(before, after, k, ev, false);
   try { fanStep(before, after, k + 1); } catch (e) { }

@@ -697,3 +697,10 @@ html.mgr .rcme{color:#f5c451}
 tr.cutln>td{height:16px;padding:0!important;border:0!important;background:linear-gradient(transparent 7px,var(--bad) 7px,var(--bad) 9px,transparent 9px)!important;text-align:left}
 .cutlb{position:sticky;left:6px;display:inline-block;padding:0 7px;border-radius:4px;background:var(--bad);color:#fff;font:800 10px/15px Arimo,Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;vertical-align:middle}
 tr.cutgap>td{color:var(--bad)}
+
+/* v437 : ta ligne (et tes joueurs du Tournoi rapide) à une place fixe sous l'en-tête des cartes, sur ordinateur */
+:where(.cards thead tr.pinfix) td{background:var(--paper)}
+.cards thead tr.pinfix td{position:sticky;top:var(--pt);z-index:3 !important;height:50px;box-sizing:border-box}
+.cards thead tr.pinfix td.s1,.cards thead tr.pinfix td.s2,.cards thead tr.pinfix td.sg,.cards thead tr.pinfix td:nth-last-child(-n+3){z-index:4 !important}
+.cards thead tr.pinfix td{border-top:0;border-bottom:1px solid var(--line)}
+.cards thead tr.pinfix.pinlast td{border-bottom:3px solid var(--me);box-shadow:0 6px 8px -6px rgba(0,0,0,.6)}

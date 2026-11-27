@@ -156,12 +156,11 @@ function pnBoard(cur, r, k, opts) {
 }
 /* Pendant la ronde : m\u00eames cartes de scores trou par trou qu'en carri\u00e8re (ou le classement simple), joueurs manuels en couleur */
 function pnLive(cur, r, k) {
-  const rows = pnRows(cur, r, k).filter(x => !x.cut), pv = (S && S.ui && S.ui.pnpv) || VIEW.pnpv || 'cards', all = !!VIEW.pnall;
+  const rows = pnRows(cur, r, k).filter(x => !x.cut), pv = (S && S.ui && S.ui.pnpv) || VIEW.pnpv || 'cards', all = false;   // v437 : joueurs manuels toujours à leur place fixe en haut
   // \u00c9pingl\u00e9 : tous les joueurs manuels en haut (dans l'ordre du classement), puis les 20 premiers (o\u00f9 ils figurent aussi \u00e0 leur rang)
   const list = all ? rows : rows.filter(x => x.key[0] === 'h').map(x => Object.assign({}, x, { pinned: true })).concat(rows);   /* v368 : Épinglé montre tout le champ */
   let h = '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">' + chipRow([['cards', 'Cartes de scores'], ['board', 'Classement']], pv, 'pnpv') +
     (cur.fmt === 2 && r === 0 && rows.length >= 4 ? '<span class="tag" style="font-size:15px;padding:3px 12px;white-space:nowrap">Coupure : ' + fmt(cutScoreOf(rows.map(x => x.tot), cur.cutN || Math.max(2, Math.round(rows.length * 0.45)))) + '</span>' : '') + '</div>';
-  h += chipRow([['pin', '\u00c9pingl\u00e9'], ['all', 'Tous (' + rows.length + ')']], all ? 'all' : 'pin', 'pnall');
   const item = x => { const hu = x.key[0] === 'h', f = hu ? null : cur.field[+x.key.slice(1)]; return { pn: true, pinned: !!x.pinned, name: pnNameOf(cur, x.key), nat: f ? f.nat : '', color: hu ? cur.humans[+x.key.slice(1)].c : null, me: hu, pos: (x.tie ? 'T' : '') + x.pos, tot: x.tot, holes: pnHoles(cur, x.key, r).slice(0, x.n != null ? x.n : k), r1: r === 1 ? cur.r1[x.key] : null, n: x.n, g: x.g }; };
   if (pv === 'cards') return h + cardsHTML(list.map(x => x.gap ? x : item(x)), cur.pars, { showR1: r === 1, next: k < 18 ? k : -1, index: cur.index });
   return h + '<div class="boardwrap scroll"><table class="board"><tr><th>Pos</th><th class="fl"></th><th>Joueur</th><th class="r">Total</th><th class="r">Trou</th></tr>' +
