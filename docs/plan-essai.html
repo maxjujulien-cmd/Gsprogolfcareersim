@@ -63,11 +63,11 @@ li.it.done .t::after{content:" ✓";color:var(--green)}
 footer{color:var(--mute);font-size:13px;text-align:center}
 @media (max-width:640px){li.it{grid-template-columns:1fr}.v{justify-content:flex-start}.sh .cnt{display:none}}
 .mods{grid-column:1/-1;list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
-.mod{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:8px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 8px}
-.mod.dem{border-color:var(--sand)}.mod.ver{opacity:.6}.mod.ver input.mt{text-decoration:line-through}
+.mod{display:grid;grid-template-columns:auto auto auto minmax(0,1fr) auto;gap:8px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+.mod.af{border-color:var(--red)}.mod.fait{border-color:var(--green)}.mod.ver{opacity:.6}.mod.ver input.mt{text-decoration:line-through}
 .mod label{display:inline-flex;align-items:center;gap:4px;font:600 11px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--mute);cursor:pointer;white-space:nowrap}
 .mod label input{width:16px;height:16px;accent-color:var(--green);margin:0}
-.mod label.ld input{accent-color:var(--sand)}
+.mod label.la input{accent-color:var(--red)}
 .mod input.mt{font:14px/1.4 var(--f-body);color:var(--ink);background:transparent;border:0;padding:4px 2px;min-width:0;width:100%}
 .mod input.mt:focus-visible,.mod button:focus-visible,.addm input:focus-visible,.addm button:focus-visible,.mod label input:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .mod .del{border:0;background:none;color:var(--mute);font-size:16px;cursor:pointer;padding:2px 6px;border-radius:6px;white-space:nowrap}
@@ -76,7 +76,7 @@ footer{color:var(--mute);font-size:13px;text-align:center}
 .addm input{flex:1;min-width:0;font:14px var(--f-body);color:var(--ink);background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:8px 10px}
 .addm .add{flex:none;font:600 13px var(--f-body);border:1px solid var(--green);background:var(--green-soft);color:var(--green);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
 .pill.d b{color:var(--sand)}
-@media (max-width:640px){.mod{grid-template-columns:auto auto minmax(0,1fr) auto}.mod label span{display:none}}
+@media (max-width:640px){.mod{grid-template-columns:auto auto auto minmax(0,1fr) auto}.mod label span{display:none}}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}.mic.on{animation:none}}
 </style>
 
@@ -91,7 +91,7 @@ footer{color:var(--mute);font-size:13px;text-align:center}
       <span class="pill g">J’aime <b id="nAime">0</b></span>
       <span class="pill s">Bof <b id="nBof">0</b></span>
       <span class="pill r">À changer <b id="nChg">0</b></span>
-      <span class="pill">Modifications : <b id="mTodo">0</b>&nbsp;à demander</span><span class="pill d">Demandées <b id="mDem">0</b></span><span class="pill g">Vérifiées <b id="mVer">0</b></span>
+      <span class="pill r">À faire <b id="mTodo">0</b></span><span class="pill g">Faites, à vérifier <b id="mDem">0</b></span><span class="pill">Vérifiées <b id="mVer">0</b></span>
       <span class="save" id="saveState">Chargement de tes notes…</span>
     </div>
   </header>
@@ -100,7 +100,7 @@ footer{color:var(--mute);font-size:13px;text-align:center}
     <div><b>Avant de commencer</b><span>Exporte ta partie actuelle (<code>Save the game</code>) : tu pourras y revenir. Fais les essais dans une nouvelle carrière.</span></div>
     <div><b>Trois verdicts</b><span>J’aime : on garde. Bof : ça passe, mais ça pourrait être mieux. À changer : écris pourquoi dans la note.</span></div>
     <div id="micHow" hidden><b>Dicter une note</b><span>Clique sur 🎤 à côté d’une note, parle, puis clique de nouveau pour arrêter. Le texte s’ajoute à la note de ce point.</span></div>
-    <div><b>Liste de modifications</b><span>Sous chaque point, ajoute une modification par ligne. <b style="display:inline">Demandé</b> : Claude le coche quand tu lui demandes de la faire. <b style="display:inline">Vérifié</b> : toi, quand c’est réglé à ton goût.</span></div>
+    <div><b>Liste de modifications</b><span>Sous chaque point, ajoute une modification par ligne. Coche <b style="display:inline">À faire</b>, puis dis à Claude « règle ce qui est à faire ». Claude coche <b style="display:inline">Fait</b> quand c’est terminé ; toi, tu coches <b style="display:inline">Vérifié</b> quand c’est réglé à ton goût.</span></div>
     <div><b>Une capture vaut mille mots</b><span>Si quelque chose cloche, fais une capture et garde-la : envoie-la à Claude avec tes notes.</span></div>
   </div>
 
@@ -219,7 +219,7 @@ const STEPS = [
 
 const STATE = {};   // id -> { v: 'aime'|'bof'|'chg'|null, n: string }
 let db = null, onlyTodo = false, dict = null, dictId = null, dictBase = '';
-const MODS = {};   // id -> { p: point, t: texte, o: ordre, dem: bool, ver: bool }
+const MODS = {};   // id -> { p: point, t: texte, o: ordre, af: à faire (Max), fait: fait (Claude), ver: vérifié (Max) }
 const LSM = 'banc-essai-mods-v1';
 const lsmSave = () => { try { localStorage.setItem(LSM, JSON.stringify(MODS)); } catch (e) { } };
 const lsmLoad = () => { try { return JSON.parse(localStorage.getItem(LSM) || '{}') || {}; } catch (e) { return {}; } };
@@ -271,7 +271,7 @@ function paint() {
     if (s.v) { done++; if (s.v === 'aime') a++; else if (s.v === 'bof') b++; else c++; }
   });
   STEPS.forEach((s, k) => { const n = s.items.filter(i => (STATE[i[0]] || {}).v).length; $('#cnt' + k).textContent = n + ' / ' + s.items.length; document.querySelector('section[data-k="' + k + '"]').hidden = onlyTodo && s.items.every(i => document.getElementById('it-' + i[0]).hidden); });
-  const M = Object.values(MODS); $('#mTodo').textContent = M.filter(m => !m.dem && !m.ver).length; $('#mDem').textContent = M.filter(m => m.dem && !m.ver).length; $('#mVer').textContent = M.filter(m => m.ver).length;
+  const M = Object.values(MODS); $('#mTodo').textContent = M.filter(m => m.af && !m.fait && !m.ver).length; $('#mDem').textContent = M.filter(m => m.fait && !m.ver).length; $('#mVer').textContent = M.filter(m => m.ver).length;
   $('#nDone').textContent = done; $('#nAll').textContent = ALL.length; $('#nAime').textContent = a; $('#nBof').textContent = b; $('#nChg').textContent = c;
   const pct = Math.round(done / ALL.length * 100); $('#barfill').style.width = pct + '%'; document.querySelector('.bar').setAttribute('aria-valuenow', String(pct));
 }
@@ -297,17 +297,18 @@ function paintMods(pid) {
     let li = ul.querySelector('li.mod[data-m="' + mid + '"]');
     if (!li) {
       li = el('li', 'mod'); li.dataset.m = mid;
-      const l1 = el('label', 'ld'); const c1 = el('input'); c1.type = 'checkbox'; c1.dataset.ck = 'dem'; c1.dataset.m = mid; l1.appendChild(c1); l1.appendChild(el('span', null, 'Demandé'));
+      const l0 = el('label', 'la'); const c0 = el('input'); c0.type = 'checkbox'; c0.dataset.ck = 'af'; c0.dataset.m = mid; l0.appendChild(c0); l0.appendChild(el('span', null, 'À faire'));
+      const l1 = el('label', 'lf'); const c1 = el('input'); c1.type = 'checkbox'; c1.dataset.ck = 'fait'; c1.dataset.m = mid; l1.appendChild(c1); l1.appendChild(el('span', null, 'Fait'));
       const l2 = el('label', 'lv'); const c2 = el('input'); c2.type = 'checkbox'; c2.dataset.ck = 'ver'; c2.dataset.m = mid; l2.appendChild(c2); l2.appendChild(el('span', null, 'Vérifié'));
       const tx = el('input', 'mt'); tx.type = 'text'; tx.dataset.mt = mid; tx.setAttribute('aria-label', 'Modification');
       const del = el('button', 'del', '×'); del.type = 'button'; del.dataset.del = mid; del.setAttribute('aria-label', 'Supprimer cette modification');
-      li.append(l1, l2, tx, del);
+      li.append(l0, l1, l2, tx, del);
     }
     if (ul.children[i] !== li) ul.insertBefore(li, ul.children[i] || null);
-    const c1 = li.querySelector('[data-ck="dem"]'), c2 = li.querySelector('[data-ck="ver"]'), tx = li.querySelector('.mt');
-    c1.checked = !!m.dem; c2.checked = !!m.ver; c1.setAttribute('aria-label', 'Demandé : ' + m.t); c2.setAttribute('aria-label', 'Vérifié : ' + m.t);
+    const c0 = li.querySelector('[data-ck="af"]'), c1 = li.querySelector('[data-ck="fait"]'), c2 = li.querySelector('[data-ck="ver"]'), tx = li.querySelector('.mt');
+    c0.checked = !!m.af; c1.checked = !!m.fait; c2.checked = !!m.ver; c0.setAttribute('aria-label', 'À faire : ' + m.t); c1.setAttribute('aria-label', 'Fait : ' + m.t); c2.setAttribute('aria-label', 'Vérifié : ' + m.t);
     if (document.activeElement !== tx && tx.value !== m.t) tx.value = m.t;
-    li.classList.toggle('dem', !!m.dem && !m.ver); li.classList.toggle('ver', !!m.ver);
+    li.classList.toggle('af', !!m.af && !m.fait && !m.ver); li.classList.toggle('fait', !!m.fait && !m.ver); li.classList.toggle('ver', !!m.ver);
   });
 }
 const mbusy = {}, magain = {};
@@ -316,14 +317,14 @@ async function writeMod(mid) {
   if (!db) return;
   if (mbusy[mid]) { magain[mid] = true; return; }
   mbusy[mid] = true; $('#saveState').textContent = 'Enregistrement…';
-  try { const m = MODS[mid]; if (m) await db.doc('mods/' + mid).set({ p: m.p, t: m.t, o: m.o, dem: !!m.dem, ver: !!m.ver, at: new Date().toISOString() }); else await db.doc('mods/' + mid).delete(); $('#saveState').textContent = 'Enregistré'; }
+  try { const m = MODS[mid]; if (m) await db.doc('mods/' + mid).set({ p: m.p, t: m.t, o: m.o, af: !!m.af, fait: !!m.fait, ver: !!m.ver, at: new Date().toISOString() }); else await db.doc('mods/' + mid).delete(); $('#saveState').textContent = 'Enregistré'; }
   catch (e) { $('#saveState').textContent = e && e.code === 'quota_exceeded' ? 'Stockage plein : ta liste reste dans ce navigateur.' : 'Pas enregistré en ligne pour l’instant : ta liste reste dans ce navigateur.'; }
   mbusy[mid] = false; if (magain[mid]) { magain[mid] = false; writeMod(mid); }
 }
 function addMod(pid, text) {
   const t = (text || '').replace(/^\s*[-–•]\s*/, '').trim(); if (!t) return false;
   const mid = 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  MODS[mid] = { p: pid, t, o: Date.now(), dem: false, ver: false }; paint(); writeMod(mid); return true;
+  MODS[mid] = { p: pid, t, o: Date.now(), af: false, fait: false, ver: false }; paint(); writeMod(mid); return true;
 }
 function addFromInput(pid) { const ai = document.getElementById('a-' + pid); if (ai && addMod(pid, ai.value)) { ai.value = ''; ai.focus(); } }
 document.addEventListener('change', e => { const c = e.target.closest('[data-ck]'); if (!c) return; const m = MODS[c.dataset.m]; if (!m) return; m[c.dataset.ck] = c.checked; paint(); writeMod(c.dataset.m); });
@@ -381,7 +382,7 @@ $('#saveState').textContent = 'Tes notes s’enregistrent dans ce navigateur.';
   db.collection('mods').onSnapshot(snap => {
     if (snap.metadata.fromCache && snap.empty) return;
     const seen = new Set();
-    snap.docs.forEach(d => { seen.add(d.id); if (mbusy[d.id]) return; const x = d.data() || {}; if (typeof x.p !== 'string' || typeof x.t !== 'string') return; MODS[d.id] = { p: x.p, t: x.t, o: +x.o || 0, dem: !!x.dem, ver: !!x.ver }; });
+    snap.docs.forEach(d => { seen.add(d.id); if (mbusy[d.id]) return; const x = d.data() || {}; if (typeof x.p !== 'string' || typeof x.t !== 'string') return; MODS[d.id] = { p: x.p, t: x.t, o: +x.o || 0, af: !!x.af, fait: !!(x.fait || x.dem), ver: !!x.ver }; });
     if (!snap.metadata.fromCache) Object.keys(MODS).forEach(k => { if (!seen.has(k) && !mbusy[k]) delete MODS[k]; });
     lsmSave(); paint();
   }, () => { });

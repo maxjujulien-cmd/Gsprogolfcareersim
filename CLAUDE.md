@@ -93,8 +93,8 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 - Page interactive : https://claude.ai/artifact/9V96eckwJCPZyHqUcvGEeB (copie : `docs/plan-essai.html`). 78 points en 11 étapes ; pour chacun, Max choisit J'aime / Bof / À changer et écrit une note.
 - Ses réponses sont dans la base de la page (titre : « Liste des tests Indoor Golf Career ») :
   - collection `avis` : un document par point (`v` = aime | bof | chg, `n` = commentaire libre) ;
-  - collection `mods` : **la liste des modifications**, un document par modification (`p` = point, `t` = texte, `o` = ordre, `dem` = demandé, `ver` = vérifié).
-- Quand Max dit « regarde mes notes » ou me demande de régler des éléments : lire `mods` (et `avis`) avec `ArtifactData`. **Quand Max me demande de régler un élément, je coche `dem: true`** (update avec `if_version`). **Je ne coche jamais `ver`** : c'est Max qui le coche quand il considère l'élément réglé.
+  - collection `mods` : **la liste des modifications**, un document par modification (`p` = point, `t` = texte, `o` = ordre, `af` = à faire, `fait` = fait, `ver` = vérifié).
+- **Fonctionnement** : Max coche **À faire** (`af`) puis me dit « règle ce qui est à faire ». Je lis `mods` (et `avis`) avec `ArtifactData`, je prends les éléments `af: true` et `fait: false`, je reviens vers Max point par point pour confirmer ce que je vais faire, je les règle, puis **je coche `fait: true`** (update avec `if_version`). **Je ne touche jamais à `af` ni à `ver`** : c'est Max qui coche Vérifié quand l'élément est réglé à son goût.
 
 ## Idées en attente (Max a dit « plus tard »)
 
