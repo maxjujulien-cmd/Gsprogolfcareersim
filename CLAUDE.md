@@ -91,7 +91,10 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 ## Banc d'essai de Max avant publication
 
 - Page interactive : https://claude.ai/artifact/9V96eckwJCPZyHqUcvGEeB (copie : `docs/plan-essai.html`). 78 points en 11 étapes ; pour chacun, Max choisit J'aime / Bof / À changer et écrit une note.
-- Ses réponses sont dans la base de la page, collection `avis` (un document par point : `v` = aime | bof | chg, `n` = note). Quand Max dit « regarde mes notes du banc d'essai », les lire avec `ArtifactData` (action `list`, collection `avis`), puis proposer les corrections en commençant par les « À changer ».
+- Ses réponses sont dans la base de la page (titre : « Liste des tests Indoor Golf Career ») :
+  - collection `avis` : un document par point (`v` = aime | bof | chg, `n` = commentaire libre) ;
+  - collection `mods` : **la liste des modifications**, un document par modification (`p` = point, `t` = texte, `o` = ordre, `dem` = demandé, `ver` = vérifié).
+- Quand Max dit « regarde mes notes » ou me demande de régler des éléments : lire `mods` (et `avis`) avec `ArtifactData`. **Quand Max me demande de régler un élément, je coche `dem: true`** (update avec `if_version`). **Je ne coche jamais `ver`** : c'est Max qui le coche quand il considère l'élément réglé.
 
 ## Idées en attente (Max a dit « plus tard »)
 

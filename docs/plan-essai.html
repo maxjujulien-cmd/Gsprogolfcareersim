@@ -1,4 +1,4 @@
-<title>Indoor Golf Career · Banc d’essai</title>
+<title>Liste des tests Indoor Golf Career</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
@@ -62,12 +62,27 @@ li.it.done .t::after{content:" ✓";color:var(--green)}
 .tools button{font:600 13px var(--f-body);border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer}
 footer{color:var(--mute);font-size:13px;text-align:center}
 @media (max-width:640px){li.it{grid-template-columns:1fr}.v{justify-content:flex-start}.sh .cnt{display:none}}
+.mods{grid-column:1/-1;list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.mod{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:8px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+.mod.dem{border-color:var(--sand)}.mod.ver{opacity:.6}.mod.ver input.mt{text-decoration:line-through}
+.mod label{display:inline-flex;align-items:center;gap:4px;font:600 11px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--mute);cursor:pointer;white-space:nowrap}
+.mod label input{width:16px;height:16px;accent-color:var(--green);margin:0}
+.mod label.ld input{accent-color:var(--sand)}
+.mod input.mt{font:14px/1.4 var(--f-body);color:var(--ink);background:transparent;border:0;padding:4px 2px;min-width:0;width:100%}
+.mod input.mt:focus-visible,.mod button:focus-visible,.addm input:focus-visible,.addm button:focus-visible,.mod label input:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.mod .del{border:0;background:none;color:var(--mute);font-size:16px;cursor:pointer;padding:2px 6px;border-radius:6px;white-space:nowrap}
+.mod .del.sure{color:var(--red);font:600 12px var(--f-body)}
+.addm{grid-column:1/-1;display:flex;gap:8px;align-items:center}
+.addm input{flex:1;min-width:0;font:14px var(--f-body);color:var(--ink);background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:8px 10px}
+.addm .add{flex:none;font:600 13px var(--f-body);border:1px solid var(--green);background:var(--green-soft);color:var(--green);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
+.pill.d b{color:var(--sand)}
+@media (max-width:640px){.mod{grid-template-columns:auto auto minmax(0,1fr) auto}.mod label span{display:none}}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}.mic.on{animation:none}}
 </style>
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">Indoor Golf Career · v431</div>
+    <div class="eyebrow">Indoor Golf Career · v433</div>
     <h1>Banc d’essai avant publication</h1>
     <p>Tout ce qu’il faut essayer toi-même avant de publier le jeu, dans l’ordre où tu le vivras en jouant. Pour chaque point, donne ton verdict et note ce que tu changerais. Claude peut relire tes notes : dis-lui simplement « regarde mes notes du banc d’essai ».</p>
     <div class="sum" aria-live="polite">
@@ -76,6 +91,7 @@ footer{color:var(--mute);font-size:13px;text-align:center}
       <span class="pill g">J’aime <b id="nAime">0</b></span>
       <span class="pill s">Bof <b id="nBof">0</b></span>
       <span class="pill r">À changer <b id="nChg">0</b></span>
+      <span class="pill">Modifications : <b id="mTodo">0</b>&nbsp;à demander</span><span class="pill d">Demandées <b id="mDem">0</b></span><span class="pill g">Vérifiées <b id="mVer">0</b></span>
       <span class="save" id="saveState">Chargement de tes notes…</span>
     </div>
   </header>
@@ -84,6 +100,7 @@ footer{color:var(--mute);font-size:13px;text-align:center}
     <div><b>Avant de commencer</b><span>Exporte ta partie actuelle (<code>Save the game</code>) : tu pourras y revenir. Fais les essais dans une nouvelle carrière.</span></div>
     <div><b>Trois verdicts</b><span>J’aime : on garde. Bof : ça passe, mais ça pourrait être mieux. À changer : écris pourquoi dans la note.</span></div>
     <div id="micHow" hidden><b>Dicter une note</b><span>Clique sur 🎤 à côté d’une note, parle, puis clique de nouveau pour arrêter. Le texte s’ajoute à la note de ce point.</span></div>
+    <div><b>Liste de modifications</b><span>Sous chaque point, ajoute une modification par ligne. <b style="display:inline">Demandé</b> : Claude le coche quand tu lui demandes de la faire. <b style="display:inline">Vérifié</b> : toi, quand c’est réglé à ton goût.</span></div>
     <div><b>Une capture vaut mille mots</b><span>Si quelque chose cloche, fais une capture et garde-la : envoie-la à Claude avec tes notes.</span></div>
   </div>
 
@@ -202,6 +219,10 @@ const STEPS = [
 
 const STATE = {};   // id -> { v: 'aime'|'bof'|'chg'|null, n: string }
 let db = null, onlyTodo = false, dict = null, dictId = null, dictBase = '';
+const MODS = {};   // id -> { p: point, t: texte, o: ordre, dem: bool, ver: bool }
+const LSM = 'banc-essai-mods-v1';
+const lsmSave = () => { try { localStorage.setItem(LSM, JSON.stringify(MODS)); } catch (e) { } };
+const lsmLoad = () => { try { return JSON.parse(localStorage.getItem(LSM) || '{}') || {}; } catch (e) { return {}; } };
 const $ = s => document.querySelector(s);
 const ALL = STEPS.flatMap(s => s.items.map(i => i[0]));
 const LS = 'banc-essai-v1';
@@ -227,7 +248,11 @@ function build() {
       [['aime', 'J’aime'], ['bof', 'Bof'], ['chg', 'À changer']].forEach(([c, lab]) => { const b = el('button', c, lab); b.type = 'button'; b.dataset.id = id; b.dataset.v = c; b.setAttribute('aria-pressed', 'false'); v.appendChild(b); });
       li.appendChild(v);
       const nt = el('div', 'note'); const ta = el('textarea'); ta.id = 'n-' + id; ta.rows = 1; ta.placeholder = 'Ta note (ce que tu aimes, ce que tu changerais)…'; ta.setAttribute('aria-label', 'Note : ' + t); ta.dataset.id = id; nt.appendChild(ta);
-      const mic = el('button', 'mic', '🎤'); mic.type = 'button'; mic.dataset.mic = id; mic.hidden = !dict; mic.setAttribute('aria-label', 'Dicter la note : ' + t); mic.setAttribute('aria-pressed', 'false'); nt.appendChild(mic); li.appendChild(nt);
+      const mic = el('button', 'mic', '🎤'); mic.type = 'button'; mic.dataset.mic = 'n-' + id; mic.hidden = !dict; mic.setAttribute('aria-label', 'Dicter la note : ' + t); mic.setAttribute('aria-pressed', 'false'); nt.appendChild(mic); li.appendChild(nt);
+      const ml = el('ul', 'mods'); ml.id = 'ml-' + id; ml.setAttribute('aria-label', 'Modifications : ' + t); li.appendChild(ml);
+      const ad = el('div', 'addm'); const ai = el('input'); ai.type = 'text'; ai.id = 'a-' + id; ai.dataset.add = id; ai.placeholder = 'Ajouter une modification à faire…'; ai.setAttribute('aria-label', 'Nouvelle modification : ' + t); ad.appendChild(ai);
+      const am = el('button', 'mic', '🎤'); am.type = 'button'; am.dataset.mic = 'a-' + id; am.hidden = !dict; am.setAttribute('aria-label', 'Dicter une modification : ' + t); am.setAttribute('aria-pressed', 'false'); ad.appendChild(am);
+      const ab = el('button', 'add', '+ Ajouter'); ab.type = 'button'; ab.dataset.addbtn = id; ad.appendChild(ab); li.appendChild(ad);
       ul.appendChild(li);
     });
     sec.appendChild(ul); root.appendChild(sec);
@@ -241,10 +266,12 @@ function paint() {
     li.querySelectorAll('.v button').forEach(btn => btn.setAttribute('aria-pressed', String(s.v === btn.dataset.v)));
     const ta = li.querySelector('textarea'); if (document.activeElement !== ta && ta.value !== (s.n || '')) ta.value = s.n || '';
     li.classList.toggle('done', !!s.v);
-    li.hidden = onlyTodo && !!s.v;
+    paintMods(id);
+    li.hidden = onlyTodo && !!s.v && !Object.values(MODS).some(m => m.p === id && !m.ver);
     if (s.v) { done++; if (s.v === 'aime') a++; else if (s.v === 'bof') b++; else c++; }
   });
-  STEPS.forEach((s, k) => { const n = s.items.filter(i => (STATE[i[0]] || {}).v).length; $('#cnt' + k).textContent = n + ' / ' + s.items.length; document.querySelector('section[data-k="' + k + '"]').hidden = onlyTodo && n === s.items.length; });
+  STEPS.forEach((s, k) => { const n = s.items.filter(i => (STATE[i[0]] || {}).v).length; $('#cnt' + k).textContent = n + ' / ' + s.items.length; document.querySelector('section[data-k="' + k + '"]').hidden = onlyTodo && s.items.every(i => document.getElementById('it-' + i[0]).hidden); });
+  const M = Object.values(MODS); $('#mTodo').textContent = M.filter(m => !m.dem && !m.ver).length; $('#mDem').textContent = M.filter(m => m.dem && !m.ver).length; $('#mVer').textContent = M.filter(m => m.ver).length;
   $('#nDone').textContent = done; $('#nAll').textContent = ALL.length; $('#nAime').textContent = a; $('#nBof').textContent = b; $('#nChg').textContent = c;
   const pct = Math.round(done / ALL.length * 100); $('#barfill').style.width = pct + '%'; document.querySelector('.bar').setAttribute('aria-valuenow', String(pct));
 }
@@ -260,21 +287,69 @@ async function write(id) {
   catch (e) { $('#saveState').textContent = e && e.code === 'quota_exceeded' ? 'Stockage plein : tes notes restent dans ce navigateur.' : 'Pas enregistré en ligne pour l’instant : tes notes restent dans ce navigateur.'; }
   busy[id] = false; if (again[id]) { again[id] = false; write(id); }
 }
+/* liste de modifications : un document par modification (collection « mods ») */
+function paintMods(pid) {
+  const ul = document.getElementById('ml-' + pid); if (!ul) return;
+  const list = Object.entries(MODS).filter(([, m]) => m.p === pid).sort((a, b) => (a[1].o || 0) - (b[1].o || 0));
+  const keep = new Set(list.map(x => x[0]));
+  ul.querySelectorAll('li.mod').forEach(li => { if (!keep.has(li.dataset.m)) li.remove(); });
+  list.forEach(([mid, m], i) => {
+    let li = ul.querySelector('li.mod[data-m="' + mid + '"]');
+    if (!li) {
+      li = el('li', 'mod'); li.dataset.m = mid;
+      const l1 = el('label', 'ld'); const c1 = el('input'); c1.type = 'checkbox'; c1.dataset.ck = 'dem'; c1.dataset.m = mid; l1.appendChild(c1); l1.appendChild(el('span', null, 'Demandé'));
+      const l2 = el('label', 'lv'); const c2 = el('input'); c2.type = 'checkbox'; c2.dataset.ck = 'ver'; c2.dataset.m = mid; l2.appendChild(c2); l2.appendChild(el('span', null, 'Vérifié'));
+      const tx = el('input', 'mt'); tx.type = 'text'; tx.dataset.mt = mid; tx.setAttribute('aria-label', 'Modification');
+      const del = el('button', 'del', '×'); del.type = 'button'; del.dataset.del = mid; del.setAttribute('aria-label', 'Supprimer cette modification');
+      li.append(l1, l2, tx, del);
+    }
+    if (ul.children[i] !== li) ul.insertBefore(li, ul.children[i] || null);
+    const c1 = li.querySelector('[data-ck="dem"]'), c2 = li.querySelector('[data-ck="ver"]'), tx = li.querySelector('.mt');
+    c1.checked = !!m.dem; c2.checked = !!m.ver; c1.setAttribute('aria-label', 'Demandé : ' + m.t); c2.setAttribute('aria-label', 'Vérifié : ' + m.t);
+    if (document.activeElement !== tx && tx.value !== m.t) tx.value = m.t;
+    li.classList.toggle('dem', !!m.dem && !m.ver); li.classList.toggle('ver', !!m.ver);
+  });
+}
+const mbusy = {}, magain = {};
+async function writeMod(mid) {
+  lsmSave();
+  if (!db) return;
+  if (mbusy[mid]) { magain[mid] = true; return; }
+  mbusy[mid] = true; $('#saveState').textContent = 'Enregistrement…';
+  try { const m = MODS[mid]; if (m) await db.doc('mods/' + mid).set({ p: m.p, t: m.t, o: m.o, dem: !!m.dem, ver: !!m.ver, at: new Date().toISOString() }); else await db.doc('mods/' + mid).delete(); $('#saveState').textContent = 'Enregistré'; }
+  catch (e) { $('#saveState').textContent = e && e.code === 'quota_exceeded' ? 'Stockage plein : ta liste reste dans ce navigateur.' : 'Pas enregistré en ligne pour l’instant : ta liste reste dans ce navigateur.'; }
+  mbusy[mid] = false; if (magain[mid]) { magain[mid] = false; writeMod(mid); }
+}
+function addMod(pid, text) {
+  const t = (text || '').replace(/^\s*[-–•]\s*/, '').trim(); if (!t) return false;
+  const mid = 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  MODS[mid] = { p: pid, t, o: Date.now(), dem: false, ver: false }; paint(); writeMod(mid); return true;
+}
+function addFromInput(pid) { const ai = document.getElementById('a-' + pid); if (ai && addMod(pid, ai.value)) { ai.value = ''; ai.focus(); } }
+document.addEventListener('change', e => { const c = e.target.closest('[data-ck]'); if (!c) return; const m = MODS[c.dataset.m]; if (!m) return; m[c.dataset.ck] = c.checked; paint(); writeMod(c.dataset.m); });
+document.addEventListener('keydown', e => {
+  const ai = e.target.closest && e.target.closest('input[data-add]'); if (ai && e.key === 'Enter') { e.preventDefault(); addFromInput(ai.dataset.add); return; }
+  const tx = e.target.closest && e.target.closest('input[data-mt]'); if (tx && e.key === 'Enter') { e.preventDefault(); tx.blur(); }
+});
+document.addEventListener('focusout', e => { const tx = e.target.closest && e.target.closest('input[data-mt]'); if (!tx) return; const m = MODS[tx.dataset.mt]; const v = tx.value.trim(); if (!m || v === m.t) return; if (!v) { tx.value = m.t; return; } m.t = v; writeMod(tx.dataset.mt); paint(); });
 const timers = {};
 /* dictée : le texte dicté s'ajoute à la note du point choisi */
 const joinTxt = (a, b) => { a = a || ''; b = (b || '').trim(); if (!b) return a; return a && !/\s$/.test(a) ? a + ' ' + b : a + b; };
 function micPaint() { document.querySelectorAll('.mic').forEach(m => { const on = m.dataset.mic === dictId; m.classList.toggle('on', on); m.setAttribute('aria-pressed', String(on)); m.textContent = on ? '■' : '🎤'; }); }
-function setNote(id, v) { const ta = document.getElementById('n-' + id); if (ta) ta.value = v; STATE[id] = Object.assign({}, STATE[id], { n: v }); }
+function setNote(tid, v) { const ta = document.getElementById(tid); if (ta) ta.value = v; if (tid.startsWith('n-')) { const id = tid.slice(2); STATE[id] = Object.assign({}, STATE[id], { n: v }); } }
+function dictDone(tid) { if (tid.startsWith('n-')) write(tid.slice(2)); else if (tid.startsWith('a-')) addFromInput(tid.slice(2)); }
 document.addEventListener('click', e => {
   const m = e.target.closest('.mic');
   if (m && dict) {
     const id = m.dataset.mic;
     if (dictId === id) { dict.stop().catch(() => { }); return; }
-    if (dictId) { const prev = dictId; dict.stop().catch(() => { }); write(prev); }
-    dictId = id; dictBase = (document.getElementById('n-' + id) || {}).value || ''; micPaint();
+    if (dictId) dict.stop().catch(() => { });
+    dictId = id; dictBase = (document.getElementById(id) || {}).value || ''; micPaint();
     dict.start({ language: 'fr' }).catch(err => { const was = dictId; dictId = null; micPaint(); if (err && err.code === 'not_granted') { document.querySelectorAll('.mic').forEach(x => { x.hidden = true; }); $('#micHow').hidden = true; } else if (was) $('#saveState').textContent = 'Le micro n’a pas démarré : réessaie ou écris ta note.'; });
     return;
   }
+  const ab = e.target.closest('[data-addbtn]'); if (ab) { addFromInput(ab.dataset.addbtn); return; }
+  const dl = e.target.closest('[data-del]'); if (dl) { if (!dl.classList.contains('sure')) { dl.classList.add('sure'); dl.textContent = 'Supprimer ?'; setTimeout(() => { if (dl.isConnected) { dl.classList.remove('sure'); dl.textContent = '×'; } }, 3000); return; } delete MODS[dl.dataset.del]; paint(); writeMod(dl.dataset.del); return; }
   const b = e.target.closest('.v button'); if (b) { const id = b.dataset.id, s = STATE[id] = Object.assign({}, STATE[id]); s.v = s.v === b.dataset.v ? null : b.dataset.v; paint(); write(id); return; }
   if (e.target.id === 'onlyTodo') { onlyTodo = true; $('#onlyTodo').hidden = true; $('#showAll').hidden = false; paint(); }
   if (e.target.id === 'showAll') { onlyTodo = false; $('#onlyTodo').hidden = false; $('#showAll').hidden = true; paint(); }
@@ -283,14 +358,14 @@ document.addEventListener('input', e => { const ta = e.target.closest('textarea[
 document.addEventListener('focusout', e => { const ta = e.target.closest && e.target.closest('textarea[data-id]'); if (ta && timers[ta.dataset.id]) { clearTimeout(timers[ta.dataset.id]); write(ta.dataset.id); } });
 
 build();
-Object.assign(STATE, lsLoad()); paint();
+Object.assign(STATE, lsLoad()); Object.assign(MODS, lsmLoad()); paint();
 (async () => {
   try { dict = window.claude && window.claude.use ? await window.claude.use('dictation') : null; } catch (e) { dict = null; }
   if (!dict) return;
   document.querySelectorAll('.mic').forEach(m => { m.hidden = false; }); $('#micHow').hidden = false;
-  dict.onPartial(({ text }) => { if (dictId) { const ta = document.getElementById('n-' + dictId); if (ta) ta.value = joinTxt(dictBase, text); } });
+  dict.onPartial(({ text }) => { if (dictId) { const ta = document.getElementById(dictId); if (ta) ta.value = joinTxt(dictBase, text); } });
   dict.onFinal(({ text }) => { if (!dictId) return; dictBase = joinTxt(dictBase, text); setNote(dictId, dictBase); lsSave(); });
-  dict.onState(({ state }) => { if (state === 'idle' && dictId) { const id = dictId; dictId = null; setNote(id, dictBase); micPaint(); write(id); } });
+  dict.onState(({ state }) => { if (state === 'idle' && dictId) { const id = dictId; dictId = null; setNote(id, dictBase); micPaint(); dictDone(id); } });
 })();
 $('#saveState').textContent = 'Tes notes s’enregistrent dans ce navigateur.';
 (async () => {
@@ -303,5 +378,12 @@ $('#saveState').textContent = 'Tes notes s’enregistrent dans ce navigateur.';
     if (!snap.metadata.fromCache) { clearTimeout(t); if (!/Enregistr/.test($('#saveState').textContent)) $('#saveState').textContent = 'Notes à jour · Claude peut les lire'; }
     lsSave(); paint();
   }, () => { clearTimeout(t); db = null; $('#saveState').textContent = 'Tes notes s’enregistrent dans ce navigateur.'; });
+  db.collection('mods').onSnapshot(snap => {
+    if (snap.metadata.fromCache && snap.empty) return;
+    const seen = new Set();
+    snap.docs.forEach(d => { seen.add(d.id); if (mbusy[d.id]) return; const x = d.data() || {}; if (typeof x.p !== 'string' || typeof x.t !== 'string') return; MODS[d.id] = { p: x.p, t: x.t, o: +x.o || 0, dem: !!x.dem, ver: !!x.ver }; });
+    if (!snap.metadata.fromCache) Object.keys(MODS).forEach(k => { if (!seen.has(k) && !mbusy[k]) delete MODS[k]; });
+    lsmSave(); paint();
+  }, () => { });
 })();
 </script>
