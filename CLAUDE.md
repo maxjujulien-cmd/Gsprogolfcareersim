@@ -85,6 +85,11 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 - Max a choisi le style « carte de collection » (option B), mais en gardant **toutes** les infos déjà visibles : une refonte pour embellir, pas pour retirer. Sur ordinateur : carte (photo ou initiales + niveau) à gauche, saison et carte handicap à droite, parcours et niveau/potentiel côte à côte dessous. Téléphone inchangé.
 - Les photos des golfeurs viennent de la bibliothèque de Max (dossier Graphics, `44-bibliotheque-de-photos.js`).
 
+## Banc d'essai de Max avant publication
+
+- Page interactive : https://claude.ai/artifact/9V96eckwJCPZyHqUcvGEeB (copie : `docs/plan-essai.html`). 78 points en 11 étapes ; pour chacun, Max choisit J'aime / Bof / À changer et écrit une note.
+- Ses réponses sont dans la base de la page, collection `avis` (un document par point : `v` = aime | bof | chg, `n` = note). Quand Max dit « regarde mes notes du banc d'essai », les lire avec `ArtifactData` (action `list`, collection `avis`), puis proposer les corrections en commençant par les « À changer ».
+
 ## Idées en attente (Max a dit « plus tard »)
 
 - **Tournois à 4 rondes, coupure après 36 trous (comme le PGA Tour)** : gros chantier (environ 200 endroits dans 28 modules supposent au plus 2 rondes ; format des résultats sauvegardés à agrandir sans casser les parties ; équilibre et défis à remesurer). Deux options présentées le 26 novembre 2026 : A. choix 1, 2 ou 4 rondes à la création d'une carrière ; B. 4 rondes seulement pour les majeurs et la Finale (recommandée). Rappel : Max joue ses rondes sur GSPro, donc 4 rondes = deux fois plus de temps de jeu.
