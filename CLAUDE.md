@@ -63,7 +63,10 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 ## À chaque nouvelle version
 
 1. Numéro de version suivant (dernière : **v433**), noté dans les commentaires du code modifié, **et dans `GAME_V` (`src/js/02-carriere-de-golf-moteur-de.js`)** : c'est le numéro affiché en bas à gauche du jeu (v432, choix de Max).
-2. `npm run build`, puis `npm test`. Pour un changement d'équilibre, vérifier aussi dans le vrai jeu avec le banc d'essai.
+2. **Vérifications en trois niveaux** (décision de Max, 27 novembre 2026 : les vérifications répétées coûtaient trop de temps et de données) :
+   - **Toujours** (moins d'une minute) : `npm run build`, puis `npm test` **une seule fois** (aller-retour, démarrage, et un seul passage du test anglais).
+   - **Seulement quand c'est pertinent** : **une seule** capture 1920 × 1080 pour un changement visible ; le test anglais relancé plusieurs fois seulement après un gros ajout de textes (nouvelle page) ; une ronde jouée depuis une sauvegarde chargée seulement si le changement touche au chargement des parties ou au déroulement d'une ronde ; le banc d'essai seulement pour un changement d'équilibre.
+   - **Grand ménage, de temps en temps** (avant de publier le jeu, ou toutes les 5 à 10 versions) : visite complète du jeu en anglais sur de grosses parties, une ronde jouée de bout en bout, captures de toutes les pages refaites, et vérification qu'aucun appel de fonction n'a disparu du code. Dernier grand ménage : v431.
 3. Mettre à jour `docs/parametres.md` (et le README si besoin).
 4. **Commit et push sur GitHub, toujours, à la fin de chaque changement.** Ne jamais laisser une version seulement dans l'artifact ou dans un fichier envoyé.
 5. Envoyer à Max le fichier autonome `IndoorGolfCareer-vNNN.html`.
