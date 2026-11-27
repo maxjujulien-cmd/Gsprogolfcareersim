@@ -289,6 +289,7 @@ function topUpLeagues() {
 }
 function loadState(obj) {
   WRM.clear();
+  if (obj && obj.pnx) { try { if (obj.pnx.cur) { PNX = obj.pnx; pnSave(); } } catch (e) { } delete obj.pnx; }   // v442 : tournoi rapide gardé dans le fichier
   S = obj;
   if (!S.lkv) { S.cfg = S.cfg || {}; if (S.cfg.lowK == null) S.cfg.lowK = 1; S.lkv = 1; }
   if (!S.tev) { S.cfg = S.cfg || {}; if (S.cfg.topEdge == null) S.cfg.topEdge = 0; S.tev = 1; }

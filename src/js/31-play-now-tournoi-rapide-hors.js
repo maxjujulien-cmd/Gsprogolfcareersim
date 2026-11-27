@@ -134,6 +134,10 @@ function pnRows(cur, r, k) {
   let i = 0;
   while (i < rows.length) { let j = i; while (j + 1 < rows.length && rows[j + 1].tot === rows[i].tot) j++; for (let x = i; x <= j; x++) { rows[x].pos = i + 1; rows[x].tie = j > i; } i = j + 1; }
   out.sort((a, b) => a.tot - b.tot || co.compare(pnNameOf(cur, a.key), pnNameOf(cur, b.key)));
+  if (cur.po && cur.po.w != null && k >= 18 && r === (cur.fmt === 2 ? 1 : 0)) {   // v442 : après la prolongation, le vainqueur seul en tête
+    const w = rows.findIndex(x => x.key === cur.po.w); if (w > 0) rows.unshift(rows.splice(w, 1)[0]);
+    const t = rows.filter(x => x.pos === 1 && x.key !== cur.po.w); rows[0].tie = false; t.forEach(x => { x.pos = 2; x.tie = t.length > 1; });
+  }
   return rows.concat(out);
 }
 function pnDot(cur, key) { return key[0] === 'h' ? '<span class="pndot" style="background:' + cur.humans[+key.slice(1)].c + '"></span>' : ''; }
@@ -311,8 +315,47 @@ function pnRound2(simOnly) {
   if (simOnly) { cur.k = 18; return pnFinish(); }
   pnSave(); VIEW = { name: 'pnPlay' }; render(); window.scrollTo(0, 0);
 }
+/* v442 : prolongation en mort subite si égalité en tête, comme en carrière (demande de Max) */
+function pnPoHole(cur, keys, j) {
+  const grid = gridFor(cur.pars), G = {}, D = {}, base = {};
+  keys.forEach(key => { const f = cur.field[+key.slice(1)]; G[key] = f.g; D[key] = solveDelta(grid, roundTarget(f.g, cur.ctx, 1, 0) - lvlFor(f.g) + (cur.d || 0)); base[key] = 0; });
+  const H = liveFill(MODEL, cur.pars, cur.index, cur.ctx.hv && cur.ctx.hv[1], keys, G, D, base, true, {}, 18, null), o = {};
+  keys.forEach(key => { o[key] = H[key][j]; }); return o;
+}
+function pnPoStep(simAll) {
+  const cur = PNX.cur, P = cur.po; if (!P || P.w != null) return;
+  let g = 0;
+  do {
+    const j = P.h.length % 18, ai = P.live.filter(k => k[0] !== 'h'), sc = ai.length ? pnPoHole(cur, ai, j) : {};
+    P.live.filter(k => k[0] === 'h').forEach(k => { sc[k] = simAll ? cur.pars[j] : (P.vals[k] != null ? P.vals[k] : cur.pars[j]); });
+    P.h.push(sc);
+    const m = Math.min.apply(null, P.live.map(k => sc[k]));
+    P.live = P.live.filter(k => sc[k] === m);
+    if (P.live.length === 1) P.w = P.live[0]; else if (P.h.length >= 20) { P.w = P.live[Math.floor(Math.random() * P.live.length)]; P.live = [P.w]; }
+    P.vals = {}; P.live.filter(k => k[0] === 'h').forEach(k => { P.vals[k] = cur.pars[P.h.length % 18]; });
+  } while (simAll && P.w == null && g++ < 25);
+  pnSave(); render();
+}
+function vPnPo() {
+  const cur = PNX.cur, P = cur.po, n = P.h.length, j = n % 18, par = cur.pars[j], nm = k => esc(pnNameOf(cur, k));
+  let h = '<div class="top"><div><h1>Prolongation</h1><div class="ctx">' + esc(cur.name) + '</div></div></div>';
+  let L = '<div class="block hero">' + (P.w == null ? '<div class="ctx"><span>Trou de prolongation ' + (n + 1) + '</span> · <span>trou ' + (j + 1) + '</span> · <span>index ' + cur.index[j] + '</span></div><div class="big">Par ' + par + '</div><p class="mute" style="margin:6px 0 0">' + P.live.map(nm).join(' · ') + '</p>'
+    : '<div class="ctx">Vainqueur en prolongation</div><div class="big">' + nm(P.w) + '</div><p class="mute" style="margin:6px 0 0"><span>au trou de prolongation ' + n + '</span></p>') + '</div>';
+  const hum = P.w == null ? P.live.filter(k => k[0] === 'h') : [];
+  if (hum.length) L += '<div class="hole pnhole"><div class="lbl">Trou ' + (j + 1) + '</div><div class="par">Par ' + par + '</div>' + hum.map(k => { const i = +k.slice(1), v = P.vals[k]; return '<div class="pnrow"><span class="pnname"><span class="pndot" style="background:' + cur.humans[i].c + '"></span>' + esc(cur.humans[i].n) + '</span><button class="pm" data-a="pnpodec" data-k="' + k + '">\u2212</button><span class="pnval">' + v + '</span><button class="pm" data-a="pnpoinc" data-k="' + k + '">+</button><span class="pnw">' + verdictFor(v - par, v) + '</span></div>'; }).join('') + '</div>';
+  let F = P.w != null ? '<button class="btn" data-a="pnpoend">Voir les résultats</button>' : hum.length ? '<button class="btn" data-a="pnpook">Valider le trou de prolongation</button>' : '<button class="btn" data-a="pnpook">Simuler le trou de prolongation</button><button class="btn sec" data-a="pnpoall">Simuler toute la prolongation</button>';
+  L += F;
+  let R = '<h2>Carte de la prolongation</h2>';
+  if (!n) R += '<div class="block"><p class="mute" style="margin:0">La prolongation repart du trou 1 et suit la carte jusqu’au bris d’égalité.</p></div>';
+  else R += '<div class="cardwrap pocard"><table class="cards"><thead><tr class="hn"><th class="s1">Golfeur</th>' + P.h.map((x, k) => '<th>' + (k % 18 + 1) + '</th>').join('') + '</tr><tr class="hp"><th class="s1">Par</th>' + P.h.map((x, k) => '<th>' + cur.pars[k % 18] + '</th>').join('') + '</tr></thead><tbody>' +
+    P.keys.map(key => { const out = !P.live.includes(key) && P.w !== key; return '<tr class="' + (key[0] === 'h' ? 'me' : '') + (out ? ' poout' : '') + (key === P.w ? ' powin' : '') + '"' + (key[0] === 'h' ? ' style="--me:' + cur.humans[+key.slice(1)].c + ';--meSolid:color-mix(in srgb,' + cur.humans[+key.slice(1)].c + ' 34%,var(--paper))"' : '') + '><td class="s1">' + pnDot(cur, key) + ' ' + nm(key) + '</td>' + P.h.map((sc, k) => sc[key] == null ? '<td></td>' : holeCell(sc[key], cur.pars[k % 18])).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
+  return h + cols(L, R);
+}
 function pnFinish() {
-  const cur = PNX.cur; cur.phase = 'end'; cur.k = 18;
+  const cur = PNX.cur; cur.k = 18;
+  if (!cur.po) { const rows = pnRows(cur, cur.fmt === 2 ? 1 : 0, 18).filter(x => !x.cut), t = rows.filter(x => x.pos === 1).map(x => x.key);
+    if (t.length > 1) { cur.po = { keys: t, live: t.slice(), h: [], w: null, vals: {} }; t.filter(k => k[0] === 'h').forEach(k => { cur.po.vals[k] = cur.pars[0]; }); cur.phase = 'po'; pnSave(); VIEW = { name: 'pnPo' }; render(); window.scrollTo(0, 0); return; } }
+  cur.phase = 'end';
   pnSave(); VIEW = { name: 'pnEnd' }; render(); window.scrollTo(0, 0);
 }
 function pnCard(cur, i) {
@@ -328,15 +371,28 @@ function pnCard(cur, i) {
 function vPnEnd() {
   const cur = PNX.cur, r = cur.fmt === 2 ? 1 : 0, rows = pnRows(cur, r, 18), lead = rows.filter(x => !x.cut && x.pos === 1);
   const nm = x => esc(pnNameOf(cur, x.key));
-  let head = lead.length > 1 ? 'Égalité en tête à ' + fmt(lead[0].tot) + ' : ' + lead.map(nm).join(', ') : nm(lead[0]) + ' remporte le tournoi à ' + fmt(lead[0].tot);
+  let head = cur.po && cur.po.w != null ? nm(lead[0]) + ' remporte le tournoi en prolongation à ' + fmt(lead[0].tot) : lead.length > 1 ? 'Égalité en tête à ' + fmt(lead[0].tot) + ' : ' + lead.map(nm).join(', ') : nm(lead[0]) + ' remporte le tournoi à ' + fmt(lead[0].tot);
   let h = '<div class="top"><div><h1>Tournoi terminé</h1><div class="ctx">' + esc(cur.name) + ' · tees ' + esc(cur.tee) + '</div></div></div>';
   let L = '<div class="block hero"><div class="big" style="font-size:30px;line-height:1.15">' + head + '</div></div>';
   L += '<div class="block"><h3 style="margin-top:0">Vos résultats</h3>' + cur.humans.map((hu, i) => { const x = rows.find(y => y.key === 'h' + i); return '<p class="pnres"><span class="pndot" style="background:' + hu.c + '"></span><b>' + esc(hu.n) + '</b> · <span>' + (x.cut ? 'coupure ratée' : (x.tie ? 'T' : '') + x.pos + (x.pos === 1 ? 'er' : 'e') + ' sur ' + rows.length) + '</span> · <span class="' + cls(x.tot) + '">' + fmt(x.tot) + '</span> <span class="mute small">(' + (sum(hu.h[0]) + sum(hu.h[1])) + ' coups)</span></p>' + pnCard(cur, i); }).join('') + '</div>';
   L += '<button class="btn" data-a="pnagain">Rejouer avec les mêmes réglages</button><button class="btn sec" data-a="pnsetup">Nouveau tournoi</button><button class="btn sec" data-a="pnexit">Retour</button>';
-  return h + cols(L, '<h2>Classement final</h2>' + pnBoard(cur, r, 18, { fin: true }));
+  /* v442 : les cartes de score de tout le champ, comme en carrière (Résultats, cartes de chaque ronde, cartes combinées) */
+  const tabs = [['res', 'Résultats']].concat(cur.fmt === 2 ? [['c1', 'Cartes ronde 1'], ['c2', 'Cartes ronde 2'], ['cc', 'Cartes combinées']] : [['c1', 'Cartes de scores']]), tv = tabs.some(t => t[0] === VIEW.pnet) ? VIEW.pnet : 'res';
+  let R = '<h2>Classement final</h2>' + chipRow(tabs, tv, 'pnet');
+  if (tv === 'res') R += pnBoard(cur, r, 18, { fin: true });
+  else {
+    const rr = tv === 'c2' ? 1 : 0, one = tv !== 'cc', base = tv === 'cc' ? pnRows(cur, r, 18) : pnRows(cur, rr, 18).filter(x => !x.cut || rr === 0);
+    let list = base.filter(x => tv !== 'c2' || !x.cut);
+    if (tv === 'c1' && cur.fmt === 2) { list = list.map(x => Object.assign({}, x, { tot: relTo(pnHoles(cur, x.key, 0), cur.pars, 18) })); list.sort((a, b) => a.tot - b.tot); let i = 0; while (i < list.length) { let j = i; while (j + 1 < list.length && list[j + 1].tot === list[i].tot) j++; for (let x = i; x <= j; x++) { list[x] = Object.assign({}, list[x], { pos: i + 1, tie: j > i }); } i = j + 1; } }
+    if (tv === 'c2') list = list.map(x => Object.assign({}, x, { tot: relTo(pnHoles(cur, x.key, 1), cur.pars, 18) })).sort((a, b) => a.tot - b.tot).map((x, i, A) => Object.assign({}, x, { pos: A.findIndex(y => y.tot === x.tot) + 1, tie: A.filter(y => y.tot === x.tot).length > 1 }));
+    const item = x => { const hu = x.key[0] === 'h', f = hu ? null : cur.field[+x.key.slice(1)]; return { pn: true, name: pnNameOf(cur, x.key), nat: f ? f.nat : '', color: hu ? cur.humans[+x.key.slice(1)].c : null, me: hu, pos: x.cut ? 'CUT' : (x.tie ? 'T' : '') + x.pos, tot: x.tot,
+      holes: tv === 'cc' ? (x.cut ? pnHoles(cur, x.key, 0) : pnHoles(cur, x.key, 1)) : pnHoles(cur, x.key, rr), r1: tv === 'cc' && !x.cut ? cur.r1[x.key] : null }; };
+    R += cardsHTML(list.map(item), cur.pars, { showR1: tv === 'cc', next: -1, index: cur.index });
+  }
+  return h + cols(L, R);
 }
 function pnRender() {
-  const V = { pnSetup: vPnSetup, pnPlay: vPnPlay, pnCut: vPnCut, pnEnd: vPnEnd, pnCres: vCourseResume }[VIEW.name];
+  const V = { pnSetup: vPnSetup, pnPlay: vPnPlay, pnCut: vPnCut, pnEnd: vPnEnd, pnPo: vPnPo, pnCres: vCourseResume }[VIEW.name];
   if (!V || (VIEW.name !== 'pnSetup' && VIEW.name !== 'pnCres' && !PNX.cur)) { VIEW = { name: 'pnSetup' }; return pnRender(); }
   const scenic = VIEW.name !== 'pnPlay';
   $tabs.hidden = true;
@@ -344,11 +400,11 @@ function pnRender() {
 }
 function pnOpen() {
   const c = PNX.cur;
-  VIEW = { name: c && c.phase === 'play' ? 'pnPlay' : c && c.phase === 'cut' ? 'pnCut' : 'pnSetup' };
+  VIEW = { name: c && c.phase === 'play' ? 'pnPlay' : c && c.phase === 'cut' ? 'pnCut' : c && c.phase === 'po' ? 'pnPo' : c && c.phase === 'end' ? 'pnEnd' : 'pnSetup' };
   render(); window.scrollTo(0, 0);
 }
 function pnHomeBtn() {
-  const c = PNX.cur, live = c && (c.phase === 'play' || c.phase === 'cut');
+  const c = PNX.cur, live = c && (c.phase === 'play' || c.phase === 'cut' || c.phase === 'po');
   return '<button class="btn sec pnhome" data-a="pnopen">' + (live ? 'Reprendre Play Now · ' + esc(c.name) : 'Play Now · tournoi rapide') + '</button>';
 }
 function pnAct(a, el) {
@@ -356,11 +412,16 @@ function pnAct(a, el) {
   switch (a) {
     case 'pnopen': pnOpen(); return;
     case 'pnrrand': { const r2 = d.r === '2'; C[r2 ? 'pin2' : 'pin'] = randomPin(); C[r2 ? 'wind2' : 'wind'] = randomWind(); pnSave(); render(); toast('Ronde ' + (r2 ? 2 : 1) + ' : ' + PIN_LABELS[C[r2 ? 'pin2' : 'pin']] + ' \u00b7 ' + WIND_LABELS[C[r2 ? 'wind2' : 'wind']]); return; }
-    case 'pnexit': VIEW = S ? { name: 'home' } : { name: 'new' }; render(); window.scrollTo(0, 0); return;
+    case 'pnexit': { const c = PNX.cur, live = c && (c.phase === 'play' || c.phase === 'cut' || c.phase === 'po'); VIEW = S ? { name: 'home' } : { name: 'new' }; render(); window.scrollTo(0, 0); if (live) toast('Ton tournoi rapide est gardé : reprends-le quand tu veux avec « Reprendre Play Now »'); return; }   // v442
+    case 'pnpoinc': case 'pnpodec': { const P = PNX.cur.po, k = d.k, par = PNX.cur.pars[P.h.length % 18], hr = holeRange(par); P.vals[k] = Math.max(hr[0], Math.min(hr[1], (P.vals[k] || par) + (a === 'pnpoinc' ? 1 : -1))); pnSave(); render(); return; }
+    case 'pnpook': pnPoStep(false); return;
+    case 'pnpoall': pnPoStep(true); return;
+    case 'pnpoend': { const cur = PNX.cur; cur.phase = 'end'; pnSave(); VIEW = { name: 'pnEnd' }; render(); window.scrollTo(0, 0); return; }
+    case 'pnet': VIEW.pnet = d.v; render(); return;
     case 'pnsetup': PNX.cur = null; pnSave(); VIEW = { name: 'pnSetup' }; render(); window.scrollTo(0, 0); return;
     case 'pnagain': pnStart(); return;
     case 'pnstart': {
-      if (PNX.cur && (PNX.cur.phase === 'play' || PNX.cur.phase === 'cut') && !VIEW.pnConfirm) { VIEW.pnConfirm = true; toast('Un tournoi est en cours : touche encore pour le remplacer'); return; }
+      if (PNX.cur && (PNX.cur.phase === 'play' || PNX.cur.phase === 'cut' || PNX.cur.phase === 'po') && !VIEW.pnConfirm) { VIEW.pnConfirm = true; toast('Un tournoi est en cours : touche encore pour le remplacer'); return; }
       pnStart(); return;
     }
     case 'pnadd': if (C.players.length < 8) { pnSyncNames(); C.players.push('Joueur ' + (C.players.length + 1)); pnSave(); render(); } return;

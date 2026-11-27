@@ -1419,3 +1419,9 @@ Object.assign(I18N_EN, { 'Fréquence': 'Frequency', 'Après chaque ronde': 'Afte
   'Ici, les copies restent dans ce navigateur : pour les avoir dans un dossier, joue avec le fichier téléchargé, dans Chrome ou Edge.': 'Here, the copies stay in this browser: to get them in a folder, play with the downloaded file, in Chrome or Edge.' });
 I18N_RX.push([/^Les (\d+) dernières copies vont dans le dossier$/, 'The last $1 copies go to the folder'],
   [/^\(fichiers « auto - … - 1 » à « - (\d+) », qui tournent\), et une copie reste aussi dans ce navigateur\.$/, '(files “auto - … - 1” to “- $1”, in rotation), and a copy also stays in this browser.']);
+/* v442 : tournoi rapide (prolongation, cartes de fin, reprise) */
+Object.assign(I18N_EN, { 'Résultats': 'Results', 'Cartes ronde 1': 'Round 1 cards', 'Cartes ronde 2': 'Round 2 cards', 'Cartes de scores': 'Scorecards', 'Vainqueur en prolongation': 'Playoff winner', 'Prolongation': 'Playoff', 'Carte de la prolongation': 'Playoff card',
+  'Valider le trou de prolongation': 'Confirm the playoff hole', 'Simuler le trou de prolongation': 'Simulate the playoff hole', 'Simuler toute la prolongation': 'Simulate the whole playoff', 'Voir les résultats': 'See the results',
+  'La prolongation repart du trou 1 et suit la carte jusqu’au bris d’égalité.': 'The playoff restarts at hole 1 and follows the card until the tie is broken.',
+  'Ton tournoi rapide est gardé : reprends-le quand tu veux avec « Reprendre Play Now »': 'Your quick tournament is kept: resume it any time with “Resume Play Now”' });
+I18N_RX.push([/^(.+) remporte le tournoi en prolongation à (\S+)$/, '$1 wins the tournament in a playoff at $2'], [/^Trou de prolongation (\d+)$/, 'Playoff hole $1'], [/^au trou de prolongation (\d+)$/, 'on playoff hole $1'], [/^trou (\d+)$/, 'hole $1'], [/^index (\d+)$/, 'index $1'], [/^Trou (\d+)$/, 'Hole $1']);

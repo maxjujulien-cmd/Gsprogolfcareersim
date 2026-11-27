@@ -38,3 +38,6 @@
 @media (prefers-reduced-motion:reduce){.dnext .dart svg.vmap .vmpulse{animation:none}}
 .dnext .dart .vmbar{position:absolute;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;gap:4px 18px;padding:18px 16px 8px;background:linear-gradient(0deg,rgba(6,12,18,.92),rgba(6,12,18,0));font:700 12px Arimo,Arial,sans-serif;color:#e9eef2;letter-spacing:.06em;text-transform:uppercase}
 .dnext .dart .vmbar b{color:#F0C419}
+/* v442 : noms des pays et des provinces sur la carte du trajet */
+.dnext .dart svg.vmap .vmc{font:600 11px Arimo,Arial,sans-serif;letter-spacing:.08em;fill:rgba(201,214,222,.55)}
+.dnext .dart svg.vmap .vms{font:italic 400 10.5px Arimo,Arial,sans-serif;fill:rgba(201,214,222,.45)}

@@ -141,14 +141,30 @@ function voyMapHTML(i) {
     const proj = d3.geoNaturalEarth1().rotate([-mid[0], 0]).fitExtent([[pad, 40], [W - pad, H - 46]], arc), pth = d3.geoPath(proj);
     if (proj.scale() > 2600) proj.scale(2600).translate([W / 2, H / 2 - 6]).center([0, 0]).rotate([-mid[0], -mid[1]]);   // très petit trajet : on ne zoome pas à l'infini
     const P = d3.geoPath(proj), pa = proj(A), pb = proj(B);
-    const land = window.CG_WORLD.features.map(ft => P(ft) || '').join('');
+    /* v442 : plus de détails selon le zoom (demande de Max) : contours fins des pays, frontières des États et provinces,
+       noms des pays puis des États et provinces quand le trajet est court (sans chevauchement). */
+    const sc = proj.scale(), ctrV = proj.invert([W / 2, H / 2]) || mid, radV = d3.geoDistance(ctrV, proj.invert([0, 0]) || A) + 0.05;
+    try { voyPrepAll(); } catch (e) { }
+    const visF = F => F && F.features ? F.features.filter(ft => !ft._c || d3.geoDistance(ft._c, ctrV) - ft._r < radV) : [];
+    const W50 = sc > 330 && window.CG_WORLD50, A1 = sc > 650 && window.CG_ADM1;
+    const land = (W50 ? visF(W50._lite || W50) : window.CG_WORLD.features).map(ft => P(ft) || '').join('');
+    const adm = A1 ? visF(A1._lite || A1).map(ft => P(ft) || '').join('') : '';
+    const boxes = [[pa[0] - 70, pa[1] - 40, pa[0] + 70, pa[1] + 40], [pb[0] - 70, pb[1] - 40, pb[0] + 70, pb[1] + 40], [0, H - 34, W, H]], en = LANG === 'en';
+    let names = '';
+    const lab0 = (F, thr, cls, up) => visF(F).filter(ft => ft.properties && ft.properties.r <= thr).sort((x, y) => x.properties.r - y.properties.r).forEach(ft => {
+      const Pp = ft.properties; if (d3.geoDistance([Pp.x, Pp.y], ctrV) > radV) return; const q = proj([Pp.x, Pp.y]); if (!q) return;
+      const t = up ? (en ? Pp.e : Pp.f).toUpperCase() : (en ? Pp.e : Pp.f), w = t.length * (up ? 7 : 6), bx = [q[0] - w / 2, q[1] - 8, q[0] + w / 2, q[1] + 8];
+      if (bx[0] < 4 || bx[2] > W - 4 || bx[1] < 4 || bx[3] > H - 4 || boxes.some(o => bx[0] < o[2] && bx[2] > o[0] && bx[1] < o[3] && bx[3] > o[1])) return;
+      boxes.push(bx); names += '<text x="' + q[0].toFixed(1) + '" y="' + (q[1] + 4).toFixed(1) + '" text-anchor="middle" class="' + cls + '">' + esc(t) + '</text>'; });
+    if (W50) lab0(W50, 1.2 + sc / 260, 'vmc', true);
+    if (A1) lab0(A1, 1.5 + sc / 400, 'vms', false);
     const q1 = proj(ip(0.6)), q2 = proj(ip(0.62)), ang = Math.atan2(q2[1] - q1[1], q2[0] - q1[0]) * 180 / Math.PI;
     const lab = (q, t1, t2, right, col) => { const x = q[0] + (right ? 14 : -14), an = right ? 'start' : 'end', y = q[1] < 60 ? q[1] + 26 : q[1] - 22;
       return '<text x="' + x + '" y="' + y + '" text-anchor="' + an + '" class="vml1" fill="' + col + '">' + esc(t1) + '</text><text x="' + x + '" y="' + (y + 15) + '" text-anchor="' + an + '" class="vml2">' + esc(t2) + '</text>'; };
     const right = pb[0] >= pa[0];
     let svg = '<svg class="vmap" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
       '<rect width="' + W + '" height="' + H + '" fill="#0b1a2a"/><path d="' + (P(d3.geoGraticule10()) || '') + '" fill="none" stroke="rgba(255,255,255,.05)"/>' +
-      '<path d="' + land + '" fill="#1f3b2c" stroke="#2f5a42" stroke-width=".5"/>' +
+      '<path d="' + land + '" fill="#1f3b2c" stroke="#3d6e52" stroke-width="' + (W50 ? .9 : .5) + '"/>' + (adm ? '<path d="' + adm + '" fill="none" stroke="rgba(201,214,222,.28)" stroke-width=".7" stroke-dasharray="3 2"/>' : '') + names +
       '<path d="' + (P(arc) || '') + '" fill="none" stroke="#F0C419" stroke-width="2.4" stroke-dasharray="7 5"/>' +
       '<circle cx="' + pa[0] + '" cy="' + pa[1] + '" r="5" fill="#9fb0bd" stroke="#fff"/>' +
       '<circle class="vmpulse" cx="' + pb[0] + '" cy="' + pb[1] + '" r="16" fill="rgba(240,196,25,.25)"/><circle cx="' + pb[0] + '" cy="' + pb[1] + '" r="7" fill="#F0C419" stroke="#fff" stroke-width="2"/>' +

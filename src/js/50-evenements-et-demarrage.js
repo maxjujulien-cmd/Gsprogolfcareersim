@@ -399,12 +399,14 @@ let SAVE_PICKED = null;
 async function saveConflictDo(mode) {   // v306 : remplacer, ou nouvelle sauvegarde « nom-1 »
   const C = VIEW.saveConflict; if (!C) return;
   VIEW.saveConflict = null;
-  const full = mode === 'over' ? C.full : await freeSaveName(C.full), json = JSON.stringify(S);
+  const full = mode === 'over' ? C.full : await freeSaveName(C.full), json = saveJSON();
   if (await saveToDir(full, json, true)) { VIEW.exportName = ''; persist(); }
   render();
 }
+/* v442 : le tournoi rapide en cours voyage avec le fichier de sauvegarde (et revient au chargement) */
+const saveJSON = () => JSON.stringify(PNX && PNX.cur ? Object.assign({}, S, { pnx: PNX }) : S);
 async function exportSave() {
-  const json = JSON.stringify(S), typed = (VIEW.exportName || '').trim();
+  const json = saveJSON(), typed = (VIEW.exportName || '').trim();
   const def = defaultSaveName(), filename = typed || def;
   const full = filename.toLowerCase().endsWith('.json') ? filename : filename + '.json';
   SAVE_PICKED = null;
@@ -461,7 +463,7 @@ async function autoBackup1() {
       if (pm === 'granted') {
         S.bkN = ((S.bkN || 0) % BK_N) + 1;
         const fh = await SAVEDIR.getFileHandle('auto - ' + defaultSaveName() + ' - ' + S.bkN + '.json', { create: true }), w = await fh.createWritable();   // v441 : au nom de la partie
-        await w.write(JSON.stringify(S)); await w.close();
+        await w.write(saveJSON()); await w.close();
       }
     }
   } catch (e) { }
