@@ -111,6 +111,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 - Ses réponses sont dans la base de la page (titre : « Liste des tests Indoor Golf Career ») :
   - collection `avis` : un document par point (`v` = aime | bof | chg, `n` = commentaire libre) ;
   - collection `mods` : **la liste des modifications**, un document par modification (`p` = point, `t` = texte, `o` = ordre, `af` = à faire, `fait` = fait, `ver` = vérifié, `img` = captures jointes). Le point `divers` = bloc « À faire ailleurs » (choses sans endroit précis).
+  - En haut de la page (28 nov. 2026) : panneau « À faire » (af sans fait) et « Faites, à vérifier » (fait sans ver), avec un lien vers le point ; chaque élément porte un statut coloré et un menu « Déplacer… » qui change son `p`.
   - Les captures sont des fichiers de la page : les lire avec `Artifact` (`action: read`, `path` = l'identifiant dans `img`).
 - **Fonctionnement** : Max coche **À faire** (`af`) puis me dit « règle ce qui est à faire ». Je lis `mods` (et `avis`) avec `ArtifactData`, je prends les éléments `af: true` et `fait: false`, je reviens vers Max point par point pour confirmer ce que je vais faire, je les règle, puis **je coche `fait: true`** (update avec `if_version`). **Je ne touche jamais à `af` ni à `ver`** : c'est Max qui coche Vérifié quand l'élément est réglé à son goût.
 
