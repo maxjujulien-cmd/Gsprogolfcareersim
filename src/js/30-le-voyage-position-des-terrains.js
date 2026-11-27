@@ -14,15 +14,21 @@ function geoSet(name, v) { const k = normName(name); geoAll()[k] = v; try { loca
 const geoKm = (a, b) => { const R = 6371, r = Math.PI / 180, dLa = (b.la - a.la) * r, dLo = (b.lo - a.lo) * r, x = Math.sin(dLa / 2) ** 2 + Math.cos(a.la * r) * Math.cos(b.la * r) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.min(1, Math.sqrt(x))); };
 const geoCountry = cc => { try { return cc ? new Intl.DisplayNames([LANG === 'en' ? 'en' : 'fr'], { type: 'region' }).of(cc) : ''; } catch (e) { return cc || ''; } };
 async function geoFetch(q) {
-  const r = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&addressdetails=1&accept-language=' + (LANG === 'en' ? 'en' : 'fr') + '&q=' + encodeURIComponent(q), { headers: { Accept: 'application/json' } });
-  if (!r.ok) throw new Error('HTTP ' + r.status); const j = await r.json(); return j && j[0] ? j[0] : null;
+  const r = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&addressdetails=1&accept-language=' + (LANG === 'en' ? 'en' : 'fr') + '&q=' + encodeURIComponent(q), { headers: { Accept: 'application/json' } });
+  if (!r.ok) throw new Error('HTTP ' + r.status); const j = await r.json(); if (!j || !j.length) return null;
+  return j.find(x => x.type === 'golf_course' || /golf/i.test(x.name || '')) || j[0];   // v444 : un terrain de golf d'abord
 }
 const geoClean = n => n.replace(/\b(golf\s*(and|&)\s*country\s*club|golf\s*club|golf\s*course|golf\s*links|golf\s*resort|country\s*club|g\.?c\.?|c\.?c\.?|resort)\b/gi, ' ').replace(/\s+/g, ' ').trim();
 const geoPause = ms => new Promise(r => setTimeout(r, ms));
 function geoVal(res, src) { const a = res.address || {}; return { la: +(+res.lat).toFixed(4), lo: +(+res.lon).toFixed(4), cc: (a.country_code || '').toUpperCase(), pl: a.city || a.town || a.village || a.municipality || a.county || a.state || '', src }; }
+/* v444 : plus d'essais, comme quand on cherche soi-même (demande de Max) : le nom tel quel, avec « golf course »,
+   le nom sans « Golf Club » ni « CC », puis la première partie d'un nom composé (« Pinehurst - No. 2 » → « Pinehurst »).
+   On garde d'abord un résultat qui est un terrain de golf. */
 async function geoLookup(name) {
-  let res = await geoFetch(name);
-  if (!res) { await geoPause(1100); const c = geoClean(name); if (c && c !== name) res = await geoFetch(c + ' golf'); }
+  const c = geoClean(name), first = name.split(/\s+[-–:|]\s+|\s*\(/)[0].trim(), fc = geoClean(first);
+  const tries = [name, /golf/i.test(name) ? null : name + ' golf course', c && c !== name ? c + ' golf' : null, first && first !== name ? first + ' golf' : null, fc && fc !== first ? fc + ' golf course' : null].filter((q, i, A) => q && A.indexOf(q) === i);
+  let res = null;
+  for (let i = 0; i < tries.length && !res; i++) { if (i) await geoPause(1100); res = await geoFetch(tries[i]); if (res && i && !(res.type === 'golf_course' || /golf/i.test(res.name || ''))) res = null; }
   geoSet(name, res ? geoVal(res, 'osm') : { la: null, src: 'none' });
 }
 async function geoManual(name, txt) {   // « ville, pays » ou « 45.5, -73.6 »
