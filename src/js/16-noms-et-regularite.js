@@ -9,6 +9,12 @@ function findBankCourse(name, tee) {
   const t = normName(tee), same = all.find(i => normName(BANK[i].tee) === t);
   return same != null ? same : all[0];
 }
+/* v447 : dans la liste des tees, la distance totale à côté de chaque couleur (demande de Max) : « Black · 6,446 yds » */
+function teeOptHTML(name, t, sel) {
+  const n = normName(name || ''), b = n ? BANK.find(x => normName(x.name) === n && x.tee === t) : null;
+  const y = b && b.dist ? ' \u00b7 ' + b.dist.toLocaleString(LANG === 'en' ? 'en-US' : 'fr-CA') + (LANG === 'en' ? ' yds' : ' v') : '';
+  return '<option value="' + esc(t) + '"' + (sel ? ' selected' : '') + '>' + esc(t) + y + '</option>';
+}
 function bankTeesOf(name) { const n = normName(name); return BANK.filter(b => normName(b.name) === n).map(b => b.tee); }
 /* Recherche dans la liste : un r\u00e9sultat par nom de terrain ; les noms qui commencent par la recherche d'abord, puis ceux qui la contiennent.
    Tous les mots tap\u00e9s doivent se retrouver dans le nom (casse, accents et tirets ignor\u00e9s). */

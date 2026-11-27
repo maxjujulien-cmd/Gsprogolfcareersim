@@ -299,7 +299,7 @@ function courseFields(scope, i, c, locked, showPinWind) {
   const dis = locked ? ' disabled' : '';
   const own = scope === 'c' ? bankTeesOf(c.name).sort((a, b) => teeRank(a) - teeRank(b)) : [], teeList = own.length ? own : TEE_OPTIONS;
   let h = '<div class="sectlab">Identit\u00e9</div><div class="tgrid">' +
-    '<div class="ti"><label for="' + A.tee + i + '">Tee de d\u00e9part</label><select id="' + A.tee + i + '" data-c="' + A.tee + '" data-i="' + i + '"' + dis + '>' + (teeList.includes(c.tee) ? [] : [c.tee]).concat(teeList).map(t => '<option' + (t === c.tee ? ' selected' : '') + '>' + esc(t) + '</option>').join('') + '</select></div>' +
+    '<div class="ti"><label for="' + A.tee + i + '">Tee de d\u00e9part</label><select id="' + A.tee + i + '" data-c="' + A.tee + '" data-i="' + i + '"' + dis + '>' + (teeList.includes(c.tee) ? [] : [c.tee]).concat(teeList).map(t => teeOptHTML(c.name, t, t === c.tee)).join('') + '</select></div>' +
     '<div class="ti"><label for="' + A.dist + i + '">Distance totale (verges)</label><input type="number" id="' + A.dist + i + '" data-c="' + A.dist + '" data-i="' + i + '" min="1000" max="9000" step="1" value="' + c.dist + '"' + dis + '></div></div>';
   h += '<div class="sectlab">Difficult\u00e9</div><div class="tgrid">' +
     '<div class="ti"><label for="' + A.cr + i + '">Course rating</label><input type="number" id="' + A.cr + i + '" data-c="' + A.cr + '" data-i="' + i + '" min="40" max="90" step="0.1" value="' + c.cr + '"' + dis + '></div>' +

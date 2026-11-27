@@ -68,7 +68,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 
 ## À chaque nouvelle version
 
-1. Numéro de version suivant (dernière : **v446**), noté dans les commentaires du code modifié, **et dans `GAME_V` (`src/js/02-carriere-de-golf-moteur-de.js`)** : c'est le numéro affiché en bas à gauche du jeu (v432, choix de Max).
+1. Numéro de version suivant (dernière : **v447**), noté dans les commentaires du code modifié, **et dans `GAME_V` (`src/js/02-carriere-de-golf-moteur-de.js`)** : c'est le numéro affiché en bas à gauche du jeu (v432, choix de Max).
 2. **Vérifications en trois niveaux** (décision de Max, 27 novembre 2026 : les vérifications répétées coûtaient trop de temps et de données) :
    - **Toujours** (moins d'une minute) : `npm run build`, puis `npm test` **une seule fois** (aller-retour, démarrage, et un seul passage du test anglais).
    - **Seulement quand c'est pertinent** : **une seule** capture 1920 × 1080 pour un changement visible ; le test anglais relancé plusieurs fois seulement après un gros ajout de textes (nouvelle page) ; une ronde jouée depuis une sauvegarde chargée seulement si le changement touche au chargement des parties ou au déroulement d'une ronde ; le banc d'essai seulement pour un changement d'équilibre.
@@ -76,7 +76,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 3. Mettre à jour `docs/parametres.md` (et le README si besoin).
 4. **Commit et push sur GitHub, toujours, à la fin de chaque changement.** Ne jamais laisser une version seulement dans l'artifact ou dans un fichier envoyé.
 5. Envoyer à Max le fichier autonome `IndoorGolfCareer-vNNN.html`.
-6. **Republier l'artifact « Indoor Golf Career »** (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) **à chaque nouvelle version** (décision de Max, 27 novembre 2026) : publier `dist/index.html` avec `url`, et un fichier de données (`ootp-names.js`, `ootp-names-extra.js`, `terrains-data.js`) seulement s'il a changé (le relire d'abord avec `action: read` et `path`). L'artifact est partagé « toute personne ayant le lien » : attention à la photo du trophée (voir plus bas). Dernière publication : v446.
+6. **Republier l'artifact « Indoor Golf Career »** (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) **à chaque nouvelle version** (décision de Max, 27 novembre 2026) : publier `dist/index.html` avec `url`, et un fichier de données (`ootp-names.js`, `ootp-names-extra.js`, `terrains-data.js`) seulement s'il a changé (le relire d'abord avec `action: read` et `path`). L'artifact est partagé « toute personne ayant le lien » : attention à la photo du trophée (voir plus bas). Dernière publication : v447.
 
 ## Intersaison en pages « télé » (v425-v428, en cours)
 
@@ -102,6 +102,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 - Tournoi rapide (v443) : préparation en colonnes sur ordinateur avec un bandeau « Ton tournoi » et le bouton Commencer toujours visible (option D) ; cartes des joueurs manuels à gauche sous la saisie (option X, `pnMiniCards`), plus de lignes épinglées ; dévoilement « Par séquence » (`PNREV`), flèches de montée et de descente (`cur.mvb`) et bande « Moments clés » (`pnKmRender`), comme en carrière.
 - Positions des terrains (v444) : 179 terrains localisés de plus (coordonnées SGT) ; la recherche du jeu (OpenStreetMap) fait plusieurs essais et préfère un résultat « terrain de golf » (`geoLookup`). Les 49 restants (surtout fictifs) ont été placés en v445 selon une liste remplie par Max : tous les terrains de la liste ont une position.
 - Villes natales des Canadiens (v446, option A) : tirées selon le poids réel des provinces (`BIO_CAN`, `bioCityCan` : Québec 22 %, Ontario 39 %, C.-B. 14 %, Alberta 12 %…) ; seulement pour les nouveaux golfeurs.
+- Choix du tee (v447) : la distance totale s'affiche à côté de chaque couleur (« Black · 6,446 yds », `teeOptHTML`), dans la page des terrains et dans le tournoi rapide.
 - Les photos des golfeurs viennent de la bibliothèque de Max (dossier Graphics, `44-bibliotheque-de-photos.js`).
 
 ## Banc d'essai de Max avant publication
