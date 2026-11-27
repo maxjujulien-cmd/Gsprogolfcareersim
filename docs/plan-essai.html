@@ -50,14 +50,19 @@ li.it:first-child{border-top:0}
 .v button[aria-pressed="true"].bof{background:var(--sand-soft);border-color:var(--sand);color:var(--sand)}
 .v button[aria-pressed="true"].chg{background:var(--red-soft);border-color:var(--red);color:var(--red)}
 li.it.done .t::after{content:" ✓";color:var(--green)}
-.note{grid-column:1/-1}
+.note{grid-column:1/-1;display:flex;gap:8px;align-items:flex-start}
+.note textarea{flex:1;min-width:0}
+.mic{flex:none;width:40px;height:38px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:17px;cursor:pointer}
+.mic:hover{border-color:var(--mute)}.mic:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.mic.on{background:var(--red-soft);border-color:var(--red);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 4px var(--red-soft)}}
 .note textarea{width:100%;min-height:38px;resize:vertical;font:14px/1.45 var(--f-body);color:var(--ink);background:var(--bg);border:1px dashed var(--line);border-radius:8px;padding:7px 10px}
 .note textarea:not(:placeholder-shown){border-style:solid}
 .tools{display:flex;gap:8px;flex-wrap:wrap}
 .tools button{font:600 13px var(--f-body);border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer}
 footer{color:var(--mute);font-size:13px;text-align:center}
 @media (max-width:640px){li.it{grid-template-columns:1fr}.v{justify-content:flex-start}.sh .cnt{display:none}}
-@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}.mic.on{animation:none}}
 </style>
 
 <div class="wrap">
@@ -78,6 +83,7 @@ footer{color:var(--mute);font-size:13px;text-align:center}
   <div class="how">
     <div><b>Avant de commencer</b><span>Exporte ta partie actuelle (<code>Save the game</code>) : tu pourras y revenir. Fais les essais dans une nouvelle carrière.</span></div>
     <div><b>Trois verdicts</b><span>J’aime : on garde. Bof : ça passe, mais ça pourrait être mieux. À changer : écris pourquoi dans la note.</span></div>
+    <div id="micHow" hidden><b>Dicter une note</b><span>Clique sur 🎤 à côté d’une note, parle, puis clique de nouveau pour arrêter. Le texte s’ajoute à la note de ce point.</span></div>
     <div><b>Une capture vaut mille mots</b><span>Si quelque chose cloche, fais une capture et garde-la : envoie-la à Claude avec tes notes.</span></div>
   </div>
 
@@ -195,7 +201,7 @@ const STEPS = [
 ];
 
 const STATE = {};   // id -> { v: 'aime'|'bof'|'chg'|null, n: string }
-let db = null, onlyTodo = false;
+let db = null, onlyTodo = false, dict = null, dictId = null, dictBase = '';
 const $ = s => document.querySelector(s);
 const ALL = STEPS.flatMap(s => s.items.map(i => i[0]));
 const LS = 'banc-essai-v1';
@@ -220,7 +226,8 @@ function build() {
       const v = el('div', 'v'); v.setAttribute('role', 'group'); v.setAttribute('aria-label', 'Verdict : ' + t);
       [['aime', 'J’aime'], ['bof', 'Bof'], ['chg', 'À changer']].forEach(([c, lab]) => { const b = el('button', c, lab); b.type = 'button'; b.dataset.id = id; b.dataset.v = c; b.setAttribute('aria-pressed', 'false'); v.appendChild(b); });
       li.appendChild(v);
-      const nt = el('div', 'note'); const ta = el('textarea'); ta.id = 'n-' + id; ta.rows = 1; ta.placeholder = 'Ta note (ce que tu aimes, ce que tu changerais)…'; ta.setAttribute('aria-label', 'Note : ' + t); ta.dataset.id = id; nt.appendChild(ta); li.appendChild(nt);
+      const nt = el('div', 'note'); const ta = el('textarea'); ta.id = 'n-' + id; ta.rows = 1; ta.placeholder = 'Ta note (ce que tu aimes, ce que tu changerais)…'; ta.setAttribute('aria-label', 'Note : ' + t); ta.dataset.id = id; nt.appendChild(ta);
+      const mic = el('button', 'mic', '🎤'); mic.type = 'button'; mic.dataset.mic = id; mic.hidden = !dict; mic.setAttribute('aria-label', 'Dicter la note : ' + t); mic.setAttribute('aria-pressed', 'false'); nt.appendChild(mic); li.appendChild(nt);
       ul.appendChild(li);
     });
     sec.appendChild(ul); root.appendChild(sec);
@@ -254,7 +261,20 @@ async function write(id) {
   busy[id] = false; if (again[id]) { again[id] = false; write(id); }
 }
 const timers = {};
+/* dictée : le texte dicté s'ajoute à la note du point choisi */
+const joinTxt = (a, b) => { a = a || ''; b = (b || '').trim(); if (!b) return a; return a && !/\s$/.test(a) ? a + ' ' + b : a + b; };
+function micPaint() { document.querySelectorAll('.mic').forEach(m => { const on = m.dataset.mic === dictId; m.classList.toggle('on', on); m.setAttribute('aria-pressed', String(on)); m.textContent = on ? '■' : '🎤'; }); }
+function setNote(id, v) { const ta = document.getElementById('n-' + id); if (ta) ta.value = v; STATE[id] = Object.assign({}, STATE[id], { n: v }); }
 document.addEventListener('click', e => {
+  const m = e.target.closest('.mic');
+  if (m && dict) {
+    const id = m.dataset.mic;
+    if (dictId === id) { dict.stop().catch(() => { }); return; }
+    if (dictId) { const prev = dictId; dict.stop().catch(() => { }); write(prev); }
+    dictId = id; dictBase = (document.getElementById('n-' + id) || {}).value || ''; micPaint();
+    dict.start({ language: 'fr' }).catch(err => { const was = dictId; dictId = null; micPaint(); if (err && err.code === 'not_granted') { document.querySelectorAll('.mic').forEach(x => { x.hidden = true; }); $('#micHow').hidden = true; } else if (was) $('#saveState').textContent = 'Le micro n’a pas démarré : réessaie ou écris ta note.'; });
+    return;
+  }
   const b = e.target.closest('.v button'); if (b) { const id = b.dataset.id, s = STATE[id] = Object.assign({}, STATE[id]); s.v = s.v === b.dataset.v ? null : b.dataset.v; paint(); write(id); return; }
   if (e.target.id === 'onlyTodo') { onlyTodo = true; $('#onlyTodo').hidden = true; $('#showAll').hidden = false; paint(); }
   if (e.target.id === 'showAll') { onlyTodo = false; $('#onlyTodo').hidden = false; $('#showAll').hidden = true; paint(); }
@@ -264,6 +284,14 @@ document.addEventListener('focusout', e => { const ta = e.target.closest && e.ta
 
 build();
 Object.assign(STATE, lsLoad()); paint();
+(async () => {
+  try { dict = window.claude && window.claude.use ? await window.claude.use('dictation') : null; } catch (e) { dict = null; }
+  if (!dict) return;
+  document.querySelectorAll('.mic').forEach(m => { m.hidden = false; }); $('#micHow').hidden = false;
+  dict.onPartial(({ text }) => { if (dictId) { const ta = document.getElementById('n-' + dictId); if (ta) ta.value = joinTxt(dictBase, text); } });
+  dict.onFinal(({ text }) => { if (!dictId) return; dictBase = joinTxt(dictBase, text); setNote(dictId, dictBase); lsSave(); });
+  dict.onState(({ state }) => { if (state === 'idle' && dictId) { const id = dictId; dictId = null; setNote(id, dictBase); micPaint(); write(id); } });
+})();
 $('#saveState').textContent = 'Tes notes s’enregistrent dans ce navigateur.';
 (async () => {
   try { db = window.claude && window.claude.use ? await window.claude.use('db') : null; } catch (e) { db = null; }
