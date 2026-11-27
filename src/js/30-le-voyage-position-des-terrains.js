@@ -126,6 +126,40 @@ function voyTripHTML(i) {   // bande « trajet » dans la carte du prochain tour
   return '<div class="vtrip">' + ic + ' ' + (fn && f ? '<b>' + esc(fn) + '</b> → ' : '') + '<b>' + esc(to.name) + '</b>' + (flag ? ' ' + flag : '') +
     '<span class="m">' + voyPlace(g) + (M.length ? ' · ' + M.join(' · ') : '') + '</span></div>';
 }
+/* v440 : carte du monde à plat dans la carte du prochain tournoi (option B, choix de Max) : le trajet du vol depuis le
+   tournoi précédent, la carte cadrée sur le trajet, l'avion toujours tourné vers sa destination, et un bandeau télé.
+   Renvoie '' (bandeau vert d'origine) s'il manque une position ou si l'on reste au même endroit. */
+function voyMapHTML(i) {
+  try {
+    if (!window.d3 || !d3.geoNaturalEarth1 || !window.CG_WORLD || !isPC()) return '';
+    const st = voyStops(S.season), to = st[i]; if (!to || !to.name) return '';
+    const g = geoOf(to.name), fn = voyFrom(i), f = fn ? geoOf(fn) : null; if (!g || !f) return '';
+    const km = geoKm(f, g); if (km < 1) return '';
+    const W = 624, H = 230, A = [f.lo, f.la], B = [g.lo, g.la], ip = d3.geoInterpolate(A, B), mid = ip(0.5);
+    const arc = { type: 'LineString', coordinates: d3.range(0, 1.0001, 0.02).map(ip) };
+    const pad = Math.min(150, 60 + 3000 / Math.max(km, 50));
+    const proj = d3.geoNaturalEarth1().rotate([-mid[0], 0]).fitExtent([[pad, 40], [W - pad, H - 46]], arc), pth = d3.geoPath(proj);
+    if (proj.scale() > 2600) proj.scale(2600).translate([W / 2, H / 2 - 6]).center([0, 0]).rotate([-mid[0], -mid[1]]);   // très petit trajet : on ne zoome pas à l'infini
+    const P = d3.geoPath(proj), pa = proj(A), pb = proj(B);
+    const land = window.CG_WORLD.features.map(ft => P(ft) || '').join('');
+    const q1 = proj(ip(0.6)), q2 = proj(ip(0.62)), ang = Math.atan2(q2[1] - q1[1], q2[0] - q1[0]) * 180 / Math.PI;
+    const lab = (q, t1, t2, right, col) => { const x = q[0] + (right ? 14 : -14), an = right ? 'start' : 'end', y = q[1] < 60 ? q[1] + 26 : q[1] - 22;
+      return '<text x="' + x + '" y="' + y + '" text-anchor="' + an + '" class="vml1" fill="' + col + '">' + esc(t1) + '</text><text x="' + x + '" y="' + (y + 15) + '" text-anchor="' + an + '" class="vml2">' + esc(t2) + '</text>'; };
+    const right = pb[0] >= pa[0];
+    let svg = '<svg class="vmap" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
+      '<rect width="' + W + '" height="' + H + '" fill="#0b1a2a"/><path d="' + (P(d3.geoGraticule10()) || '') + '" fill="none" stroke="rgba(255,255,255,.05)"/>' +
+      '<path d="' + land + '" fill="#1f3b2c" stroke="#2f5a42" stroke-width=".5"/>' +
+      '<path d="' + (P(arc) || '') + '" fill="none" stroke="#F0C419" stroke-width="2.4" stroke-dasharray="7 5"/>' +
+      '<circle cx="' + pa[0] + '" cy="' + pa[1] + '" r="5" fill="#9fb0bd" stroke="#fff"/>' +
+      '<circle class="vmpulse" cx="' + pb[0] + '" cy="' + pb[1] + '" r="16" fill="rgba(240,196,25,.25)"/><circle cx="' + pb[0] + '" cy="' + pb[1] + '" r="7" fill="#F0C419" stroke="#fff" stroke-width="2"/>' +
+      '<g transform="translate(' + q1[0].toFixed(1) + ' ' + q1[1].toFixed(1) + ') rotate(' + ang.toFixed(1) + ')"><path d="M11 0 L3 -2.2 L-2 -10 L-5 -10 L-1.5 -2.2 L-7 -2 L-9.5 -5.5 L-11.5 -5.5 L-10 0 L-11.5 5.5 L-9.5 5.5 L-7 2 L-1.5 2.2 L-5 10 L-2 10 L3 2.2 Z" fill="#fff" stroke="#0b1a2a" stroke-width="1"/></g>' +
+      lab(pa, (f.pl || fn).toUpperCase(), geoCountry(f.cc), !right, '#9fb0bd') + lab(pb, (g.pl || to.name).toUpperCase(), geoCountry(g.cc), right, '#F0C419') + '</svg>';
+    const M = [fmtKm(km)];
+    if (km < 600) { const h = km * 1.25 / 85; M.push('<span>environ ' + (h < 1 ? Math.max(10, Math.round(h * 60 / 5) * 5) + ' min' : Math.floor(h) + ' h ' + String(Math.round((h % 1) * 60 / 5) * 5 % 60).padStart(2, '0')) + ' de route</span>'); }
+    else { const h = km / 820 + 0.6, hh = Math.floor(h), mm = Math.round((h - hh) * 60 / 10) * 10; M.push('<span>environ ' + (mm === 60 ? (hh + 1) + ' h' : hh + ' h' + (mm ? ' ' + String(mm).padStart(2, '0') : '')) + ' de vol</span>'); }
+    return svg + '<div class="vmbar"><b>Prochain arrêt</b>' + M.map(x => '<span>' + x + '</span>').join('') + '</div>';
+  } catch (e) { return ''; }
+}
 function voyRouteHTML() {   // la route de la saison : arrêts, avion, km parcourus
   const st = voyStops(S.season).filter(x => x.name); if (st.length < 2) return '';
   const G = st.map(x => geoOf(x.name)); if (G.filter(Boolean).length < 2) return '';
@@ -205,6 +239,8 @@ function voyMount2(cv, st) {
   cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
   const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
   const pts = st.map(x => ({ x, g: geoOf(x.name) })).filter(p => p.g);
+  const nx = (VIEW.s || S.season) === S.season ? pts.find(p => !p.x.done) : null;   // v440 : le prochain tournoi, en vedette
+  if (!VOY_ROT && nx) VOY_ROT = [-nx.g.lo, -nx.g.la * 0.8];
   if (!VOY_ROT) { if (pts.length) { const c = d3.geoCentroid({ type: 'MultiPoint', coordinates: pts.map(p => [p.g.lo, p.g.la]) }); VOY_ROT = [-c[0], -c[1]]; } else VOY_ROT = [73, -40]; }
   const css = getComputedStyle(document.documentElement), col = n => (css.getPropertyValue(n) || '').trim() || '#888', dark = /^#?(0|1|2)/.test(col('--bg').replace('#', '')), SEA = dark ? '#132b3d' : '#cfe2ef', LAND = dark ? '#2b4632' : '#eae5cf';
   const proj = d3.geoOrthographic().translate([W / 2, H / 2]).clipAngle(90), path = d3.geoPath(proj, ctx), grat = d3.geoGraticule10();
@@ -234,11 +270,15 @@ function voyMount2(cv, st) {
       lab(CG_WORLD50, 1.2 + 1.9 * VOY_K, '600 ' + (isPC() ? 11 : 12) + 'px Arimo, Arial', col('--mute'), true);
       if (A1) lab(CG_ADM1, 0.8 + 1.15 * VOY_K, 'italic 400 ' + (isPC() ? 10.5 : 11.5) + 'px Arimo, Arial', col('--mute'));
     }
-    for (let j = 1; j < pts.length; j++) { ctx.beginPath(); path({ type: 'LineString', coordinates: [[pts[j - 1].g.lo, pts[j - 1].g.la], [pts[j].g.lo, pts[j].g.la]] }); ctx.strokeStyle = pts[j].x.done ? col('--acc') : col('--mute'); ctx.lineWidth = isPC() ? 2.4 : 2.8; ctx.setLineDash(pts[j].x.done ? [] : [6, 5]); ctx.stroke(); ctx.setLineDash([]); }
+    for (let j = 1; j < pts.length; j++) { ctx.beginPath(); path({ type: 'LineString', coordinates: [[pts[j - 1].g.lo, pts[j - 1].g.la], [pts[j].g.lo, pts[j].g.la]] }); const nL = pts[j] === nx; ctx.strokeStyle = nL ? '#F0C419' : pts[j].x.done ? col('--acc') : col('--mute'); ctx.lineWidth = (isPC() ? 2.4 : 2.8) * (nL ? 1.3 : 1); ctx.setLineDash(pts[j].x.done || nL ? [] : [6, 5]); ctx.stroke(); ctx.setLineDash([]); }
     const ctr = [-VOY_ROT[0], -VOY_ROT[1]];
     pts.forEach((p, j) => { if (d3.geoDistance([p.g.lo, p.g.la], ctr) > Math.PI / 2) return; const [x, y] = proj([p.g.lo, p.g.la]);
-      const R = isPC() ? 10 : 13; ctx.beginPath(); ctx.arc(x, y, R, 0, 2 * Math.PI); ctx.fillStyle = p.x.fin ? '#8E6FD8' : p.x.maj ? '#E3B12C' : col('--acc'); ctx.fill(); ctx.strokeStyle = col('--paper'); ctx.lineWidth = 2; ctx.stroke();
-      ctx.fillStyle = '#111'; ctx.font = '700 ' + (isPC() ? 12 : 15) + 'px Arimo, Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(p.x.fin ? 'F' : String(p.x.i + 1), x, y + .5); });
+      const isN = p === nx, R = (isPC() ? 10 : 13) * (isN ? 1.35 : 1);
+      if (isN) { ctx.beginPath(); ctx.arc(x, y, R * 2.1, 0, 2 * Math.PI); ctx.fillStyle = 'rgba(240,196,25,.25)'; ctx.fill(); }
+      ctx.beginPath(); ctx.arc(x, y, R, 0, 2 * Math.PI); ctx.fillStyle = isN ? '#F0C419' : p.x.fin ? '#8E6FD8' : p.x.maj ? '#E3B12C' : col('--acc'); ctx.fill(); ctx.strokeStyle = col('--paper'); ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = '#111'; ctx.font = '700 ' + (isPC() ? 12 : 15) + 'px Arimo, Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(p.x.fin ? 'F' : String(p.x.i + 1), x, y + .5);
+      if (isN) { const pl = p.g ? [p.g.pl, geoCountry(p.g.cc)].filter(Boolean).join(', ') : ''; ctx.textAlign = 'left'; ctx.lineJoin = 'round'; ctx.font = '800 ' + (isPC() ? 14 : 15) + 'px Arimo, Arial'; const t1 = (LANG === 'en' ? 'NEXT · ' : 'PROCHAIN · ') + p.x.name.toUpperCase(); ctx.lineWidth = 5; ctx.strokeStyle = '#0b1622'; ctx.strokeText(t1, x + R * 2.3, y - 6); ctx.fillStyle = '#F0C419'; ctx.fillText(t1, x + R * 2.3, y - 6);
+        if (pl) { ctx.font = '600 ' + (isPC() ? 12.5 : 13) + 'px Arimo, Arial'; ctx.strokeText(pl, x + R * 2.3, y + 12); ctx.fillStyle = '#e9eef2'; ctx.fillText(pl, x + R * 2.3, y + 12); } } });
   };
   draw();
   let raf = 0; const ask = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; if (cv.isConnected) draw(); }); };   // v396 : au plus un dessin par image

@@ -1410,3 +1410,4 @@ Object.assign(I18N_EN, { 'Cartes combinées': 'Combined cards', 'cartes combiné
 /* v436 : fiche rapide au survol */
 Object.assign(I18N_EN, { 'Sommet en carrière': 'Career peak' });
 I18N_RX.push([/^(\d+)(er|e)$/, (m, n) => { n = +n; const t = n % 100; return n + (t >= 11 && t <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'); }]);
+Object.assign(I18N_EN, { 'Prochain arrêt': 'Next stop' });   // v440
