@@ -140,7 +140,7 @@ async function act(a, el) {
     case 'spn': { const n = Math.max(1, Math.min(PRESIM_MAX, Math.round(+((document.getElementById('spnum') || {}).value || 1)))); runSpect(n); break; }
     case 'tab': tabGo(d.v); break;
     case 'home': go('home'); break;
-    case 'round': startRound(+d.r); render(); window.scrollTo(0, 0); break;
+    case 'round': startRound(+d.r); render(); window.scrollTo(0, 0); if (+d.r === 1) autoBackup('r'); break;   // v441 : copie après la ronde 1
     case 'roundsim': startRoundSim(+d.r); render(); window.scrollTo(0, 0); break;
     case 'simseason': simulateSeason(); render(); window.scrollTo(0, 0); break;
     case 'simtourn': simulateTournament(); render(); window.scrollTo(0, 0); break;
@@ -207,7 +207,7 @@ async function act(a, el) {
     case 'toggleall2': VIEW.all = !VIEW.all; render(); break;
     case 'finish': if (S.cur && S.cur.phase === 'cut') { const c = S.cur; if (!S.one && (!c.made || c.sw) && c.r === 0) { c.r = 1; simAIRound(1); aiFill(18, true); if (teeCur(c)) c.tx = 999; }   /* v314 : une égalité après la ronde 2 simulée d'un coup mène aussi à la page de prolongation */
       if (!poStart(c)) finishTournament(); } else holdRound(); render(); window.scrollTo(0, 0); break;
-    case 'endseason': doSeasonEnd(); render(); window.scrollTo(0, 0); autoBackup(); break;
+    case 'endseason': doSeasonEnd(); render(); window.scrollTo(0, 0); autoBackup('s'); break;
     case 'offgo': VIEW = { name: 'off', s: d.s ? +d.s : (VIEW.s || S.season - 1), i: +d.i || 0 }; if (S.off) persist(); render(); window.scrollTo(0, 0); break;
     case 'offdone': S.off = null; persist(); go('home'); window.scrollTo(0, 0); break;
     case 'bkrestore': { const o = await kvOp('get', d.v); if (o && o.G) applyImportedJSON(JSON.stringify(o)); else toast('Copie introuvable'); break; }
@@ -387,8 +387,11 @@ async function act(a, el) {
 /* v303 : un nom choisi à la main devient le nom de base ; les sauvegardes suivantes proposent « nom - 2026T3 » */
 const saveTag = () => yr(S.season) + (S.t >= N_TOURN ? 'Fin' : 'T' + (S.t + 1));
 const saveBaseOf = n => String(n || '').replace(/\.json$/i, '').replace(/\s*-\s*(?:\d{1,4}(?:T\d+|Fin)|s\d+t\d+)$/i, '').trim();
+/* v441 : un seul nom par partie (choix de Max) : le fichier principal est remplacé à chaque sauvegarde ;
+   un nom écrit à la main crée un fichier à part (un « checkpoint ») sans changer le nom par défaut. */
 function defaultSaveName() {
-  if (S.saveBase) return S.saveBase + ' - ' + saveTag();
+  if (S.saveBase) return S.saveBase;
+  if (S.name && S.name !== 'Toi') return S.name.replace(/[\\/:*?"<>|]+/g, ' ').trim() + (S.duo ? ' - duo' : LANG === 'en' ? ' - career' : ' - carrière');
   const slug = (S.name || 'joueur').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'joueur';
   return (S.duo ? 'duo-golf-' : LANG === 'en' ? 'golf-career-' : 'carriere-golf-') + slug + '-s' + S.season + 't' + (S.t + 1);
 }
@@ -397,16 +400,16 @@ async function saveConflictDo(mode) {   // v306 : remplacer, ou nouvelle sauvega
   const C = VIEW.saveConflict; if (!C) return;
   VIEW.saveConflict = null;
   const full = mode === 'over' ? C.full : await freeSaveName(C.full), json = JSON.stringify(S);
-  if (await saveToDir(full, json, true)) { if (C.typed) { const b = saveBaseOf(C.typed); if (b) S.saveBase = b; } VIEW.exportName = ''; persist(); }
+  if (await saveToDir(full, json, true)) { VIEW.exportName = ''; persist(); }
   render();
 }
 async function exportSave() {
   const json = JSON.stringify(S), typed = (VIEW.exportName || '').trim();
-  const filename = typed || defaultSaveName();
+  const def = defaultSaveName(), filename = typed || def;
   const full = filename.toLowerCase().endsWith('.json') ? filename : filename + '.json';
   SAVE_PICKED = null;
-  const keep = () => { const used = typed || (SAVE_PICKED && SAVE_PICKED !== full ? SAVE_PICKED : ''); const b = used ? saveBaseOf(used) : ''; if (b) S.saveBase = b; VIEW.exportName = ''; persist(); if (VIEW.name === 'more') render(); };
-  const r = await saveToDir(full, json, false);
+  const keep = () => { if (!S.saveBase) S.saveBase = saveBaseOf(def); VIEW.exportName = ''; persist(); if (VIEW.name === 'more') render(); };   // v441 : le nom par défaut reste celui de la partie
+  const r = await saveToDir(full, json, !typed);   // v441 : le fichier principal est remplacé sans question
   if (r === 'exists') { VIEW.saveConflict = { full, alt: await freeSaveName(full), typed }; render(); setTimeout(() => { const b = document.getElementById('svconf'); if (b) b.scrollIntoView({ block: 'center' }); }, 0); return; }
   if (r) { keep(); return; }
   const ok = await saveFile(full, json, 'application/json', 'Sauvegarde de carri\u00e8re', '.json', 'Sauvegarde enregistr\u00e9e');
@@ -437,7 +440,15 @@ const kvOp = (op, k, v) => DB.ready.then(() => new Promise(res => {
 }));
 const BK_N = 5;
 let BK_Q = Promise.resolve();
-function autoBackup() { BK_Q = BK_Q.then(autoBackup1, autoBackup1); return BK_Q; }   // une copie à la fois (pas de course entre deux tournois rapprochés)
+/* v441 : fréquence des copies automatiques, au choix (S.bkm) : 'r' après chaque ronde, 't' après chaque tournoi (défaut),
+   's' après chaque saison, 'n' jamais. when = 'r' (fin de ronde 1), 't' (fin de tournoi) ou 's' (fin de saison). */
+const BK_MODES = [['r', 'Après chaque ronde'], ['t', 'Après chaque tournoi'], ['s', 'Après chaque saison'], ['n', 'Jamais']];
+function autoBackup(when) {
+  const m = (S && S.bkm) || 't', w = when || 't';
+  if (m === 'n' || (m === 's' && w !== 's') || (m === 't' && w === 'r')) return BK_Q;
+  if (m === 'r' && w === 's') return BK_Q;   // la fin de saison suit de près la Finale, déjà copiée
+  BK_Q = BK_Q.then(autoBackup1, autoBackup1); return BK_Q;
+}   // une copie à la fois (pas de course entre deux tournois rapprochés)
 async function autoBackup1() {
   if (!S || S.presim || NOSAVE) return;
   try {
@@ -445,10 +456,11 @@ async function autoBackup1() {
     const ok = await kvOp('put', k, saveObj());
     if (ok) { list.unshift({ k, at: Date.now(), s: S.season, t: S.t, fin: !!(seasonHist() && seasonHist().fin) }); while (list.length > BK_N) { const x = list.pop(); kvOp('del', x.k); } await kvOp('put', lk, list); }
     if (canPickDir() && (SAVEDIR || (SAVEDIR = await dirKv('get')))) {
-      if ((await SAVEDIR.queryPermission({ mode: 'readwrite' })) === 'granted') {
+      let pm = await SAVEDIR.queryPermission({ mode: 'readwrite' });
+      if (pm === 'prompt') { try { pm = await SAVEDIR.requestPermission({ mode: 'readwrite' }); } catch (e) { } }   // v441 : redemande l'accès au dossier (après un clic)
+      if (pm === 'granted') {
         S.bkN = ((S.bkN || 0) % BK_N) + 1;
-        const slug = (S.name || 'joueur').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
-        const fh = await SAVEDIR.getFileHandle((S.duo ? 'auto-duo-' : 'auto-') + slug + '-' + S.bkN + '.json', { create: true }), w = await fh.createWritable();
+        const fh = await SAVEDIR.getFileHandle('auto - ' + defaultSaveName() + ' - ' + S.bkN + '.json', { create: true }), w = await fh.createWritable();   // v441 : au nom de la partie
         await w.write(JSON.stringify(S)); await w.close();
       }
     }
@@ -500,10 +512,11 @@ async function saveFile(full, data, mime, desc, ext, okMsg) {
     toast(okMsg); return true;
   } catch (e) { return false; }
 }
-function applyImportedJSON(text) {
+function applyImportedJSON(text, fname) {
   try {
     const o = JSON.parse(text);
     if (!o || !o.G || !o.L || !o.settings) throw new Error('bad');
+    if (fname && !o.saveBase && !/^auto-/i.test(fname)) { const b = saveBaseOf(fname); if (b) o.saveBase = b; }   // v441
     if (!S) { loadState(o); persist(); go('home'); toast('Sauvegarde import\u00e9e'); }
     else { VIEW = { name: 'more', pending: o }; render(); window.scrollTo(0, 0); }
   } catch (e) {
@@ -513,7 +526,7 @@ function applyImportedJSON(text) {
 }
 function importSave(file) {
   const fr = new FileReader();
-  fr.onload = () => applyImportedJSON(fr.result);
+  fr.onload = () => applyImportedJSON(fr.result, file.name);
   fr.readAsText(file);
 }
 document.addEventListener('click', e => {
@@ -586,6 +599,7 @@ document.addEventListener('change', e => {
   if (c === 'tejump') { if (REVEAL) { clearInterval(REVEAL.timer); REVEAL = null; } teeJump(el.value); return; }
   if (c === 'crfkmmaj') { crf().lockMaj = el.checked; persist(); crfRemember(); render(); return; }
   if (c === 'crfkm') { crf().autoKm = el.checked; persist(); crfRemember(); return; }
+  if (c === 'bkm') { S.bkm = el.value; persist(); render(); toast(BK_MODES.find(x => x[0] === el.value)[1]); return; }   // v441
   if (c === 'voys') { VIEW.s = +el.value; VOY_ROT = null; render(); return; }
   if (c === 'crfauto' || c === 'crfnorep') { crf()[c === 'crfauto' ? 'auto' : 'noRep'] = el.checked; persist(); crfRemember(); return; }
   if (c === 'cord') { const i = +d.i, j = +el.value; if (swapCourses(i, j)) toast(i >= N_TOURN || j >= N_TOURN ? 'Tournoi ' + (Math.min(i, j) + 1) + ' et Finale échangés' : 'Tournois ' + (i + 1) + ' et ' + (j + 1) + ' échangés'); render(); return; }

@@ -1411,3 +1411,11 @@ Object.assign(I18N_EN, { 'Cartes combinées': 'Combined cards', 'cartes combiné
 Object.assign(I18N_EN, { 'Sommet en carrière': 'Career peak' });
 I18N_RX.push([/^(\d+)(er|e)$/, (m, n) => { n = +n; const t = n % 100; return n + (t >= 11 && t <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'); }]);
 Object.assign(I18N_EN, { 'Prochain arrêt': 'Next stop' });   // v440
+/* v441 : nom de sauvegarde unique et copies automatiques au choix */
+Object.assign(I18N_EN, { 'Fréquence': 'Frequency', 'Après chaque ronde': 'After each round', 'Après chaque tournoi': 'After each tournament', 'Après chaque saison': 'After each season', 'Jamais': 'Never',
+  'Aucune copie automatique.': 'No automatic copies.', 'Ta partie :': 'Your game:', 'ce fichier est remplacé à chaque sauvegarde. Écris un autre nom pour garder une copie à part.': 'this file is replaced each time you save. Type another name to keep a separate copy.',
+  '(fichiers « auto - … - 1 » à « - ': '(files “auto - … - 1” to “- ',
+  'Choisis le dossier « Saved Games » (lien « Choisir maintenant », près du bouton de sauvegarde) pour que les copies aillent dans un fichier sur ton ordinateur. Pour l’instant, elles restent dans ce navigateur.': 'Choose the “Saved Games” folder (“Choose now” link, next to the save button) so the copies go to a file on your computer. For now, they stay in this browser.',
+  'Ici, les copies restent dans ce navigateur : pour les avoir dans un dossier, joue avec le fichier téléchargé, dans Chrome ou Edge.': 'Here, the copies stay in this browser: to get them in a folder, play with the downloaded file, in Chrome or Edge.' });
+I18N_RX.push([/^Les (\d+) dernières copies vont dans le dossier$/, 'The last $1 copies go to the folder'],
+  [/^\(fichiers « auto - … - 1 » à « - (\d+) », qui tournent\), et une copie reste aussi dans ce navigateur\.$/, '(files “auto - … - 1” to “- $1”, in rotation), and a copy also stays in this browser.']);
