@@ -33,6 +33,7 @@ Ce fichier sert à mieux connaître Max d'une session à l'autre. **À la fin d'
 - La lisibilité passe avant tout quand il joue : une belle photo, oui, mais le texte doit rester net (« mieux voir la calligraphie »).
 - Il remarque les petits détails qui clochent (l'avion qui semblait partir de la destination) : soigner le sens et la cohérence des visuels.
 - Il retouche volontiers une option choisie (« A, mais avec plus de contraste ») : lui montrer 2 ou 3 variantes de l'option côte à côte, avec une recommandation.
+- Il commence sa vraie carrière (27 novembre 2026, v440) et fait confiance aux sauvegardes : il a refusé un test automatique avec sa propre sauvegarde. D'autant plus important : ne jamais casser une partie en cours (migrations dans `loadState`).
 - Il veut que tout soit au même endroit : un seul dépôt GitHub, tout y est enregistré à chaque changement.
 
 ## Décisions d'équilibre à respecter (novembre 2026)
