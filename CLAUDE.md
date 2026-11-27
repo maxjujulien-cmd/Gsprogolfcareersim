@@ -28,6 +28,7 @@ Ce fichier sert à mieux connaître Max d'une session à l'autre. **À la fin d'
 - Il préfère l'imprévu cohérent à la perfection : des explosions et des surprises, mais qui ont un sens (le tempérament, une journée noire).
 - D'autres joueront aussi à son jeu : penser aux autres niveaux de handicap et aux autres défis, pas seulement aux siens.
 - En apparence, il aime le style « télé » (bandeaux, chiffres géants, photo) et mélange volontiers les options (« les infos de B avec le look de A »).
+- Il est prêt à commencer sa « vraie » carrière (fin novembre 2026, v430). Il préfère garder le jeu stable plutôt qu'ajouter des systèmes : il trouve le jeu déjà assez complet.
 - Il veut que tout soit au même endroit : un seul dépôt GitHub, tout y est enregistré à chaque changement.
 
 ## Décisions d'équilibre à respecter (novembre 2026)
@@ -55,11 +56,13 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 - Pour tester avec une carrière remplie : démarrer une partie en mode manuel et jouer quelques tournois automatiquement (« Simuler jusqu'à mon départ », puis saisir des scores et « Valider le trou »).
 - Chaque push sur GitHub construit et teste le jeu (onglet Actions). Le fichier prêt à jouer, `IndoorGolfCareer`, se télécharge depuis la page de l'exécution.
 - **Attention aux commentaires en fin de ligne** : en v418, une modification a fait glisser du code dans un commentaire (`// …`) dans `loadState`. Le modèle de trous n'était plus construit au chargement d'une partie, et « Valider le trou » ne faisait plus rien (corrigé en v430). Après une modification, vérifier qu'aucun appel n'a disparu (comparer les appels de fonctions avant/après), et tester une vraie ronde jouée à partir d'une sauvegarde chargée.
+- **Langue : le jeu est toujours en anglais** (v431, choix de Max ; plus de sélecteur). Le code reste écrit en français et `src/js/01-langue-francais-ou-anglais.js` traduit à l'affichage (dictionnaire `I18N_EN`, motifs `I18N_RX`). **Toute nouvelle phrase affichée demande sa traduction anglaise.** Le test `tests/anglais.test.mjs` joue une partie (un tournoi trou par trou, une saison, l'intersaison, les menus et des fiches) et échoue s'il voit du français ; les noms de golfeurs, de terrains et de villes sont ignorés. Le monde change à chaque passage : le lancer plusieurs fois après un gros ajout de textes.
+- Nos réponses à Max restent en français.
 - **Sauvegardes existantes** : un changement d'équilibre ne doit pas casser une partie en cours. Utiliser un drapeau de migration dans `loadState` (exemples : `lkv`, `rpv`), et indiquer à Max ce qui s'applique tout de suite et ce qui ne vaut que pour les prochaines recrues.
 
 ## À chaque nouvelle version
 
-1. Numéro de version suivant (dernière : **v430**), noté dans les commentaires du code modifié.
+1. Numéro de version suivant (dernière : **v431**), noté dans les commentaires du code modifié.
 2. `npm run build`, puis `npm test`. Pour un changement d'équilibre, vérifier aussi dans le vrai jeu avec le banc d'essai.
 3. Mettre à jour `docs/parametres.md` (et le README si besoin).
 4. **Commit et push sur GitHub, toujours, à la fin de chaque changement.** Ne jamais laisser une version seulement dans l'artifact ou dans un fichier envoyé.
@@ -81,6 +84,13 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 
 - Max a choisi le style « carte de collection » (option B), mais en gardant **toutes** les infos déjà visibles : une refonte pour embellir, pas pour retirer. Sur ordinateur : carte (photo ou initiales + niveau) à gauche, saison et carte handicap à droite, parcours et niveau/potentiel côte à côte dessous. Téléphone inchangé.
 - Les photos des golfeurs viennent de la bibliothèque de Max (dossier Graphics, `44-bibliotheque-de-photos.js`).
+
+## Idées en attente (Max a dit « plus tard »)
+
+- **Tournois à 4 rondes, coupure après 36 trous (comme le PGA Tour)** : gros chantier (environ 200 endroits dans 28 modules supposent au plus 2 rondes ; format des résultats sauvegardés à agrandir sans casser les parties ; équilibre et défis à remesurer). Deux options présentées le 26 novembre 2026 : A. choix 1, 2 ou 4 rondes à la création d'une carrière ; B. 4 rondes seulement pour les majeurs et la Finale (recommandée). Rappel : Max joue ses rondes sur GSPro, donc 4 rondes = deux fois plus de temps de jeu.
+- **Réalisme** (aucune n'a inspiré Max pour l'instant) : tirage matin / après-midi, terrains fétiches, blessures passagères, chantier de swing, invitations, météo suivie entre les rondes, décalage horaire, préparation du parcours (greens et fermeté GSPro), dépenses et commanditaires, calendrier géographique, Tournoi des champions, Coupe des Nations.
+- **Solidité** : test automatique d'une ronde jouée à partir d'une sauvegarde ; alléger les sauvegardes de très longues parties (plus de 30 Mo à 100 saisons) ; suite de l'intersaison en style télé (« Talents et tempéraments » et les suivants).
+- Constat du 24 novembre 2026 (rondes 1 et 2 très différentes) : surtout le vent tiré indépendamment à chaque ronde et la chance de la ronde 1 qui ne se répète pas ; pas d'excès d'extrêmes. Max a jugé que « ça fait du sens » : rien changé.
 
 ## Terrains
 

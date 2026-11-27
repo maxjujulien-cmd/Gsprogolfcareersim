@@ -27,7 +27,7 @@ public/             données publiées à côté de la page, copiées telles que
 tools/
   build.mjs         assemble src/ → dist/index.html (+ public/) et dist/IndoorGolfCareer.html
   importer.mjs      l'inverse : découpe une page complète (artifact ou autonome) en modules dans src/
-tests/              aller-retour sans perte + démarrage réel dans Chromium
+tests/              aller-retour sans perte + démarrage réel dans Chromium + aucun texte français dans le jeu en anglais
 ```
 
 Les fichiers de `src/js/` sont **concaténés dans un seul `<script>`**, comme avant : l'ordre des numéros compte,
@@ -53,7 +53,7 @@ Il faut [Node.js](https://nodejs.org) 20 ou plus récent ; aucune dépendance à
 
 ```sh
 npm run build     # produit dist/index.html (+ ses données) et dist/IndoorGolfCareer.html (autonome)
-npm test          # vérifie l'aller-retour, puis (si Playwright est installé) le démarrage dans Chromium
+npm test          # vérifie l’aller-retour, puis (si Playwright est installé) le démarrage dans Chromium et l’absence de texte français (une partie jouée en anglais)
 ```
 
 Pour jouer sur le PC du simulateur : ouvrir `dist/IndoorGolfCareer.html`.

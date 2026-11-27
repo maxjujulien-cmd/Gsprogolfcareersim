@@ -4,7 +4,7 @@
    puis motifs généraux (I18N_GEN : ordinaux, pourcentages, unités). Un observateur traduit tout ce qui apparaît
    dans la page (écrans, notifications, cartes dépliées…). Les sauvegardes ne changent pas d'une langue à l'autre.
    Un élément marqué class="notr" n'est jamais traduit (noms tapés par le joueur, sélecteur de langue). */
-let LANG = (() => { try { const v = localStorage.getItem('golf-lang'); if (v === 'fr' || v === 'en') return v; } catch (e) { } return /^fr/i.test((typeof navigator !== 'undefined' && navigator.language) || 'fr') ? 'fr' : 'en'; })();
+let LANG = 'en';   // v431 : le jeu est toujours en anglais (choix de Max) ; le français reste la langue du code source, traduite à l'affichage
 const I18N_EN = {};
 const I18N_RX = [];
 I18N_RX.push([/^(.+) · trou (\d+) du dernier groupe$/, '$1 · final group on hole $2']);
@@ -29,6 +29,14 @@ Object.assign(I18N_EN, { 'Watchlist du tournoi': 'Tournament Watchlist', '★ Wa
   'Touche ☆ à côté d’un nom pour l’ajouter à ta watchlist du tournoi.': 'Tap ☆ next to a name to add them to your tournament watchlist.' });
 I18N_RX.push([/^(\d+) golfeurs?$/, (m, n) => n + (n === '1' ? ' golfer' : ' golfers')]);
 const I18N_GEN = [];
+let I18N_UPX = null;   // v431 : index des traductions en majuscules (« CLASSE DE RECRUES » → « ROOKIE CLASS »)
+function I18N_UP(core) {
+  if (!I18N_UPX) { I18N_UPX = new Map(); Object.keys(I18N_EN).forEach(k => { const u = k.toUpperCase(); if (!I18N_UPX.has(u)) I18N_UPX.set(u, String(I18N_EN[k]).toUpperCase()); }); }
+  const d = I18N_UPX.get(core); if (d) return d;
+  if (core.indexOf(' · ') > 0) { const ps = core.split(' · '), t = ps.map(x => I18N_UPX.get(x.trim()) || x); if (t.some((x, i) => x !== ps[i])) return t.join(' · '); }
+  const m = core.match(/^(.*?)\s*·$/); if (m) { const t = I18N_UP(m[1]); if (t) return t + ' ·'; }
+  return null;
+}
 const I18N_MEMO = new Map();
 const I18N_SKIP = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT', 'CODE', 'PRE']);
 function trText(s) {
@@ -40,6 +48,10 @@ function trText(s) {
   if (out === undefined) { let hit = false; out = core; for (const [rx, to] of I18N_RX) { rx.lastIndex = 0; if (rx.test(out)) { rx.lastIndex = 0; const r = out.replace(rx, to); if (r !== out) { out = r; hit = true; break; } } }
     if (!hit && core.indexOf(' · ') > 0) out = core.split(' · ').map(x => trText(x)).join(' · ');   // phrase composée : chaque morceau à part
     else if (!hit && /^· |\s·$/.test(core)) { const m2 = core.match(/^(·\s*)?(.*?)(\s*·)?$/), t2 = trText(m2[2]); if (t2 !== m2[2]) out = (m2[1] || '') + t2 + (m2[3] || ''); }   // v347 : morceau collé à un séparateur « · »
+    else if (!hit && /^« .+ »$/.test(core)) { const q = core.slice(2, -2); const t2 = q.split(/(?<=[.!?]) +/).map(x => trText(x)).join(' '); if (t2 !== q) out = '“' + t2 + '”'; }   // v431 : citation (rapport des dépisteurs)
+    else if (!hit && /[.!?:] +[A-ZÀ-ÝÉ«]/.test(core)) { const ps = core.split(/(?<=[.!?:]) +(?=[A-ZÀ-ÝÉ«])/); if (ps.length > 1) { const t2 = ps.map(x => trText(x)).join(' '); if (t2 !== core) out = t2; } }   // v431 : plusieurs phrases (nom du talent + description…) : chaque phrase à part
+    if (out === core && /[A-ZÀ-Ý]{3}/.test(core) && core === core.toUpperCase()) { const u = I18N_UP(core); if (u) out = u; }   // v431 : titres écrits en majuscules
+    else if (/[A-ZÀ-Ý]{3}/.test(out) && out.indexOf(' · ') > 0) { const ps = out.split(' · '), t = ps.map(x => (x === x.toUpperCase() && /[A-ZÀ-Ý]{3}/.test(x) && I18N_UP(x)) || x); if (t.some((x, i) => x !== ps[i])) out = t.join(' · '); }
   }
   for (const [rx, to] of I18N_GEN) out = out.replace(rx, to);
   out = (/^[:;!?]/.test(out) && / $/.test(lead) ? lead.slice(0, -1) : lead) + out + trail;   // pas d'espace avant « : » en anglais
@@ -72,8 +84,8 @@ function i18nWatch() {
   I18N_OBS = new MutationObserver(list => { for (const m of list) { if (m.type === 'characterData') trNode(m.target); else if (m.type === 'attributes') { if (m.target.nodeType === 1 && !(m.target.closest && m.target.closest('.notr'))) trAttrs(m.target); } else m.addedNodes.forEach(trNode); } });
   I18N_OBS.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: I18N_ATTR });
 }
-function setLang(v) { LANG = v === 'en' ? 'en' : 'fr'; try { localStorage.setItem('golf-lang', LANG); } catch (e) { } I18N_MEMO.clear(); i18nWatch(); }
-const langPickHTML = () => '<div class="chips langpick notr" role="group" aria-label="Langue / Language"><button class="chip" data-a="setlang" data-v="fr" aria-pressed="' + (LANG === 'fr') + '">Français</button><button class="chip" data-a="setlang" data-v="en" aria-pressed="' + (LANG === 'en') + '">English</button></div>';
+function setLang(v) { LANG = 'en'; try { localStorage.setItem('golf-lang', LANG); } catch (e) { } I18N_MEMO.clear(); i18nWatch(); }
+const langPickHTML = () => '';   // v431 : plus de choix de langue
 (document.body ? Promise.resolve() : new Promise(r => addEventListener('DOMContentLoaded', r))).then(() => i18nWatch());
 /*I18N-DICT-START*/
 /* ---- Dictionnaire anglais (étape 1 : accueil, menus, création de partie, tableau de bord) ---- */
@@ -1369,3 +1381,23 @@ Object.assign(I18N_EN, { 'Carte de la prolongation': 'Playoff scorecard', 'La pr
 I18N_RX.push([/^Ton score au trou (\d+)$/, 'Your score on hole $1'], [/^index (\d+)$/, 'index $1']);
 I18N_RX.push(...I18N_LAST);
 /*I18N-DICT-END*/
+
+/* v431 : ménage des textes restés en français (visite automatique du jeu en anglais) */
+Object.assign(I18N_EN, { 'Ton niveau': 'Your level', 'Père': 'Father', 'Fils': 'Son', 'Frère': 'Brother', 'Cousin': 'Cousin',
+  'Plafond souple appliqué : la hausse au-delà de 3,0 est réduite de moitié.': 'Soft cap applied: any rise beyond 3.0 is cut in half.',
+  'Plafond dur appliqué : l’handicap ne peut pas dépasser le plus bas des 10 derniers tournois de plus de 5,0.': 'Hard cap applied: the handicap can’t go more than 5.0 above the lowest of the last 10 tournaments.',
+  'Voir le profil': 'View profile', 'toutes les ligues': 'all leagues', 'Victoires en carrière (Ligue 1)': 'Career wins (League 1)', 'Aucune victoire de tournoi.': 'No tournament wins.',
+  'Aucune victoire de tournoi pour l’instant.': 'No tournament wins yet.', 'Classe de recrues': 'Rookie Class', 'golfeurs': 'golfers', 'golfeur': 'golfer', 'relégué': 'relegated', 'promu': 'promoted',
+  'choix des dépisteurs': 'scouts’ pick', 'Colle ici le contenu du fichier de terrains': 'Paste the contents of the course file here', 'World Ranking non classé': 'World Ranking unranked',
+  'Prêt à jouer : son jeu est déjà rodé.': 'Ready to play: his game is already polished.', 'Prêt à jouer tout de suite : peu de choses à corriger.': 'Ready to play right away: little to fix.',
+  'Talent brut : son jeu est encore loin d’être rodé.': 'Raw talent: his game is still far from polished.', 'Un diamant brut : beaucoup de travail avant de voir ce qu’il vaut.': 'A diamond in the rough: a lot of work before we see what he’s worth.' });
+I18N_RX.push([/^Ligne de paye \(top (\d+)\) à (.+)$/, 'Pay line (top $1) at $2'], [/^Ligne de paye \(top (\d+)\)$/, 'Pay line (top $1)'],
+  [/^Retraité(?: en (\d+))?(?: à (\d+) ans)?$/, (m, y, a) => 'Retired' + (y ? ' in ' + y : '') + (a ? ' at ' + a : '')],
+  [/^Saison (\d+) : avant ton arrivée dans le circuit\.$/, 'Season $1: before you joined the tour.'], [/^Saison (\d+) : tu n’étais pas en activité\.$/, 'Season $1: you weren’t active.'],
+  [/^(\S+) choix des dépisteurs$/, '$1 scouts’ pick'], [/^Tournoi pour (.+)$/, 'Tournament for $1'],
+  [/^Saison (\d+) : fin (#\d+|NC)$/, (m, y, r) => 'Season ' + y + ': end ' + (r === 'NC' ? 'unranked' : r)], [/^World Ranking saison par saison : meilleur rang (\d+)$/, 'World Ranking by season: best rank $1'],
+  [/^Profil statistique en radar : (.+)$/, (m, x) => 'Stat profile radar: ' + x.replace(/(\d+)e centile/g, (q, n) => n + I18N_ORDSFX(n) + ' percentile').replace('Pénalités', 'Penalties')],
+  [/^Les recrues arrivées sur le circuit à l’intersaison (\d+)$/, 'Rookies who joined the tour in the $1 offseason'], [/^Les recrues entrées dans la classe de recrues à l’intersaison (\d+)$/, 'Rookies who entered the Rookie Class in the $1 offseason']);
+const I18N_ORDSFX = n => { n = +n; return n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'; };
+I18N_RX.unshift([/^([^.]+)\. (.+)$/, (m, l, x) => I18N_TALLBL[l.toLowerCase()] ? I18N_TALLBL[l.toLowerCase()] + '. ' + trText(x) : m]);   // v431 : bulle d'aide d'un talent : nom + description
+I18N_RX.push([/^Toi : (.+) → (.+) · (promu|relégué) en Ligue (\d)$/, (m, a, b, k, l) => 'You: ' + trText(a) + ' → ' + trText(b) + ' · ' + (k === 'promu' ? 'promoted' : 'relegated') + ' to League ' + l]);   // v431
