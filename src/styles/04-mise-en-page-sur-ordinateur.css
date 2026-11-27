@@ -21,3 +21,28 @@ html.mgr.pc .lkmas>*{align-self:start}
 /* Tableaux et listes : toute la largeur de leur panneau */
 html.mgr.pc #gsblk,html.mgr.pc .dpn .boardwrap,html.mgr.pc .cols .boardwrap{max-width:none}
 html.mgr.pc .crfrow{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+/* v436 : fiche rapide au survol d'un nom (mini carte de collection) */
+#hvcard{position:fixed;z-index:9000;width:330px;padding:4px;border-radius:12px;background:linear-gradient(135deg,var(--hvc,#4E9A3A),#5a3d10);box-shadow:0 24px 60px rgba(0,0,0,.6);pointer-events:none;animation:hvin .14s ease-out}
+#hvcard[hidden]{display:none}
+@keyframes hvin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+#hvcard .hvin{background:#141a1f;border-radius:9px;overflow:hidden;color:#e9eef2;font-family:inherit}
+#hvcard .hvtop{display:flex;gap:12px;padding:12px;align-items:center;background:linear-gradient(160deg,color-mix(in srgb,var(--hvc) 35%,transparent),#141a1f)}
+#hvcard .hvav{width:64px;height:64px;flex:none;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;line-height:1;color:#fff;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.25),rgba(0,0,0,.35)),var(--hvc)}
+#hvcard .hvav .phf{width:100%;height:100%;position:relative;margin:0}
+#hvcard .hvav .phg{width:100%;height:100%;object-fit:cover}
+#hvcard .hvav .phflag{display:none}
+#hvcard .hvid{min-width:0}
+#hvcard .hvnm{font-weight:700;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hvcard .hvsub{color:#c8d2d9;font-size:13px;margin-top:2px}
+#hvcard .hvtier{display:inline-block;margin-top:6px;font-weight:700;font-size:12px;color:#fff;padding:3px 8px;border-radius:4px;background:var(--hvc)}
+#hvcard .hvst{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;padding:10px 6px;border-top:1px solid #26313b}
+#hvcard .hvst b{display:block;font-size:18px;font-weight:800}
+#hvcard .hvst span,#hvcard .hvk{font-weight:700;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8fa0ad}
+#hvcard .hvk b{color:#f6dc8a}
+#hvcard .hvft{padding:8px 12px 12px;border-top:1px solid #26313b;display:grid;gap:6px}
+#hvcard .hvres{display:flex;gap:4px}
+#hvcard .hvres span{min-width:30px;text-align:center;font-weight:700;font-size:12px;padding:3px 4px;border-radius:4px;background:#26313b}
+#hvcard .hvres .w{background:#f0c419;color:#111}
+#hvcard .hvres .t{background:#2f7fd8}
+#hvcard .hvres .mc{background:transparent;border:1px solid #d7263d;color:#ff8a95}
