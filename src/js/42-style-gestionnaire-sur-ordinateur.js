@@ -27,7 +27,7 @@ function mSideHTML(cur) {
   h += TABS.map(([v, l]) => '<button class="tab" data-a="tab" data-v="' + v + '"' + (v === cur ? ' aria-current="page"' : '') + '>' + mIco(v) + '<span>' + l + '</span></button>').join('');
   h += '<div class="mssep"></div><button class="tab" data-a="hof"' + (VIEW.name === 'records' && VIEW.rv === 'hof' ? ' aria-current="page"' : '') + '>' + mIco('hof') + '<span>Temple</span></button>';
   if (S.season > 1) h += '<button class="tab" data-a="rclass" data-s="' + (S.season - 1) + '"' + (VIEW.name === 'rclass' ? ' aria-current="page"' : '') + '>' + mIco('rclass') + '<span>Dernière cuvée</span></button>';
-  h += '<div class="msfoot">' + slotSwitchHTML() + '</div>';
+  h += '<div class="msfoot">' + slotSwitchHTML() + '<div class="msver notr">Indoor Golf Career <b>' + GAME_V + '</b></div></div>';   // v432
   return h;
 }
 function mTopHTML(cur) {

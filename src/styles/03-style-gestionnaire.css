@@ -678,3 +678,6 @@ html.mgr.pc .gtop.gccb{display:grid;grid-template-columns:minmax(0,1.65fr) minma
 html.mgr.pc .gtop.gccb>.dpn{margin:0}
 html.mgr.pc .gcchc .hcard>.hcsvg{max-height:250px;width:100%}
 html.mgr.pc .gcchc .hcard{grid-template-columns:minmax(0,320px) minmax(0,1fr)}
+/* v432 : numéro de version en bas du menu */
+html.mgr.pc .msver{font:500 12px Inter,Arial,sans-serif;color:var(--mute,#7d8a96);letter-spacing:.04em;padding:4px 2px}html.mgr.pc .msver b{color:var(--ink);font-weight:600}
+html.mgr.pc .msfoot>a+.msver{margin-top:8px}
