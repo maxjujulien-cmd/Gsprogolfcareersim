@@ -65,7 +65,8 @@ function decrire(t) {
   const tees = (t.tees || []).slice().sort((a, b) => b.yardage - a.yardage)
     .map(e => `${e.tee} ${e.yardage} v (${e.cr}/${e.slope})`).join(' · ');
   const g = t.geo ? `${t.geo.pl || '?'}, ${t.geo.cc || '?'}` : 'sans position (souvent un terrain fictif)';
-  let l = `  ${t.name}\n    Par ${par} (${nb(3)} par 3, ${nb(4)} par 4, ${nb(5)} par 5) · ${g}\n    Tees : ${tees}`;
+  const yt = 'https://www.youtube.com/results?search_query=' + encodeURIComponent('GSPro ' + t.name);
+  let l = `  ${t.name}\n    Aperçu : ${yt}\n    Par ${par} (${nb(3)} par 3, ${nb(4)} par 4, ${nb(5)} par 5) · ${g}\n    Tees : ${tees}`;
   if (SGT) {
     const s = SGT.get(norm(t.name));
     if (s) l += `\n    SGT : ${s.lieu} · difficulté ${s.diff == null ? '?' : (+s.diff).toFixed(1)} · concepteur GSPro ${s.concepteur || '?'} · version du ${s.maj}`;

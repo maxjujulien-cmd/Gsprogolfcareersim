@@ -34,6 +34,8 @@ Max colle une liste de noms de terrains (texte). Il va jouer l'un d'eux sur son 
 
 ## Présentation à Max (en français simple)
 
+- **Lien YouTube de l'aperçu à côté de chaque nom de terrain**, dans le tableau et dans les fiches (demande de Max), comme dans le jeu : une recherche YouTube « GSPro » suivie du nom du terrain (ligne « Aperçu » de l'outil). Forme : `Nom [▶](lien)`.
+
 - **Une phrase d'abord : mon choix et pourquoi.**
 - Un **tableau de classement** : rang, terrain, lieu, style, beauté (★ sur 5), punitif (faible / moyen / élevé), tee conseillé (distance, rating / slope).
 - Puis **une fiche courte par terrain**, dans l'ordre du classement :
