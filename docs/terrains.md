@@ -28,7 +28,8 @@ La liste incluse dans le jeu est `public/terrains-data.js` (`window.CG_TERRAINS`
    `{"name","pars","index","tees":[{"tee","yardage","cr","slope"}],"geo":{"la","lo","cc","pl","tz"},"since":"AAAA-MM-JJ"}`
    `geo` vient des coordonnées et du lieu de SGT, avec le code de pays et le fuseau horaire. `since` est la date de la mise à jour.
 6. Changer `exported` et le nombre de terrains dans l'en-tête. Le jeu ajoute alors, sur les appareils qui ont déjà la liste, seulement les terrains dont `since` est plus récent que la dernière liste vue (`preloadCourses()`, `src/js/30-le-voyage-position-des-terrains.js`).
-7. Lancer `npm run build`, puis `npm test`.
+7. **Vérifier les positions de toute la liste** (méthode de la v457, demande de Max : à faire à chaque mise à jour) : `node tools/verifier-positions.cjs page-sgt.html ecarts.json`, puis corriger chaque écart d'après SGT (pays et fuseau horaire compris), en regardant à la main les terrains qui tombent au centre d'une grande ville et ceux qui partagent un nom (voir « Vérifier les positions » plus bas). Les corrections à la main déjà faites sont dans `EXCEPTIONS`, en tête de l'outil.
+8. Lancer `npm run build`, puis `npm test`.
 
 ## Vérifier les positions
 
@@ -45,3 +46,4 @@ La liste incluse dans le jeu est `public/terrains-data.js` (`window.CG_TERRAINS`
 | 2026-11-27 (v445) | 2 516 | 0 | Les 49 derniers placés selon la liste remplie par Max (lieux réels choisis pour les terrains fictifs ; `src: "max"`). Tous les terrains ont maintenant une position. |
 | 2026-11-28 | 2 516 | 0 | v456 : position de Quail Valley Golf Club corrigée (Vero Beach, Floride, et non Missouri City, Texas ; vérifiée sur SGT). Depuis la v456, une position venue de la liste suit toujours la liste, même sur un appareil qui l'avait déjà en mémoire ; une position placée à la main par le joueur est gardée. |
 | 2026-11-28 | 2 516 | 0 | v457 : vérification complète des positions avec SGT. 894 terrains déplacés (dont 162 changent de pays), d'après les coordonnées SGT, avec pays et fuseau horaire refaits ; à la main : London GC (Ash, Kent, et non le centre de Londres), The National Old Course (Cape Schanck), Trump Charlotte (Mooresville), White Eagle (Hudson, Wisconsin), St Georges G&CC (Setauket, NY ; l'autre St Georges est bien à Toronto). 151 terrains n'ont pas pu être vérifiés (absents de SGT sous ce nom ou sans coordonnées sur SGT). Dans le jeu, une position trouvée automatiquement (OpenStreetMap) suit maintenant aussi la liste ; seule une position placée à la main est gardée. |
+| 2026-11-28 (v458) | 2 518 | 2 | Terrains ajoutés sur SGT le 27 novembre : Farmlinks Golf Club HD (nouvelle version haute définition, l'ancienne reste) et Mountain Valley GC - Mountain HD. Écarté : Madge Lake (toujours pas de carte sur SGT). Positions de toute la liste revérifiées : aucun nouvel écart. |
