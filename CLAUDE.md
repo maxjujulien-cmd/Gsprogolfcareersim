@@ -34,6 +34,7 @@ Ce fichier sert à mieux connaître Max d'une session à l'autre. **À la fin d'
 - Il remarque les petits détails qui clochent (l'avion qui semblait partir de la destination) : soigner le sens et la cohérence des visuels.
 - Il retouche volontiers une option choisie (« A, mais avec plus de contraste ») : lui montrer 2 ou 3 variantes de l'option côte à côte, avec une recommandation.
 - Il veut que tout soit au même endroit : un seul dépôt GitHub, tout y est enregistré à chaque changement.
+- Pour choisir un terrain GSPro, il cherche d'abord la beauté et le plaisir : bord de mer / falaises et désert / montagne, et surtout pas trop punitif. Le prestige et la ligue ne comptent pas. Il veut toute la liste classée et présentée en détail.
 
 ## Décisions d'équilibre à respecter (novembre 2026)
 
@@ -115,6 +116,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 
 ## Terrains
 
+- **Choisir un terrain** : quand Max colle une liste de terrains pour un tournoi, utiliser le skill `choisir-terrain` (`.claude/skills/choisir-terrain/`) : toute la liste classée et présentée, selon la beauté et le plaisir.
 Mise à jour depuis Simulator Golf Tour : suivre `docs/terrains.md`. L'environnement cloud « Gsprogolfcareersim » autorise `simulatorgolftour.com`.
 
 ## Dépôts GitHub
