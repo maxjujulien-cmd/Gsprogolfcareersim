@@ -144,6 +144,7 @@ async function act(a, el) {
     case 'roundsim': startRoundSim(+d.r); render(); window.scrollTo(0, 0); break;
     case 'simseason': simulateSeason(); render(); window.scrollTo(0, 0); break;
     case 'simtourn': simulateTournament(); render(); window.scrollTo(0, 0); break;
+    case 'tcsort': { const k = d.k; if (!k) VIEW.tcs = null; else { const o = VIEW.tcs; VIEW.tcs = { k, d: o && o.k === k ? -o.d : (k === 'nm' || k === 'age' || k === 'lg' ? 1 : -1) }; } const sc = window.scrollY; render(); window.scrollTo(0, sc); break; }   // v448 : tri du tableau Progression
     case 'spec': startSpectate(); render(); window.scrollTo(0, 0); break;
     case 'resumespec': VIEW = { name: 'spec' }; render(); window.scrollTo(0, 0); break;
     case 'simhole': {

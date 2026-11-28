@@ -325,7 +325,7 @@ function beginTournamentIfNeeded() {
   if (S.cur) return;
   if (S.off) S.off = null;
   const c = curCourse();
-  const sw = spOn() && (S.t < N_TOURN || finalePending());   // v292 : mode spectateur, on suit une ligue en direct (v324 : la Finale aussi)
+  const sw = spOn() && (S.t < N_TOURN || finalePending()) || (S.t >= N_TOURN && finalePending() && !(finField().includes(0) && leagueOf(0) === 0));   // v292 : mode spectateur, on suit une ligue en direct (v324 : la Finale aussi) ; v448 : la Finale se regarde aussi quand tu n'y es pas
   const pl = sw ? spwL() : plLeague();
   if (S.ui) S.ui.lgv = null;   // chaque tournoi commence sur ta ligue
   S.cur = {

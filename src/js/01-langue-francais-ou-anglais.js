@@ -1433,3 +1433,6 @@ Object.assign(I18N_EN, { 'Moments clés': 'Key moments' });
 const PN_HW = { 'trou d’un coup': 'hole-in-one', 'albatros': 'albatross', 'aigle': 'eagle', 'birdie': 'birdie', 'par': 'par', 'bogey': 'bogey', 'double bogey': 'double bogey', 'triple bogey': 'triple bogey', 'quadruple bogey ou pire': 'quadruple bogey or worse' };
 I18N_RX.push([/^(.+) : (trou d’un coup|albatros|aigle|birdie|par|bogey|double bogey|triple bogey|quadruple bogey ou pire)( \(.+\))?$/, (m, n, w, x) => n + ': ' + (PN_HW[w] || w) + (x || '')],
   [/^(.+) prend la tête à (\S+)$/, '$1 takes the lead at $2'], [/^En tête : (.+)$/, 'Leader: $1'], [/^(\d+) golfeurs à égalité en tête à (\S+)$/, '$1 golfers tied for the lead at $2']);
+/* v448 : la Finale en spectateur, tri du tableau Progression */
+Object.assign(I18N_EN, { 'Suivre la ronde 1 trou par trou': 'Follow round 1 hole by hole', 'Simuler la Finale au complet': 'Simulate the whole Finale' });
+Object.assign(I18N_EN, { 'Clique sur une colonne pour trier': 'Click a column to sort', 'Ordre d’origine': 'Original order' });
