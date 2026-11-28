@@ -300,6 +300,8 @@ async function act(a, el) {
     case 'golfers': go('golfers'); break;
     case 'rc': VIEW.rc = (d.v === 'C' || d.v === 'M') ? d.v : +d.v; render(); break;
     case 'hof': if (VIEW.name !== 'records') pushNav(); go('records', { rv: 'hof' }); break;
+    case 'apt': { VIEW.apt = +d.v; const sy = window.scrollY; render(); window.scrollTo(0, sy); break; }   // v454
+    case 'ply': { VIEW.ply = +d.v; const sy = window.scrollY; render(); window.scrollTo(0, sy); break; }
     case 'rv': if (d.v === 'alm') { go('almanac'); break; } if (VIEW.name === 'almanac') { go('records', { rv: d.v }); break; } VIEW.rv = d.v; render(); break;
     case 'almV': VIEW.av = d.v; VIEW.aall = false; render(); break;
     case 'almL': VIEW.al = +d.v; render(); break;

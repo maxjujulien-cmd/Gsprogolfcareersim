@@ -301,6 +301,7 @@ function loadState(obj) {
   if (S.pav !== 1) { paBackfill(); persist(); }
   if (S.almv !== 1) { almBackfill(); persist(); }
   if (S.talv !== 1) { talMigrate(); persist(); }
+  if (S.plv !== 1) { try { plBackfill(); } catch (e) { } S.plv = 1; persist(); }   // v454 : listes des espoirs refaites pour les saisons passées
   if (S.biov !== 1) { bioMigrate(); persist(); }   // v286 : fiche d'identité et personnalité médiatique
   if (S.skv !== 1) { skMigrate(); persist(); }   // v220 : cotes de jeu   // v214 : talents cachés pour les golfeurs des anciennes parties
   try { wrBackfill(); } catch (e) { }

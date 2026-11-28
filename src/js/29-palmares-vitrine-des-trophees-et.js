@@ -143,7 +143,7 @@ function vGolfer() {
     ['log', isPC() ? 'Carnet de tournois' : 'Carnet', tlogHTML(id)],
     ['stats', 'Stats', charBlock(id, 'jeu') + skStatsHTML(id) + B.hc + B.pa + B.best],
     ['riv', 'Rivaux', B.riv],
-    ['bio', 'Biographie', charBlock(id, 'bio')]
+    ['bio', 'Biographie', charBlock(id, 'bio') + plBioHTML(id)]
   ].filter(t => t[2]);
   const cur = TABS.find(t => t[0] === PTAB) || TABS[0];
   const bar = TABS.length > 1 ? '<div class="ptabs" role="tablist">' + TABS.map(t => '<button class="ptab" role="tab" data-a="ptab" data-v="' + t[0] + '" aria-selected="' + (t === cur) + '">' + t[1] + '</button>').join('') + '</div>' : '';
@@ -193,7 +193,7 @@ function gDashPC(id, g, l, B, hist, rsCh, TR, earnAll) {
   c2 += dPanel('Handicap et statistiques', (B.hc ? '<div class="gdch">' + B.hc + '</div>' : '') + (rad ? '<div class="gdch">' + rad + '</div>' : ''), '<a href="#" data-a="ptab" data-v="stats">Toutes les stats →</a>', 'gd-hc');
   // Colonne 3 : carrière, puis le golfeur
   let c3 = '';
-  const car = B.carIn || '', hof = hofProfileHTML(id, true);
+  const plb = plBest(id), car = (B.carIn || '') + (plb ? '<div class="apvbest">⭐ <span>Meilleur rang d’espoir</span> <b>n° ' + plb[1] + '</b> · ' + yr(plb[0]) + '</div>' : ''), hof = hofProfileHTML(id, true);
   if (car || hof) c3 += dPanel('Carrière', '<div class="gdcar">' + hof + car + '</div>', '<a href="#" data-a="ptab" data-v="tl">Toute la chronologie →</a>', 'gd-car');
   const jeu = charBlock(id, 'jeu');
   c3 += dPanel('Le golfeur', PERSO + (jeu ? jeu.replace('<div class="block chblk', '<div class="chblk') : '') + (fam ? '<div class="gdsub"><h4>Famille</h4>' + fam + '</div>' : '') + (B.traits ? B.traits.replace('<div class="block traits">', '<div class="traits gtraits">') : ''), '', 'gd-me');
@@ -256,8 +256,8 @@ function recCard(d, entries, subFn, tagFn) {
 }
 function vRecords() {
   const sub = VIEW.rv || 'records';
-  let h = '<div class="top"><h1>Historique</h1></div>' + chipRow([['records', 'Records'], ['hof', 'Temple'], ['rc', 'Cuvées'], ['arch', 'Archives des entre-saisons']].concat(isPC() ? [] : [['alm', 'Almanac']]), sub, 'rv');
-  return h + (sub === 'arch' ? vArchives() : sub === 'hof' ? vHof() : sub === 'rc' ? vRcIndex() : vRecordsBoard());
+  let h = '<div class="top"><h1>Historique</h1></div>' + chipRow([['records', 'Records'], ['hof', 'Temple'], ['rc', 'Cuvées'], ['arch', 'Archives des entre-saisons'], ['pl', '⭐ Top Prospects']].concat(isPC() ? [] : [['alm', 'Almanac']]), sub, 'rv');
+  return h + (sub === 'pl' ? vPlHist() : sub === 'arch' ? vArchives() : sub === 'hof' ? vHof() : sub === 'rc' ? vRcIndex() : vRecordsBoard());
 }
 function vArchives() {
   const l = JV.l == null ? vLg() : JV.l;

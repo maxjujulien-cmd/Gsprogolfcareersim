@@ -130,3 +130,23 @@ html.pc .wrtiles.wrt4{grid-template-columns:repeat(4,1fr)}
 .gdash2{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) minmax(0,1fr)}
 .gdbig{display:grid;grid-template-columns:auto 1fr auto;gap:8px;padding:12px 14px 4px}.gdbig>div{background:rgba(0,0,0,.2);border-radius:8px;padding:8px 12px;min-width:0}.gdbig b{display:block;font:800 24px/1.15 Arimo,Arial,sans-serif}.gdbig span{color:var(--mute);font-size:12px}
 .gdcar{padding:10px 14px}.gdcar .rstl{margin-top:0}.gdsub{padding:4px 14px 10px}.gdsub h4{margin:6px 0;font:700 11px Arimo,Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+/* v454 : Aperçu de la saison (chapitre de l'intersaison) et Top 30 Prospects */
+.apvtabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 14px}.apvtabs button{font:800 15px Arimo,Arial,sans-serif;padding:9px 20px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(10,16,20,.72);color:#a9b6c0;cursor:pointer}
+.apvtabs button.on{background:var(--c);border-color:var(--c);color:#fff}.apvtabs button.on:last-child{color:#111}.apvtabs button:focus-visible{outline:2px solid #F0C419}
+.apvg2{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:14px;align-items:start;margin-bottom:22px}.apvc{display:flex;flex-direction:column;gap:12px;min-width:0}
+.apvpn{background:rgba(12,18,22,.86);border:1px solid rgba(255,255,255,.1);border-radius:10px;overflow:hidden;color:#e7edf2}.apvph{font:800 12px Arimo,Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#F0C419;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08)}.apvpb{padding:10px 14px}
+.apvt{width:100%;border-collapse:collapse}.apvt th,.apvt td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.06);font-size:14.5px;text-align:center;vertical-align:middle}.apvt th{font-size:12px;color:#8f9daa;font-weight:700}.apvt .l{text-align:left}
+.apvt.light th{color:var(--mute)}.apvt.light td{border-bottom-color:var(--line)}
+.apvn{font:800 17px Arimo,Arial,sans-serif;color:#F0C419}.apvodd{color:#F0C419;font-weight:800;white-space:nowrap}.apvtag{font:700 11px Arimo,Arial,sans-serif;padding:2px 7px;border-radius:9px;background:rgba(255,255,255,.09);color:#cfd8df;white-space:nowrap}
+.apvsub{color:#8f9daa;font-size:13px}.apvq{color:#b9c6cf;font-style:italic;font-size:13px}.apvq.big{font-size:15px;margin-top:8px}.apvpot{color:#f6dc8a;font-weight:700}.apvx{color:#5CC796;font-weight:700}
+.apvrow{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14px}.apvrow:last-child{border:0}.apvr{margin-left:auto;text-align:right}
+.apvch{display:flex;flex-direction:column;gap:3px}.apvch a{font:800 22px Arimo,Arial,sans-serif}.apvch span{color:#8f9daa;font-size:13.5px}
+.apvnum{display:grid;grid-template-columns:1fr 1fr;gap:8px}.apvnum>div{background:rgba(0,0,0,.28);border-radius:8px;padding:9px 11px}.apvnum b{display:block;font:800 24px Arimo,Arial,sans-serif}.apvnum span{color:#8f9daa;font-size:12px}
+.apvlead{color:#c9d6de;margin:0 0 8px;font-size:14px}.apvgrp{margin-bottom:12px}.apvgh{display:flex;align-items:baseline;gap:10px;margin:4px 0}.apvgh b{font:800 18px Arimo,Arial,sans-serif}.apvgh span{color:#8f9daa;font-size:13px}
+.apvan{display:grid;grid-template-columns:minmax(0,1fr) 60px 64px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)}.apvan>b{text-align:right;font-size:17px}.apvvt{color:#F0C419;letter-spacing:2px;font-size:12px}.apvvt i{font-style:normal;color:rgba(255,255,255,.18)}
+.apvstar{display:flex;gap:22px;align-items:center;padding:16px 22px;border-radius:10px;border:1px solid rgba(240,196,25,.4);background:linear-gradient(95deg,rgba(240,196,25,.25),rgba(12,18,22,.88) 55%);color:#e7edf2}.apvbig{font:800 76px/1 Arimo,Arial,sans-serif;color:#F0C419}.apvstn a{font:800 36px/1.1 Arimo,Arial,sans-serif}
+.apvnew{color:#F0C419;font:800 11px Arimo,Arial,sans-serif}.apvup{color:#3DDC84}.apvdn{color:#ff8a7a}
+.apvlg{display:inline-block;min-width:26px;text-align:center;border-radius:4px;font:800 11px/18px Arimo,Arial,sans-serif;color:#fff}
+.apvyrs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 12px}.apvyrs button{font:700 13px Arimo,Arial,sans-serif;padding:6px 12px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--mute);cursor:pointer}.apvyrs button.on{background:#F0C419;border-color:#F0C419;color:#111}
+.apvbest{display:inline-block;margin-top:8px;padding:4px 10px;border:1px solid var(--line);border-radius:12px;font-size:13px}
+@media (max-width:899px){.apvg2{grid-template-columns:1fr}.apvstar{flex-direction:column;align-items:flex-start;gap:6px}.apvbig{font-size:48px}}

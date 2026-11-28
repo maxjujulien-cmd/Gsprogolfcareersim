@@ -137,6 +137,7 @@ function offChapters(s) {
     }
     if (cur && S.spect && !S.cur) h += '<div class="block"><h3 style="margin-top:0">' + ((S.playerCareers || []).length ? 'Un nouveau golfeur ?' : 'Ton arrivée sur le circuit') + '</h3><p style="margin:0 0 8px">Tu peux créer ton joueur maintenant : il débutera en ' + yr(s + 1) + '. Sinon, le circuit continue sans toi et tu pourras le créer à la prochaine intersaison.</p><button class="btn" data-a="newgolfer">' + (S.mode === 'sim' ? 'Créer mon golfeur' : 'Créer mon joueur') + '</button></div>';
     h += '<p class="small mute">Tout reste consultable dans le Journal › Intersaisons.</p>';
+    if (s === S.season - 1) C.push({ id: 'ap', ico: '🔭', t: 'Aperçu de la saison', full: 1, img: HERO_IMG, dim: 1, h: apPreviewHTML() });   // v454 : avant-saison (favoris, montée, Top 30 Prospects)
     C.push({ id: 'go', ico: '🚀', t: cur ? 'Saison ' + yr(s + 1) : 'Fin de l’intersaison', sub: cur && pl >= 0 ? LEAGUE_NAMES[pl] + ' · ' + N_TOURN + ' tournois' : '', h, last: 1 });
   }
   return C;
@@ -385,4 +386,159 @@ function wrSeasonHTML(s) {
     if (out.length && (f === 'all' || f === 'dn')) h += '<h4>Sortis du top ' + WR_TOP + ' <span class="mute small">(' + out.length + ')</span></h4><p class="wrlist">' + out.map(id => lnk(id) + ' <span class="mute">' + ord(prev[id]) + (S.G[id] || id === 0 ? '' : ' · retraité') + '</span>').join(' · ') + '</p>';
   }
   return h + '</div>';
+}
+/* v454 (demande de Max) : Top 30 Prospects et Aperçu de la saison.
+   - Liste des espoirs : 27 ans et moins, jamais commencé une saison en L1 avant celle-ci (l'année de sa première saison
+     en L1, il est encore classé ; ensuite il « gradue »). Note des dépisteurs : 70 % potentiel, 30 % niveau, petit bonus
+     de jeunesse, et une erreur moyenne des dépisteurs (fixe pour une saison et un golfeur).
+   - Chaque liste est gardée dans S.pl[saison] = [[id, niveau, potentiel, âge], …] (30 lignes) ; les saisons passées
+     sont refaites au chargement à partir des niveaux de fin de saison (g.oh), retraités compris.
+   - Aperçu de la saison : dernier chapitre de l'intersaison. Onglets Ligue 1 (10 favoris au titre), Ligues 2 à 4
+     (qui va monter, selon trois analystes), Top 30 Prospects. Calculs à graine fixe : la page ne change pas d'une visite à l'autre. */
+const PL_N = 30, PL_AGE = 27, AP_AN = ['Marc Delorme', 'Sandra Kim', 'Tom Whitaker'];
+function plHash(a, b) { let h = (a * 374761393 + b * 668265263) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
+function plGauss(a, b) { const u = plHash(a, b) || 1e-9, v = plHash(b + 7, a + 13); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+function plRng(seed) { let x = seed >>> 0; return () => { x = (x + 0x6D2B79F5) >>> 0; let t = x; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const PLC = { st: {} };
+function plL1Start(u) {   // golfeurs qui ont commencé la saison u en L1
+  if (PLC.st[u]) return PLC.st[u];
+  const H = S.hist[u - 1], set = new Set(), T = H && (H.t || []).find(x => x && x.lg && x.lg[0] && x.lg[0].rows);
+  if (T) T.lg[0].rows.forEach(r => set.add(r[0])); else if (H && H.end && H.end.tables[0]) H.end.tables[0].forEach(r => set.add(r[0]));
+  if (u < S.season) PLC.st[u] = set; return set;
+}
+function plBuild(t) {
+  if (t < 2) return; S.pl = S.pl || {};
+  const out = [], before = new Set(); for (let u = 1; u < t; u++) plL1Start(u).forEach(id => before.add(id));
+  const look = (id, g, act) => {
+    if (!g || id === 0 || before.has(id)) return;
+    const e = (g.oh || []).find(x => x[0] === t - 1); let o, p;
+    if (e) { o = e[1]; p = e[2]; } else if (act && t === S.season && g.o != null) { o = g.o; p = g.p; } else return;
+    const age = act ? g.a - (S.season - t) : g.a != null && g.s != null ? g.a - (g.s - t) : null;
+    if (age == null || age > PL_AGE || age < 14) return;
+    out.push([id, Math.round(o), Math.round(p), age, 0.7 * p + 0.3 * o + (PL_AGE - age) * 4 + plGauss(t, id) * 22]);
+  };
+  Object.keys(S.G).forEach(k => look(+k, S.G[k], true));
+  if (t < S.season) Object.keys(S.old || {}).forEach(k => look(+k, S.old[k], false));
+  S.pl[t] = out.sort((a, b) => b[4] - a[4]).slice(0, PL_N).map(r => r.slice(0, 4));
+}
+function plBackfill() { S.pl = S.pl || {}; for (let t = 2; t <= S.season; t++) if (!S.pl[t]) plBuild(t); }
+function plRanks(id) { const out = []; Object.keys(S.pl || {}).map(Number).sort((a, b) => a - b).forEach(t => { const i = S.pl[t].findIndex(r => r[0] === id); if (i >= 0) out.push([t, i + 1]); }); return out; }
+function plBest(id) { const R = plRanks(id); return R.length ? R.reduce((m, r) => r[1] < m[1] ? r : m) : null; }
+const plLv = r => r[1] >= r[2] ? TIERS[scale(TIERS, r[1])][1] + ' · <span class="apvx">au-delà des attentes</span>' : TIERS[scale(TIERS, r[1])][0] >= POTS[scale(POTS, r[2])][0] ? TIERS[scale(TIERS, r[1])][1] + ' · <span class="apvx">potentiel atteint</span>' : TIERS[scale(TIERS, r[1])][1] + ' → <span class="apvpot">' + POTS[scale(POTS, r[2])][1] + '</span>';
+const AP_Q = {   // phrases des dépisteurs (espoirs) et des analystes (montée)
+  ph: ['Un talent comme on en voit une fois par génération.', 'Les dépisteurs n’ont jamais rien vu de pareil.'],
+  kid: ['Si jeune, et déjà ce coup de fer : patience, il arrive.', 'Encore un adolescent, mais quel swing.', 'Le plus précoce de sa génération.'],
+  raw: ['Encore brut, mais le plafond est immense.', 'Un diamant à polir.', 'Tout reste à faire, mais quel potentiel.'],
+  ready: ['Prêt pour la L1 dès maintenant.', 'Il frappe déjà à la porte de la L1.', 'Son jeu est déjà mûr.'],
+  late: ['Éclosion tardive : il a enfin trouvé son swing.', 'Il a pris son temps, mais il est là.'],
+  over: ['Il a déjà dépassé toutes les attentes.', 'Personne ne l’avait vu venir à ce point.'],
+  base: ['Régulier, solide, il monte une marche par saison.', 'Un travailleur : les dépisteurs aiment ce profil.', 'Pas spectaculaire, mais tout est en place.'],
+  aYoung: ['Si jeune, et déjà prêt pour l’étage supérieur.', 'Le talent est là, il ne manque que l’expérience.', 'On parlera de lui longtemps.'],
+  aVet: ['Vétéran solide, mais le temps presse.', 'Sa dernière vraie chance de monter ?', 'L’expérience peut faire la différence.'],
+  aDown: ['Il vient de descendre : il veut remonter tout de suite.', 'Une saison pour se racheter.'],
+  aRk: ['Une recrue qui n’a peur de rien.', 'Première saison, grandes ambitions.'],
+  aHi: ['Il a tout pour franchir le pas cette année.', 'Ce serait une surprise s’il ne montait pas.', 'Le grand favori de la ligue.'],
+  aMid: ['Ça se jouera sur les majeurs.', 'Il lui faudra un début de saison solide.', 'Une place est à prendre : à lui de la saisir.'],
+  aLo: ['Personne n’en parle… c’est souvent comme ça que ça commence.', 'Un outsider à ne pas oublier.', 'S’il trouve la constance, attention.']
+};
+const apQ = (k, id, s) => { const L = AP_Q[k]; return '« ' + L[Math.floor(plHash(id, s + k.length) * L.length)] + ' »'; };
+function plQuote(r, t) { const g = S.G[r[0]] || {}, ti = scale(TIERS, r[1]), gap = scale(POTS, r[2]) - ti;
+  return apQ(g.ph && g.phR ? 'ph' : r[1] >= r[2] ? 'over' : r[3] <= 19 ? 'kid' : gap >= 4 ? 'raw' : ti >= 5 ? 'ready' : r[3] >= 25 ? 'late' : 'base', r[0], t); }
+/* ---- Aperçu : force estimée et chances ---- */
+function apStr(id, l) {
+  const g = S.G[id], h = hcAt(id), P = S.hist[S.season - 2], E = P && P.end;
+  let b = 0; if (E) { const i = (E.tables[l] || []).findIndex(r => r[0] === id); if (i >= 0) b = Math.max(0, 30 - i) * 3; else if (l < 3 && (E.tables[l + 1] || []).some(r => r[0] === id)) b = 25; else if (l > 0 && (E.tables[l - 1] || []).some(r => r[0] === id)) b = 45; }
+  return shownO(g) - (h != null ? h : 10) * 6 + b;
+}
+function apUpN(l) { const P = S.hist[S.season - 2], E = P && P.end; const n = E && E.up && E.up[l] ? E.up[l].length : 0; return n || MOVE; }
+const APC = {};
+function apOdds(l) {   // l = 0 : chance du titre ; sinon chance de monter
+  const key = S.season + ':' + l; if (APC[key]) return APC[key];
+  const ids = S.L[l].filter(id => S.G[id] && id !== 0).map(id => [id, apStr(id, l)]).sort((a, b) => b[1] - a[1]).slice(0, 40);
+  if (!ids.length) return (APC[key] = []);
+  const n = ids.length, sp = Math.max(1, (ids[0][1] - ids[Math.min(14, n - 1)][1]) / 1.6), N = l === 0 ? 1 : Math.min(apUpN(l), n), cnt = ids.map(() => 0), R = plRng(S.season * 977 + l * 131 + 7);
+  const gs = () => Math.sqrt(-2 * Math.log(R() || 1e-9)) * Math.cos(2 * Math.PI * R());
+  for (let k = 0; k < 2500; k++) ids.map((x, i) => [i, x[1] + gs() * sp]).sort((a, b) => b[1] - a[1]).slice(0, N).forEach(x => cnt[x[0]]++);
+  return (APC[key] = ids.map((x, i) => ({ id: x[0], p: cnt[i] / 2500 })).sort((a, b) => b.p - a.p));
+}
+const apOdd = p => p <= 0.004 ? '200 contre 1' : Math.max(1, Math.round(1 / p - 1)) + ' contre 1';
+const apPct = p => p >= 0.995 ? '99 %' : p < 0.01 ? '< 1 %' : Math.round(p * 100) + ' %';
+function apLastRk(id) { const P = S.hist[S.season - 2], E = P && P.end; if (!E) return '—'; for (let k = 0; k < 4; k++) { const i = (E.tables[k] || []).findIndex(r => r[0] === id); if (i >= 0) return ord(i + 1) + ' en L' + (k + 1); } return 'nouveau'; }
+const apLg = l => '<span class="apvlg" style="background:' + (l >= 0 ? OFX_LC[l] : '#6b7480') + '">' + (l >= 0 ? 'L' + (l + 1) : 'R') + '</span>';
+const apPn = (t, b, c) => '<div class="apvpn' + (c ? ' ' + c : '') + '"><div class="apvph">' + t + '</div><div class="apvpb">' + b + '</div></div>';
+function apSide(l) {
+  const P = S.hist[S.season - 2], E = P && P.end, ch = E && E.tables[l] && E.tables[l][0], ids = S.L[l].filter(id => S.G[id]);
+  const yo = ids.slice().sort((a, b) => S.G[a].a - S.G[b].a), O = apOdds(l), all = [].concat(...S.L).filter(id => S.G[id]);
+  let h = '';
+  if (ch) { const nl = leagueOf(ch[0]); h += apPn('Champion en titre', '<div class="apvch">' + offLnk(ch[0]) + '<span>' + ch[1] + ' pts en ' + yr(S.season - 1) + '</span><span>' + (nl === l ? 'Il défend son titre' : nl >= 0 && nl < l ? 'Monté en L' + (nl + 1) : nl > l ? 'Descendu en L' + (nl + 1) : 'Retraité') + '</span></div>'); }
+  if (yo.length) h += apPn('Le plus jeune · le plus vieux', '<div class="apvrow"><span>Le plus jeune</span><span class="apvr">' + offLnk(yo[0]) + ' · ' + S.G[yo[0]].a + ' ans</span></div><div class="apvrow"><span>Le plus vieux</span><span class="apvr">' + offLnk(yo[yo.length - 1]) + ' · ' + S.G[yo[yo.length - 1]].a + ' ans</span></div>');
+  const dn = l < 3 ? ids.map(id => [id, apStr(id, l)]).sort((a, b) => a[1] - b[1]).slice(0, 2).map(x => offLnk(x[0])).join(', ') : '';
+  h += apPn('Nos pronostics', (l === 0 ? (O[0] ? '<div class="apvrow"><b>🏆 Champion</b><span class="apvr">' + offLnk(O[0].id) + '</span></div>' : '') : '<div class="apvrow"><b>▲ Montent</b><span class="apvr">' + O.slice(0, 3).map(x => offLnk(x.id)).join(', ') + '…</span></div>' + (O.length ? '<div class="apvrow"><span>🏆 Titre de la L' + (l + 1) + '</span><span class="apvr">' + offLnk(O[0].id) + '</span></div>' : '')) + (dn ? '<div class="apvrow"><span>▼ Descendent</span><span class="apvr">' + dn + '</span></div>' : ''));
+  const nRk = all.filter(id => isRookie(S.G[id])).length, x = E && E.x, nRt = x && x.rt ? x.rt.length : 0, avg = ids.length ? (ids.reduce((a, id) => a + S.G[id].a, 0) / ids.length).toFixed(1) : '–';
+  h += apPn('La saison en chiffres', '<div class="apvnum"><div><b>' + all.length + '</b><span>golfeurs sur le circuit</span></div><div><b>' + nRk + '</b><span>recrues</span></div><div><b>' + nRt + '</b><span>retraités cet hiver</span></div><div><b>' + avg + '</b><span>âge moyen en L' + (l + 1) + '</span></div></div>');
+  return h;
+}
+function apL1HTML() {
+  const O = apOdds(0).slice(0, 10);
+  return apPn('Les 10 favoris pour le titre de la Ligue 1', '<table class="apvt"><tr><th></th><th class="l">Golfeur</th><th>Âge</th><th>Saison passée</th><th>Cote au titre</th></tr>' + O.map((x, i) => '<tr><td class="apvn">' + (i + 1) + '</td><td class="l">' + offLnk(x.id) + ' <span class="apvtag">' + TIERS[tierOf(S.G[x.id])][1] + '</span></td><td>' + S.G[x.id].a + '</td><td>' + apLastRk(x.id) + '</td><td class="apvodd">' + apOdd(x.p) + '</td></tr>').join('') + '</table>');
+}
+function apUpHTML(l) {
+  const O = apOdds(l), N = apUpN(l), s = S.season;
+  const picks = AP_AN.map((n, a) => O.slice(0, 18).map(x => [x.id, x.p + (plHash(x.id, s * 3 + a) - 0.5) * 0.36]).sort((p, q) => q[1] - p[1]).slice(0, N).map(x => x[0]));
+  const votes = id => picks.filter(L => L.includes(id)).length;
+  const P = S.hist[S.season - 2], E = P && P.end, wasUp = id => E && E.tables[l - 1] && E.tables[l - 1].some(r => r[0] === id);
+  const qk = x => { const g = S.G[x.id]; return wasUp(x.id) ? 'aDown' : isRookie(g) ? 'aRk' : g.a <= 22 ? 'aYoung' : g.a >= 35 ? 'aVet' : x.p >= 0.7 ? 'aHi' : x.p >= 0.3 ? 'aMid' : 'aLo'; };
+  const row = (x, c) => '<div class="apvan"><div><div>' + offLnk(x.id) + ' <span class="apvsub">' + S.G[x.id].a + ' ans · ' + TIERS[tierOf(S.G[x.id])][1] + (isRookie(S.G[x.id]) ? ' · R' : '') + '</span></div><div class="apvq">' + apQ(qk(x), x.id, s) + '</div></div><div class="apvvt" title="' + votes(x.id) + ' / 3">' + '●'.repeat(votes(x.id)) + '<i>' + '●'.repeat(3 - votes(x.id)) + '</i></div><b style="color:' + c + '">' + apPct(x.p) + '</b></div>';
+  const grp = (t, sub, A, c, k) => A.length ? '<div class="apvgrp"><div class="apvgh"><b style="color:' + c + '">' + t + '</b><span>' + sub + '</span></div>' + A.slice(0, k).map(x => row(x, c)).join('') + (A.length > k ? '<p class="apvsub" style="margin:6px 0 0">… et ' + (A.length - k) + ' autres</p>' : '') + '</div>' : '';
+  return apPn('Selon nos analystes · <span class="notr">' + AP_AN.join(', ') + '</span>', '<p class="apvlead">' + N + ' places pour la Ligue ' + l + '. ●●● = choisi par les trois analystes.</p>' +
+    grp('Quasi assurés', 'plus de 70 %', O.filter(x => x.p >= 0.7), '#3DDC84', 12) + grp('Dans la course', 'de 30 à 70 %', O.filter(x => x.p >= 0.3 && x.p < 0.7), '#F0C419', 12) + grp('Les négligés', 'moins de 30 %, mais à ne pas oublier', O.filter(x => x.p < 0.3 && x.p >= 0.05), '#8fb8ff', 5));
+}
+function apProspectsHTML() {
+  const t = S.season; if (!S.pl || !S.pl[t]) plBuild(t);
+  const L = S.pl[t] || [], prev = S.pl[t - 1] || [], pr = new Map(prev.map((r, i) => [r[0], i + 1]));
+  if (!L.length) return '<p class="apvlead">Aucun espoir classé cette saison.</p>';
+  const mv = (r, i) => { const p = pr.get(r[0]); return p == null ? '<span class="apvnew">NOUVEAU</span>' : p > i + 1 ? '<span class="apvup">▲' + (p - i - 1) + '</span>' : p < i + 1 ? '<span class="apvdn">▼' + (i + 1 - p) + '</span>' : '<span class="apvsub">=</span>'; };
+  const grads = prev.filter(r => !L.some(q => q[0] === r[0]) && S.G[r[0]] && leagueOf(r[0]) === 0);
+  const eta = r => { const l = leagueOf(r[0]); if (l <= 0) return l === 0 ? 'Déjà en L1' : ''; const n = Math.max(l, Math.ceil((5 - scale(TIERS, r[1])) / 1.5)); return 'La L1 dans ' + n + ' saison' + (n > 1 ? 's' : '') + ' ?'; };
+  const n1 = L[0];
+  let h = '<div class="apvstar"><div class="apvbig">#1</div><div><div class="apvstn">' + offLnk(n1[0]) + '</div><div class="apvsub">' + n1[3] + ' ans · ' + (leagueOf(n1[0]) >= 0 ? 'Ligue ' + (leagueOf(n1[0]) + 1) : 'Classe de recrues') + ' · ' + plLv(n1) + (eta(n1) ? ' · ' + eta(n1) : '') + '</div><div class="apvq big">' + plQuote(n1, t) + '</div></div></div>';
+  h += apPn('Le classement', '<div class="scroll"><table class="apvt"><tr><th>#</th><th>Mvt</th><th class="l">Golfeur</th><th>Âge</th><th>Ligue</th><th class="l">Niveau → potentiel</th><th class="l">Les dépisteurs</th></tr>' + L.slice(1).map((r, i) => '<tr><td class="apvn">' + (i + 2) + '</td><td>' + mv(r, i + 1) + '</td><td class="l">' + offLnk(r[0]) + (S.G[r[0]] && isRookie(S.G[r[0]]) ? ' <span class="apvsub">R</span>' : '') + '</td><td>' + r[3] + '</td><td>' + apLg(leagueOf(r[0])) + '</td><td class="l">' + plLv(r) + '</td><td class="l apvq">' + plQuote(r, t) + '</td></tr>').join('') + '</table></div>');
+  const side = apPn('La liste en chiffres', '<div class="apvnum"><div><b>' + L.filter(r => !pr.has(r[0])).length + '</b><span>nouveaux</span></div><div><b>' + L.filter(r => r[3] <= 21).length + '</b><span>21 ans et moins</span></div><div><b>' + L.filter(r => leagueOf(r[0]) === 3 || leagueOf(r[0]) < 0).length + '</b><span>encore en L4</span></div><div><b>' + grads.length + '</b><span>diplômés en L1</span></div></div>') +
+    apPn('Les diplômés · arrivés en L1', grads.length ? grads.map(r => '<div class="apvrow">' + offLnk(r[0]) + '<span class="apvr">n° ' + pr.get(r[0]) + ' l’an passé</span></div>').join('') : '<span class="apvsub">Aucun cette année.</span>') +
+    apPn('Qui est éligible ?', '<p class="apvsub" style="margin:0">27 ans et moins, sans avoir commencé une saison en L1 avant celle-ci. Classés par nos dépisteurs : surtout le potentiel, puis le niveau actuel. Les dépisteurs peuvent se tromper.</p>');
+  return '<div class="apvg2"><div class="apvc">' + h + '</div><div class="apvc">' + side + '</div></div>';
+}
+function apPreviewHTML() {
+  const tab = VIEW.apt != null ? VIEW.apt : 0, ns = S.season;
+  const tabs = '<div class="apvtabs" role="tablist">' + ['Ligue 1', 'Ligue 2', 'Ligue 3', 'Ligue 4', '⭐ Top 30 Prospects'].map((t, i) => '<button type="button" role="tab" aria-selected="' + (i === tab) + '" class="' + (i === tab ? 'on' : '') + '" data-a="apt" data-v="' + i + '" style="--c:' + (i < 4 ? OFX_LC[i] : '#F0C419') + '">' + t + '</button>').join('') + '</div>';
+  const sub = tab === 4 ? 'Les meilleurs espoirs du monde, selon nos dépisteurs.' : tab === 0 ? 'La course au titre de la Ligue 1.' : 'Qui va monter en Ligue ' + tab + ' ?';
+  let h = '<div class="ofxnm" role="heading" aria-level="2">Saison ' + yr(ns) + '</div><p class="ofrtl"><span>' + sub + '</span></p>' + tabs;
+  if (tab === 4) return h + apProspectsHTML();
+  return h + '<div class="apvg2"><div class="apvc">' + (tab === 0 ? apL1HTML() : apUpHTML(tab)) + '</div><div class="apvc">' + apSide(tab) + '</div></div>';
+}
+/* ---- Historique › Top Prospects ---- */
+function vPlHist() {
+  if (!S.pl) plBackfill();
+  const ys = Object.keys(S.pl || {}).map(Number).filter(t => S.pl[t] && S.pl[t].length).sort((a, b) => b - a);
+  if (!ys.length) return '<p class="mute">Aucune liste pour l’instant : la première sera publiée à l’avant-saison.</p>';
+  const t = ys.includes(VIEW.ply) ? VIEW.ply : ys[0], L = S.pl[t];
+  let h = '<div class="apvyrs">' + ys.map(y => '<button type="button" class="' + (y === t ? 'on' : '') + '" data-a="ply" data-v="' + y + '">' + yr(y) + '</button>').join('') + '</div>';
+  const now = id => { const g = S.G[id]; if (!g) return '<span class="mute">Retraité</span>'; const l = leagueOf(id); return apLg(l) + ' ' + TIERS[tierOf(g)][1]; };
+  const earn = id => { const g = S.G[id] || (S.old && S.old[id]); return g && g.ce > 0 ? fmtM(g.ce) : '—'; };
+  const tbl = '<div class="scroll"><table class="apvt light"><tr><th>#</th><th class="l">Golfeur</th><th>Âge alors</th><th class="l">Alors</th><th class="l">Aujourd’hui</th><th>Gains en carrière</th></tr>' + L.map((r, i) => '<tr><td class="apvn">' + (i + 1) + '</td><td class="l">' + flagVisual(natOf(r[0]), 18) + ' <a href="#" data-a="golfer" data-id="' + r[0] + '">' + esc(nameOf(r[0])) + '</a></td><td>' + r[3] + '</td><td class="l">' + plLv(r) + '</td><td class="l">' + now(r[0]) + '</td><td><b>' + earn(r[0]) + '</b></td></tr>').join('') + '</table></div>';
+  // records des listes
+  const n1 = {}, app = {}; ys.forEach(y => { const q = S.pl[y]; if (q[0]) n1[q[0][0]] = (n1[q[0][0]] || 0) + 1; q.forEach(r => app[r[0]] = (app[r[0]] || 0) + 1); });
+  const top = o => { const k = Object.keys(o).sort((a, b) => o[b] - o[a])[0]; return k != null ? [+k, o[k]] : null; };
+  const yng = ys.map(y => [S.pl[y][0], y]).filter(x => x[0]).sort((a, b) => a[0][3] - b[0][3])[0];
+  const listed = new Set(Object.keys(app).map(Number)), cand = [];
+  Object.keys(S.G).concat(Object.keys(S.old || {})).forEach(k => { const id = +k, g = S.G[id] || S.old[id]; if (!id || listed.has(id) || !g || !(g.ce > 0)) return; cand.push([id, g.ce]); });
+  const forgot = cand.sort((a, b) => b[1] - a[1]).find(([id]) => { const g = S.G[id] || S.old[id], a0 = S.G[id] ? g.a - (S.season - ys[ys.length - 1]) : g.a - (g.s - ys[ys.length - 1]); return a0 <= PL_AGE; });
+  const rec = (k, v) => '<div class="apvrow"><span>' + k + '</span><span class="apvr">' + v + '</span></div>', a1 = top(n1), aa = top(app);
+  const side = '<div class="block"><h3>Records des listes</h3>' + (a1 ? rec('Le plus de saisons au n° 1', offLnk(a1[0]) + ' · ' + a1[1]) : '') + (aa ? rec('Le plus d’apparitions', offLnk(aa[0]) + ' · ' + aa[1]) : '') + (yng ? rec('Le plus jeune n° 1', offLnk(yng[0][0]) + ' · ' + yng[0][3] + ' ans (' + yr(yng[1]) + ')') : '') + (forgot ? rec('Le plus grand oublié', offLnk(forgot[0]) + ' · ' + fmtM(forgot[1])) : '') + '<p class="small mute" style="margin:8px 0 0">Le plus grand oublié : jamais classé, et les plus gros gains en carrière.</p></div>' +
+    '<div class="block"><h3>Qui est éligible ?</h3><p class="small mute" style="margin:0">27 ans et moins, sans avoir commencé une saison en L1 avant celle-ci. Les listes des saisons jouées avant la v454 ont été refaites à partir des niveaux de fin de saison.</p></div>';
+  return h + (isPC() ? '<div class="apvg2"><div class="block"><h3>Top 30 Prospects ' + yr(t) + ' · et ce qu’ils sont devenus</h3>' + tbl + '</div><div>' + side + '</div></div>' : '<div class="block"><h3>Top 30 Prospects ' + yr(t) + '</h3>' + tbl + '</div>' + side);
+}
+function plBioHTML(id) {
+  const R = plRanks(id); if (!R.length) return '';
+  return '<div class="block"><h3>⭐ Top 30 Prospects</h3>' + R.map(([t, k]) => '<div class="apvrow"><span>' + yr(t) + '</span><span class="apvr">Classé n° ' + k + ' dans le Top 30 des espoirs</span></div>').join('') + '</div>';
 }
