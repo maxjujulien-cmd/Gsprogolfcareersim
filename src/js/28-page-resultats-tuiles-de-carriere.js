@@ -54,9 +54,9 @@ function rsLegs(id, s) {   // v338 : la ligue du golfeur à chaque tournoi de la
   for (let k = 1; k < seq.length; k++) if (seq[k] !== seq[k - 1]) out.push({ k, from: seq[k - 1], to: seq[k] });
   return out;
 }
-function rsChartHTML(rows, bestK, id) {   // rang de fin de saison, dans des bandes par ligue (L1 en haut)
+function rsChartHTML(rows, bestK, id, fw) {   // v455 : fw = largeur imposée (colonne de la fiche sur ordinateur)   // rang de fin de saison, dans des bandes par ligue (L1 en haut)
   const P = rows.filter(p => !p.mid && p.rank && p.fld).slice().reverse(); if (P.length < 2) return '';
-  const wide = isPC(), W = wide ? Math.round(Math.max(700, Math.min(1600, (window.innerWidth || 1300) - 300))) : 460, top = wide ? 22 : 14, bh = wide ? 50 : 44,   /* v348 : sur ordi, largeur réelle de la page (texte à taille normale) */ X0 = wide ? 80 : 58, X1 = W - 30, n = P.length, x = i => n === 1 ? (X0 + X1) / 2 : X0 + i * (X1 - X0) / (n - 1);
+  const wide = isPC(), W = fw || (wide ? Math.round(Math.max(700, Math.min(1600, (window.innerWidth || 1300) - 300))) : 460), top = wide ? 22 : 14, bh = wide ? 50 : 44,   /* v348 : sur ordi, largeur réelle de la page (texte à taille normale) */ X0 = wide ? 80 : 58, X1 = W - 30, n = P.length, x = i => n === 1 ? (X0 + X1) / 2 : X0 + i * (X1 - X0) / (n - 1);
   const y = p => top + p.l * bh + 6 + (p.rank - 1) / Math.max(1, p.fld - 1) * (bh - 12);
   let s = '<svg viewBox="0 0 ' + W + ' ' + (top + 4 * bh + 26) + '" width="100%" role="img" aria-label="Rang de fin de saison, ligue par ligue" style="display:block">';
   for (let L = 0; L < 4; L++) s += '<rect x="' + (X0 - 14) + '" y="' + (top + L * bh) + '" width="' + (X1 - X0 + 28) + '" height="' + (bh - 2) + '" rx="6" fill="var(--lg' + (L + 1) + ')" fill-opacity=".09"/><text x="' + (X0 - 20) + '" y="' + (top + L * bh + bh / 2 + 4) + '" text-anchor="end" class="rscht">L' + (L + 1) + '</text>';

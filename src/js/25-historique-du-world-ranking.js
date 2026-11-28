@@ -34,27 +34,31 @@ function wrChartHTML(id) {   // v257 : saison par saison (plages sur zones), ran
     o.lo = rk.length ? rk.reduce((a, p) => p.r < a.r ? p : a, rk[0]) : null; const nc = o.p.find(p => !p.r);
     o.hi = nc || (rk.length ? rk.reduce((a, p) => p.r > a.r ? p : a, rk[0]) : null);
     const ls = o.p.map(p => p.l).filter(l => l >= 0); o.l = ls.length ? ls[ls.length - 1] : -1; });
-  const pc = isPC(), W = pc ? 640 : 360, Hh = pc ? 240 : 250, X0 = 30, X1 = W - 4, Y0 = 10, Y1 = Hh - 52, NC = Hh - 34, n = SS.length, bw = (X1 - X0) / n;
-  const y = r => r ? Y0 + Math.log(r) / Math.log(WR_TOP) * (Y1 - Y0) : NC;
-  const tcol = r => !r ? '#C9CEC4' : r <= 10 ? '#E8B931' : r <= 50 ? '#AEBBC7' : '#D19A6A';
-  let g = '<rect x="' + X0 + '" y="' + Y0 + '" width="' + (X1 - X0) + '" height="' + (y(10) - Y0).toFixed(1) + '" fill="#E8B931" opacity=".14"/><rect x="' + X0 + '" y="' + y(10).toFixed(1) + '" width="' + (X1 - X0) + '" height="' + (y(50) - y(10)).toFixed(1) + '" fill="#AEBBC7" opacity=".17"/><rect x="' + X0 + '" y="' + y(50).toFixed(1) + '" width="' + (X1 - X0) + '" height="' + (y(100) - y(50)).toFixed(1) + '" fill="#D19A6A" opacity=".15"/>';
-  [1, 10, 50, 100].forEach(v => { g += '<text x="' + (X0 - 4) + '" y="' + (y(v) + (v === 1 ? 9 : 4)).toFixed(1) + '" font-size="10" text-anchor="end" fill="var(--mute)">' + v + '</text>'; });
-  g += '<text x="' + (X0 - 4) + '" y="' + (NC + 4) + '" font-size="10" text-anchor="end" fill="var(--mute)">NC</text><line x1="' + X0 + '" x2="' + X1 + '" y1="' + NC + '" y2="' + NC + '" stroke="var(--line)" stroke-dasharray="3 4"/>';
-  const step = bw >= 26 ? 1 : bw >= 13 ? 2 : bw >= 8 ? 3 : 5, fs = Math.max(8, Math.min(12, bw * 0.5));
+  /* v449 : « ligne télé » (option A, choix de Max) : le rang de fin de saison en pastilles reliées (or = top 10, vert = top 50,
+     gris au-delà), un trait gris pour le meilleur et le pire rang de la saison ; la bulle de détail au survol est gardée. */
+  const pc = isPC(), n = SS.length, W = pc ? Math.max(640, n * 40) : 360, Hh = pc ? 260 : 250, X0 = 34, X1 = W - 18, Y0 = 20, Y1 = Hh - 58, NC = Hh - 34;
+  const y = r => r ? Y0 + Math.log(r) / Math.log(WR_TOP) * (Y1 - Y0) : NC, bw = (X1 - X0) / n, xc = k => X0 + bw * (k + 0.5);
+  const tcol = r => !r ? '#5b6670' : r <= 10 ? '#E8B931' : r <= 25 ? '#3DDC84' : r <= 50 ? '#22894F' : '#8a97a3', tfg = r => !r ? '#d7dde2' : r <= 10 ? '#1a1a1a' : r <= 25 ? '#0B2A18' : '#fff';
+  let g = '<rect x="' + X0 + '" y="' + Y0 + '" width="' + (X1 - X0) + '" height="' + (y(10) - Y0).toFixed(1) + '" fill="#E8B931" opacity=".10"/><rect x="' + X0 + '" y="' + y(10).toFixed(1) + '" width="' + (X1 - X0) + '" height="' + (y(50) - y(10)).toFixed(1) + '" fill="#3DDC84" opacity=".06"/>';
+  [1, 10, 50, 100].forEach(v => { g += '<line x1="' + X0 + '" x2="' + X1 + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '" stroke="var(--line)" opacity=".7"/><text x="' + (X0 - 6) + '" y="' + (y(v) + 4).toFixed(1) + '" font-size="11" text-anchor="end" fill="var(--mute)">' + v + '</text>'; });
+  g += '<text x="' + (X0 - 6) + '" y="' + (NC + 4) + '" font-size="11" text-anchor="end" fill="var(--mute)">NC</text><line x1="' + X0 + '" x2="' + X1 + '" y1="' + NC + '" y2="' + NC + '" stroke="var(--line)" stroke-dasharray="3 4"/>';
+  const step = bw >= 34 ? 1 : bw >= 17 ? 2 : bw >= 11 ? 3 : 5, rr = Math.max(7, Math.min(15, bw * 0.42)), fs = Math.max(8, Math.min(13, rr * 0.9));
   const lgN = l => l === 4 ? 'Classe de recrues' : l >= 0 ? LEAGUE_NAMES[l] : '';
+  g += '<polyline fill="none" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round" opacity=".85" points="' + SS.map((o, k) => xc(k).toFixed(1) + ',' + y(o.end).toFixed(1)).join(' ') + '"/>';
   SS.forEach((o, k) => {
-    const x = X0 + k * bw, cx = x + bw / 2, top = o.lo ? y(o.lo.r) : NC, bot = o.hi ? y(o.hi.r) : NC, ey = y(o.end), ph = Math.max(14, Math.min(20, bw * 0.8));
+    const x = X0 + k * bw, cx = xc(k), top = o.lo ? y(o.lo.r) : NC, bot = o.hi ? y(o.hi.r) : NC, ey = y(o.end);
     const d = [yr(o.s), lgN(o.l), o.lo ? o.lo.r : '', o.lo ? o.lo.t + 1 : '', o.hi && o.hi.r ? o.hi.r : '', o.hi ? o.hi.t + 1 : '', o.end || '', o.nr, o.n].join('|');
     g += '<g class="wrcol" data-wr="' + esc(d) + '" tabindex="0" role="button" aria-label="Saison ' + yr(o.s) + ' : fin ' + (o.end ? '#' + o.end : 'NC') + '"><rect x="' + x.toFixed(1) + '" y="' + Y0 + '" width="' + bw.toFixed(1) + '" height="' + (NC - Y0 + 8) + '" fill="transparent"/>' +
-      '<rect class="wrrg" x="' + (x + 1.5).toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + Math.max(2, bw - 3).toFixed(1) + '" height="' + Math.max(5, bot - top).toFixed(1) + '" rx="' + Math.min(5, bw / 3).toFixed(1) + '" fill="var(--acc)" opacity=".3"/>' +
-      '<rect x="' + (x + 0.5).toFixed(1) + '" y="' + (ey - ph / 2).toFixed(1) + '" width="' + Math.max(2, bw - 1).toFixed(1) + '" height="' + ph.toFixed(1) + '" rx="' + Math.min(5, bw / 3).toFixed(1) + '" fill="' + tcol(o.end) + '" stroke="var(--paper)" stroke-width="1.5"/>' +
-      (bw >= 11 ? '<text x="' + cx.toFixed(1) + '" y="' + (ey + fs * 0.36).toFixed(1) + '" text-anchor="middle" font-size="' + fs.toFixed(1) + '" font-weight="800" fill="' + (o.end ? '#1a1a1a' : '#555') + '">' + (o.end || 'NC') + '</text>' : '') +
-      ((n - 1 - k) % step === 0 ? '<text x="' + cx.toFixed(1) + '" y="' + (Hh - 16) + '" text-anchor="middle" font-size="10" fill="var(--mute)">' + (step === 1 && bw < 40 ? String(yr(o.s)).slice(-2) : yr(o.s)) + '</text>' : '') + '</g>';
+      (bot - top > 2 ? '<line class="wrrg" x1="' + cx.toFixed(1) + '" x2="' + cx.toFixed(1) + '" y1="' + top.toFixed(1) + '" y2="' + bot.toFixed(1) + '" stroke="var(--mute)" stroke-width="' + Math.max(3, rr * 0.55).toFixed(1) + '" stroke-linecap="round" opacity=".35"/>' : '') +
+      '<circle cx="' + cx.toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="' + rr.toFixed(1) + '" fill="' + tcol(o.end) + '" stroke="var(--paper)" stroke-width="2"/>' +
+      (rr >= 10 ? '<text x="' + cx.toFixed(1) + '" y="' + (ey + fs * 0.36).toFixed(1) + '" text-anchor="middle" font-size="' + fs.toFixed(1) + '" font-weight="800" fill="' + tfg(o.end) + '">' + (o.end || 'NC') + '</text>' : '') +
+      ((n - 1 - k) % step === 0 ? '<text x="' + cx.toFixed(1) + '" y="' + (Hh - 12) + '" text-anchor="middle" font-size="11" fill="var(--mute)">' + (step === 1 && bw < 40 ? String(yr(o.s)).slice(-2) : yr(o.s)) + '</text>' : '') + '</g>';
   });
-  const svg = '<div class="wrbox"><svg class="wrsvg" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="World Ranking saison par saison : meilleur rang ' + best.r + '">' + g + '</svg><div class="wrpop" hidden></div></div>';
+  const svg = '<div class="wrbox wrline"><svg class="wrsvg" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="World Ranking saison par saison : meilleur rang ' + best.r + '">' + g + '</svg><div class="wrpop" hidden></div></div>';
+  const t10s = SS.filter(o => o.end && o.end <= 10).length;
   const tile = (v, l) => '<div class="mtile"><b>' + v + '</b><span>' + l + '</span></div>';
-  return '<div class="mgrid mgrid3 wrtiles">' + tile('#' + best.r, '<span>Meilleur rang</span> · ' + yr(best.s)) + tile(cur.r ? '#' + cur.r : 'NC', S.G[id] || id === 0 ? 'Actuel' : 'Dernier') + tile(n1 ? n1 : t10, n1 ? '<span>' + (n1 > 1 ? 'tournois au 1er rang' : 'tournoi au 1er rang') + '</span>' : '<span>' + (t10 > 1 ? 'tournois dans le top 10' : 'tournoi dans le top 10') + '</span>') + '</div>' + svg +
-    '<p class="small mute" style="margin:4px 0 0">' + (isPC() ? 'Survole une saison' : 'Touche une saison') + ' pour voir son meilleur et son pire rang. Le chiffre dans la colonne est le rang à la fin de la saison.</p>';
+  return '<div class="mgrid mgrid3 wrtiles wrt4">' + tile('#' + best.r, '<span>Meilleur rang</span> · ' + yr(best.s)) + tile(cur.r ? '#' + cur.r : 'NC', S.G[id] || id === 0 ? 'Actuel' : 'Dernier') + tile(n1 ? n1 : t10, n1 ? '<span>' + (n1 > 1 ? 'tournois au 1er rang' : 'tournoi au 1er rang') + '</span>' : '<span>' + (t10 > 1 ? 'tournois dans le top 10' : 'tournoi dans le top 10') + '</span>') + tile(t10s, t10s > 1 ? 'saisons finies dans le top 10' : 'saison finie dans le top 10') + '</div>' + svg +
+    '<p class="small mute" style="margin:4px 0 0">' + '<span>' + (isPC() ? 'Survole une saison pour le détail.' : 'Touche une saison pour le détail.') + '</span> <span>La pastille donne le rang à la fin de la saison ; le trait gris va du meilleur au pire rang de l’année.</span></p>';
 }
 /* v257 : bulle d'une saison du World Ranking (toucher sur mobile, survol sur ordinateur) */
 function wrPopShow(gEl) {

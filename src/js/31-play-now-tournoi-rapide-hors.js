@@ -79,6 +79,7 @@ function pnField(n) {
   return os.map(o => { const g = pick(newGolfer(0, used, o)); return g; });
 }
 function pnStart() {
+  pnRevStop();
   const C = pnCfg();
   document.querySelectorAll('[data-pnc="name"]').forEach(x => { C.players[+x.dataset.i] = x.value; });
   if (!MODEL) MODEL = buildModel(S ? S.settings.tables : DEFAULT_TABLES);
@@ -126,14 +127,20 @@ function pnRows(cur, r, k) {
   const co = new Intl.Collator('fr'), rows = [], out = [], tr = pnTee(cur, r), T = tr ? pnT(cur, tr, k) : null;
   keys.forEach(key => {
     if (r === 1 && !cur.alive.includes(key)) { out.push({ key, tot: cur.r1[key], cut: true }); return; }
-    const n = tr && key[0] !== 'h' ? teeHoles(tr.st, T, key) : k, today = relTo(pnHoles(cur, key, r), cur.pars, n);
+    const pend = !tr && PNREV && PNREV.k === k && r === cur.r && key[0] !== 'h' && !PNREV.sh.has(key);   // v443 : pas encore dévoilé
+    const n = tr && key[0] !== 'h' ? teeHoles(tr.st, T, key) : pend ? k - 1 : k, today = relTo(pnHoles(cur, key, r), cur.pars, n);
     const row = { key, today, tot: today + (r === 1 ? cur.r1[key] : 0) }; if (tr) { row.n = n; row.g = teeGi(tr.o.length, tr.o.indexOf(key), cur.gsz); }
+    if (pend) row.pend = true;
     rows.push(row);
   });
   rows.sort((a, b) => a.tot - b.tot || (b.n || 0) - (a.n || 0) || (a.key[0] === 'h' ? -1 : 0) - (b.key[0] === 'h' ? -1 : 0) || co.compare(pnNameOf(cur, a.key), pnNameOf(cur, b.key)));
   let i = 0;
   while (i < rows.length) { let j = i; while (j + 1 < rows.length && rows[j + 1].tot === rows[i].tot) j++; for (let x = i; x <= j; x++) { rows[x].pos = i + 1; rows[x].tie = j > i; } i = j + 1; }
   out.sort((a, b) => a.tot - b.tot || co.compare(pnNameOf(cur, a.key), pnNameOf(cur, b.key)));
+  if (cur.po && cur.po.w != null && k >= 18 && r === (cur.fmt === 2 ? 1 : 0)) {   // v442 : après la prolongation, le vainqueur seul en tête
+    const w = rows.findIndex(x => x.key === cur.po.w); if (w > 0) rows.unshift(rows.splice(w, 1)[0]);
+    const t = rows.filter(x => x.pos === 1 && x.key !== cur.po.w); rows[0].tie = false; t.forEach(x => { x.pos = 2; x.tie = t.length > 1; });
+  }
   return rows.concat(out);
 }
 function pnDot(cur, key) { return key[0] === 'h' ? '<span class="pndot" style="background:' + cur.humans[+key.slice(1)].c + '"></span>' : ''; }
@@ -158,10 +165,12 @@ function pnBoard(cur, r, k, opts) {
 function pnLive(cur, r, k) {
   const rows = pnRows(cur, r, k).filter(x => !x.cut), pv = (S && S.ui && S.ui.pnpv) || VIEW.pnpv || 'cards', all = false;   // v437 : joueurs manuels toujours à leur place fixe en haut
   // \u00c9pingl\u00e9 : tous les joueurs manuels en haut (dans l'ordre du classement), puis les 20 premiers (o\u00f9 ils figurent aussi \u00e0 leur rang)
-  const list = all ? rows : rows.filter(x => x.key[0] === 'h').map(x => Object.assign({}, x, { pinned: true })).concat(rows);   /* v368 : Épinglé montre tout le champ */
-  let h = '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">' + chipRow([['cards', 'Cartes de scores'], ['board', 'Classement']], pv, 'pnpv') +
+  const list = rows;   /* v443 : plus de lignes épinglées, les cartes des joueurs sont à gauche (option X) */
+  let h = (cur.sim !== 'tee' && cur.field.length ? '<p class="small mute" style="margin:0 0 2px">R\u00e9v\u00e9lation des scores adverses</p>' + chipRow([['instant', 'Tous les scores d\u2019un coup'], ['seq', 'Par s\u00e9quence']], pnRevMode(), 'pnrev') : '') + '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">' + chipRow([['cards', 'Cartes de scores'], ['board', 'Classement']], pv, 'pnpv') +
     (cur.fmt === 2 && r === 0 && rows.length >= 4 ? '<span class="tag" style="font-size:15px;padding:3px 12px;white-space:nowrap">Coupure : ' + fmt(cutScoreOf(rows.map(x => x.tot), cur.cutN || Math.max(2, Math.round(rows.length * 0.45)))) + '</span>' : '') + '</div>';
-  const item = x => { const hu = x.key[0] === 'h', f = hu ? null : cur.field[+x.key.slice(1)]; return { pn: true, pinned: !!x.pinned, name: pnNameOf(cur, x.key), nat: f ? f.nat : '', color: hu ? cur.humans[+x.key.slice(1)].c : null, me: hu, pos: (x.tie ? 'T' : '') + x.pos, tot: x.tot, holes: pnHoles(cur, x.key, r).slice(0, x.n != null ? x.n : k), r1: r === 1 ? cur.r1[x.key] : null, n: x.n, g: x.g }; };
+  /* v443 : flèches de montée et de descente depuis le trou précédent, comme en carrière */
+  const mv = x => { const b = cur.mvb && cur.mvb[x.key]; if (!b || x.pend || k < 2 || r !== cur.r) return ''; return x.pos < b ? '<span class="anmv up" aria-hidden="true">▲</span>' : x.pos > b ? '<span class="anmv dn" aria-hidden="true">▼</span>' : ''; };
+  const item = x => { const hu = x.key[0] === 'h', f = hu ? null : cur.field[+x.key.slice(1)]; return { pn: true, pk: x.key, mvh: mv(x), pinned: !!x.pinned, name: pnNameOf(cur, x.key), nat: f ? f.nat : '', color: hu ? cur.humans[+x.key.slice(1)].c : null, me: hu, pos: (x.tie ? 'T' : '') + x.pos, tot: x.tot, holes: pnHoles(cur, x.key, r).slice(0, x.n != null ? x.n : x.pend ? k - 1 : k), r1: r === 1 ? cur.r1[x.key] : null, n: x.n, g: x.g }; };
   if (pv === 'cards') return h + cardsHTML(list.map(x => x.gap ? x : item(x)), cur.pars, { showR1: r === 1, next: k < 18 ? k : -1, index: cur.index });
   return h + '<div class="boardwrap scroll"><table class="board"><tr><th>Pos</th><th class="fl"></th><th>Joueur</th><th class="r">Total</th><th class="r">Trou</th></tr>' +
     list.map(x => { if (x.gap) return '<tr class="gap"><td colspan="5">\u00b7\u00b7\u00b7</td></tr>'; const it = item(x); return '<tr' + (it.me ? ' class="me pnme' + (it.pinned ? ' pnpin' : '') + '" style="--pc:' + it.color + '"' : '') + '><td class="pos">' + it.pos + '</td><td class="fl">' + (it.nat ? flagVisual(it.nat, 20) : '<span class="pndot" style="background:' + it.color + '"></span>') + '</td><td>' + (it.me ? '<b>' + esc(it.name) + '</b>' : esc(it.name)) + '</td><td class="r ' + cls(it.tot) + '">' + fmt(it.tot) + '</td><td class="r th">' + (it.n != null ? thruCell(it, k) : (k === 18 ? 'F' : k)) + '</td></tr>'; }).join('') + '</table></div>';
@@ -199,25 +208,30 @@ function pnCourseToolsHTML() {
 const pnSel = (id, k, r, cur, opts) => '<select id="' + id + '" data-pnc="' + k + '" data-r="' + r + '">' + opts.map(([v, t]) => '<option value="' + v + '"' + (v === cur ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>';
 function vPnSetup() {
   const C = pnCfg(), co = C.course, tz = co.rand ? [] : bankTeesOf(co.name).sort((a, b) => teeRank(a) - teeRank(b));
-  let h = '<div class="top"><div><h1>Play Now</h1><div class="ctx">Tournoi rapide, hors carrière</div></div></div><div class="narrow">';
-  h += '<div class="block"><h3 style="margin-top:0">Format</h3>' + chipRow([[1, '1 ronde'], [2, '2 rondes · coupure']], C.fmt, 'pnfmt') +
+  let h = '<div class="top"><div><h1>Play Now</h1><div class="ctx">Tournoi rapide, hors carrière</div></div></div>';
+  /* v443 : page en colonnes sur ordinateur, avec un bandeau qui résume le tournoi et le bouton pour commencer (option D, choix de Max) */
+  const gl = PN_TGT.find(t => t[0] === C.tgt), wl = WIND_LABELS[C.wind] || '', pl = PIN_LABELS[C.pin] || '';
+  h += '<div class="pnsum"><span class="pnsk">Ton tournoi</span>' + [[C.fmt === 1 ? '1 ronde' : '2 rondes · coupure'], [C.players.map(n => (n || '').trim()).filter(Boolean).join(', '), 1], [C.n ? C.n + ' adversaires' : 'Aucun adversaire'], C.n && gl ? [gl[1]] : null, [co.name + (co.tee ? ' · ' + co.tee : ''), 1], wl ? [wl] : null, pl ? [pl] : null].filter(Boolean).map(([t, n]) => '<span class="pnsi' + (n ? ' notr' : '') + '">' + esc(t) + '</span>').join('') +
+    '<button class="btn" data-a="pnstart">Commencer le tournoi</button></div>';
+  h += '<div class="narrow pnset">';
+  h += '<div class="block pnb-f"><h3 style="margin-top:0">Format</h3>' + chipRow([[1, '1 ronde'], [2, '2 rondes · coupure']], C.fmt, 'pnfmt') +
     '<p class="small mute" style="margin:0">' + (C.fmt === 1 ? 'Une seule ronde de 18 trous, sans coupure.' : 'Ronde 1, coupure, puis ronde finale.') + '</p>' +
     (C.fmt === 2 ? '<div class="pnline"><label for="pncut">Coupure : les</label><input type="number" id="pncut" data-pnc="cutn" min="1" max="1000" inputmode="numeric" value="' + pnCutN(C) + '"><span>premiers et les \u00e9galit\u00e9s</span></div>' : '') +
     '<label style="margin-top:12px">Simulation</label>' + chipRow([['live', 'Tous au m\u00eame trou'], ['tee', 'D\u00e9parts d\u00e9cal\u00e9s']], C.sim, 'pnsim') +
     (C.sim === 'tee' ? '<div class="pnline"><label for="pngsz">Golfeurs par groupe</label><input type="number" id="pngsz" data-pnc="gsz" min="1" max="200" inputmode="numeric" value="' + C.gsz + '"><span>\u00b7 un groupe aux ' + TEE.MIN + ' minutes</span></div>' : '<p class="small mute" style="margin:2px 0 0">Tout le champ joue le m\u00eame trou que vous.</p>') + '</div>';
-  h += '<div class="block"><h3 style="margin-top:0">Joueurs <span class="mute small">· ' + C.players.length + ' sur 8</span></h3>' +
+  h += '<div class="block pnb-p"><h3 style="margin-top:0">Joueurs <span class="mute small">· ' + C.players.length + ' sur 8</span></h3>' +
     C.players.map((n, i) => '<div class="pnp"><span class="pnn" style="background:' + PN_COLORS[i] + '">' + (i + 1) + '</span><input type="text" data-pnc="name" data-i="' + i + '" value="' + esc(n) + '" maxlength="24" autocomplete="off" aria-label="Nom du joueur ' + (i + 1) + '">' +
       (C.players.length > 1 ? '<button type="button" class="pnx" data-a="pndel" data-i="' + i + '" aria-label="Retirer ce joueur">×</button>' : '') + '</div>').join('') +
     (C.players.length < 8 ? '<button class="btn sec sm" data-a="pnadd" style="width:100%;margin-top:6px">+ Ajouter un joueur</button>' : '') + '</div>';
-  h += '<div class="block"><h3 style="margin-top:0">Ton champ</h3><div class="pnline"><label for="pnnum">Nombre d\u2019adversaires</label><input type="number" id="pnnum" data-pnc="n" min="0" max="1000" inputmode="numeric" value="' + C.n + '"><span>(0 \u00e0 1000)</span></div>';
+  h += '<div class="block pnb-y"><h3 style="margin-top:0">Ton champ</h3><div class="pnline"><label for="pnnum">Nombre d\u2019adversaires</label><input type="number" id="pnnum" data-pnc="n" min="0" max="1000" inputmode="numeric" value="' + C.n + '"><span>(0 \u00e0 1000)</span></div>';
   if (C.n) h += '<div class="row lvlrow" style="margin-top:8px"><div style="flex:0 0 130px"><label for="pnhc" style="margin-top:0;font-size:15px">Ton handicap</label><input type="number" id="pnhc" data-pnc="hc" step="0.1" min="-10" max="54" inputmode="decimal" placeholder="ex. 8,5" value="' + esc(C.hc == null ? '' : C.hc) + '"></div><div class="small mute" style="align-self:flex-end;padding-bottom:6px">Un handicap \u00ab plus \u00bb s\u2019\u00e9crit en n\u00e9gatif.</div></div>' +
     '<label>Ton objectif</label>' + chipRow(PN_TGT, C.tgt, 'pntgt') + '<div id="pnest">' + pnEstHTML(C) + '</div>';
   else h += '<p class="small mute" style="margin:0">Aucun adversaire : seulement entre vous.</p>';
   h += '</div>';
-  h += '<div class="block"><h3 style="margin-top:0">Terrain</h3><label for="pncn">Nom du terrain</label><div class="acwrap"><input type="text" id="pncn" data-pnac="1" value="' + esc(co.rand ? '' : co.name) + '" placeholder="' + (BANK.length ? 'Tape pour chercher dans ta liste' : 'Ta liste de terrains est vide') + '" autocomplete="off" spellcheck="false"><div class="acbox" id="pnac" role="listbox"></div></div>';
+  h += '<div class="block pnb-c"><h3 style="margin-top:0">Terrain</h3><label for="pncn">Nom du terrain</label><div class="acwrap"><input type="text" id="pncn" data-pnac="1" value="' + esc(co.rand ? '' : co.name) + '" placeholder="' + (BANK.length ? 'Tape pour chercher dans ta liste' : 'Ta liste de terrains est vide') + '" autocomplete="off" spellcheck="false"><div class="acbox" id="pnac" role="listbox"></div></div>';
   if (co.rand) h += '<p style="margin:10px 0 0"><b>' + esc(co.name) + '</b> <span class="mute small">· terrain aléatoire</span></p>';
   else h += '<p class="pncname" style="margin:10px 0 0">' + ytLink(co.name) + ' <a href="#" class="cresl" data-a="pncres" data-k="' + Math.max(0, cresList().findIndex(y => normName(y.name) === normName(co.name) && y.tee === co.tee)) + '">R\u00e9sum\u00e9 \u203a</a></p>';
-  h += '<div class="tgrid" style="margin-top:10px">' + (tz.length ? '<div class="ti"><label for="pntee">Tee de départ</label><select id="pntee" data-pnc="tee">' + tz.map(t => '<option' + (t === co.tee ? ' selected' : '') + '>' + esc(t) + '</option>').join('') + '</select></div>' : '') +
+  h += '<div class="tgrid" style="margin-top:10px">' + (tz.length ? '<div class="ti"><label for="pntee">Tee de départ</label><select id="pntee" data-pnc="tee">' + tz.map(t => teeOptHTML(co.name, t, t === co.tee)).join('') + '</select></div>' : '') +
     '</div>' + '<div class="sectlab">Conditions</div><div class="condgrid">' +
     '<div></div><div class="condhead">Drapeau</div><div class="condhead">Vent</div><div class="condhead">Hasard</div>' +
     '<div class="condrl">' + (C.fmt === 2 ? 'Ronde 1' : 'Ronde') + '</div>' + pnSel('pnp1', 'pin', 1, C.pin, PIN_DAYS.map(d => [d, PIN_LABELS[d]])) + pnSel('pnw1', 'wind', 1, C.wind, WIND_LEVELS.map(w => [w, WIND_LABELS[w]])) +
@@ -226,7 +240,7 @@ function vPnSetup() {
     '<button type="button" class="rdice" data-a="pnrrand" data-r="2" title="Drapeau et vent au hasard" aria-label="Drapeau et vent de la ronde 2 au hasard">🎲</button>' : '') + '</div>';
   h += '<p class="small mute" style="margin:8px 0 0">' + pnCourseLine(co) + '</p>' + (BANK.length ? '' : '<button class="btn sec sm" data-a="pnrand" style="width:100%;margin-top:10px">Terrain aléatoire</button>') + '</div>';
   if (BANK.length) h += pnCourseToolsHTML();
-  h += '<button class="btn" data-a="pnstart">Commencer le tournoi</button><button class="btn sec" data-a="pnexit">Retour</button></div>';
+  h += '<div class="pnb-go"><button class="btn" data-a="pnstart">Commencer le tournoi</button><button class="btn sec" data-a="pnexit">Retour</button></div></div>';
   return h;
 }
 function pnAcRender(q) {
@@ -251,8 +265,17 @@ function vPnPlay() {
     act.map(i => { const v = cur.vals[i]; return '<div class="pnrow"><span class="pnname"><span class="pndot" style="background:' + cur.humans[i].c + '"></span>' + esc(cur.humans[i].n) + '</span><button class="pm" data-a="pndec" data-i="' + i + '" aria-label="Moins un coup pour ' + esc(cur.humans[i].n) + '">−</button><span class="pnval" id="pnv' + i + '">' + v + '</span><button class="pm" data-a="pninc" data-i="' + i + '" aria-label="Plus un coup pour ' + esc(cur.humans[i].n) + '">+</button><span class="pnw" id="pnw' + i + '">' + verdictFor(v - par, v) + '</span></div>'; }).join('') + '</div>';
   A += '<button class="btn" data-a="pnok">Valider le trou ' + (k + 1) + '</button>';
   if (k > 0) A += '<button class="btn sec sm" data-a="pnundo" style="width:100%;margin-top:4px">Corriger le trou précédent</button>';
+  A += pnMiniCards(cur, cur.r, k);
   const B = '<h2 id="boardTop">Classement</h2>' + pnBoard(cur, cur.r, k);
   return cols(A, B, '', 'play');
+}
+/* v443 : les cartes des joueurs manuels, dans la colonne de gauche (option X, choix de Max) : aller et retour, total et place */
+function pnMiniCards(cur, r, k) {
+  const rows = pnRows(cur, r, k), act = pnActive(cur); if (!act.length) return '';
+  const one = i => { const hu = cur.humans[i], x = rows.find(y => y.key === 'h' + i) || {}, hs = hu.h[r] || [];
+    const half = o => '<tr><th class="pnmh">' + (o ? 'Retour (9)' : 'Aller') + '</th>' + cur.pars.slice(o, o + 9).map((pp, j) => hs[o + j] != null && o + j < k ? holeCell(hs[o + j], pp) : '<td class="pnmp">' + pp + '</td>').join('') + '<td class="pnms">' + (hs.slice(o, Math.min(o + 9, k)).length ? sum(hs.slice(o, Math.min(o + 9, k))) : '') + '</td></tr>';
+    return '<div class="block pnmc" style="--pc:' + hu.c + '"><div class="pnmt"><b class="notr">' + esc(hu.n) + '</b><span class="pnmtot ' + cls(x.tot) + '">' + fmt(x.tot || 0) + '</span><span class="mute small">' + (x.pos ? (x.tie ? 'T' : '') + x.pos : '–') + ' · <span>après ' + k + ' trou' + (k > 1 ? 's' : '') + '</span></span></div><table class="cards pnmini">' + half(0) + half(9) + '</table></div>'; };
+  return '<h2 style="margin-top:18px">Vos cartes</h2>' + act.map(one).join('');
 }
 /* vos rondes sont finies, mais des groupes sont encore sur le terrain */
 function vPnWait() {
@@ -260,7 +283,7 @@ function vPnWait() {
   let A = '<div class="top"><div><div class="ctx">' + esc(cur.name) + ' \u00b7 ' + (cur.fmt === 2 ? (cur.r === 0 ? 'ronde 1' : 'ronde finale') : 'Play Now') + '</div></div><a href="#" data-a="pnexit" class="sans" style="font-size:18px">Quitter</a></div>';
   A += '<div class="block"><b>' + left.length + ' golfeur' + (left.length > 1 ? 's' : '') + ' encore sur le terrain</b><p class="small mute" style="margin:2px 0 0">' + (low === 0 ? 'Le dernier groupe n\u2019est pas encore parti.' : 'Le dernier groupe en est au trou ' + (low + 1) + '.') + '</p></div>';
   A += '<button class="btn" data-a="pnstep">Avancer d\u2019un trou</button><button class="btn sec" data-a="pnfinr">Tout terminer d\u2019un coup</button><button class="btn sec sm" data-a="pnundo" style="width:100%;margin-top:4px">Corriger le trou 18</button>';
-  return cols(A, '<h2 id="boardTop">Classement</h2>' + pnBoard(cur, cur.r, 18), '', 'play');
+  return cols(A + pnMiniCards(cur, cur.r, 18), '<h2 id="boardTop">Classement</h2>' + pnBoard(cur, cur.r, 18), '', 'play');
 }
 function pnStep(i, d) {
   const cur = PNX.cur, par = cur.pars[cur.k], hr = holeRange(par);
@@ -268,13 +291,58 @@ function pnStep(i, d) {
   const v = document.getElementById('pnv' + i), w = document.getElementById('pnw' + i);
   if (v) v.textContent = cur.vals[i]; if (w) w.textContent = verdictFor(cur.vals[i] - par, cur.vals[i]);
 }
+/* v443 : mêmes aides qu'en carrière (demande de Max) : dévoilement « Par séquence », flèches et bande « Moments clés » */
+let PNREV = null, PNREV_T = 0;
+const pnRevMode = () => (PNX.cfg && PNX.cfg.rev) || 'seq';
+function pnRevStop() { clearInterval(PNREV_T); PNREV_T = 0; if (PNREV) { const cur = PNX.cur; PNREV = null; if (cur) pnKmHole(cur, cur.k); } }
+function pnRevStart(cur) {
+  pnRevStop();
+  const keys = pnRows(cur, cur.r, cur.k).filter(x => !x.cut && x.key[0] !== 'h').map(x => x.key);
+  if (!keys.length) { pnKmHole(cur, cur.k); return; }
+  PNREV = { k: cur.k, sh: new Set(), o: shuffled(keys) };
+  const step = Math.max(1, Math.ceil(keys.length / 14));
+  PNREV_T = setInterval(() => {
+    if (!PNREV || !PNX.cur || VIEW.name !== 'pnPlay') { pnRevStop(); return; }
+    PNREV.o.splice(0, step).forEach(k => PNREV.sh.add(k));
+    if (!PNREV.o.length) { pnRevStop(); }
+    render();
+  }, 160);
+}
+function pnKmHole(cur, k) {   // ce qui s'est passé au trou k (1 à 18)
+  if (!k) return; const j = k - 1, r = cur.r, rows = pnRows(cur, r, k), lead = rows.filter(x => !x.cut && x.pos === 1), nm = key => pnNameOf(cur, key), M = [];
+  const was = cur.mvb ? Object.keys(cur.mvb).filter(key => cur.mvb[key] === 1) : [];
+  rows.forEach(x => { if (x.cut) return; const hs = pnHoles(cur, x.key, r); if (hs[j] == null) return; const d = hs[j] - cur.pars[j];
+    if (x.key[0] === 'h' && d <= -1) M.push({ h: k, ic: d <= -2 ? '🦅' : '🐦', tx: nm(x.key) + ' : ' + holeWord(d, hs[j]) + ' (' + fmt(x.tot) + ')' });
+    else if (x.key[0] === 'h' && d >= 2) M.push({ h: k, ic: '😬', tx: nm(x.key) + ' : ' + holeWord(d, hs[j]) });
+    else if (x.key[0] !== 'h' && d <= -2) M.push({ h: k, ic: '🦅', tx: nm(x.key) + ' : ' + holeWord(d, hs[j]) });
+  });
+  if (lead.length === 1 && !(was.length === 1 && was[0] === lead[0].key)) M.push({ h: k, ic: '🏆', tx: nm(lead[0].key) + ' prend la tête à ' + fmt(lead[0].tot) });
+  cur.km = (cur.km || []).filter(m => m.h > k - 3).concat(M).slice(-12);
+}
+function pnKmRender() {
+  let el = document.getElementById('kmt');
+  const cur = PNX.cur, on = isMgr() && cur && VIEW.name === 'pnPlay';
+  document.documentElement.classList.toggle('kmon', !!on);
+  if (!on) { if (el) el.hidden = true; return; }
+  if (!el) { el = document.createElement('div'); el.id = 'kmt'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+  el.classList.remove('notr'); el.hidden = false; el.style.left = '0px';
+  const M = cur.km || [], rows = pnRows(cur, cur.r, cur.k), lead = rows.filter(x => !x.cut && x.pos === 1);
+  const body = M.length ? M.slice().reverse().map(x => '<span class="kmi"><span class="kmh">Trou ' + x.h + '</span><span class="kmic" aria-hidden="true">' + x.ic + '</span> <span>' + esc(x.tx) + '</span></span>').join('')
+    : '<span class="kmi calm">' + (lead.length === 1 ? 'En tête : ' + esc(pnNameOf(cur, lead[0].key)) + ' (' + fmt(lead[0].tot) + ')' : lead.length + ' golfeurs à égalité en tête à ' + fmt(lead[0] ? lead[0].tot : 0)) + '</span>';
+  const html = '<span class="kmtg">' + (LANG === 'en' ? 'KEY MOMENTS' : 'MOMENTS CLÉS') + '</span><div class="kmv"><div class="kmr">' + body + '</div></div>';
+  if (el.dataset.h === html) return; el.dataset.h = html; el.innerHTML = html; try { trNode(el); } catch (e) { }
+}
 function pnOk() {
   const cur = PNX.cur, act = pnActive(cur);
+  pnRevStop();
   act.forEach(i => { cur.humans[i].h[cur.r][cur.k] = cur.vals[i]; });
+  ANIM.hk++;   // v453 : nouveau trou du tournoi rapide
+  cur.mvb = {}; pnRows(cur, cur.r, cur.k).forEach(x => { if (!x.cut) cur.mvb[x.key] = x.pos; });   // places avant ce trou (pour les flèches)
   cur.k++;
-  if (cur.k === 18 && pnWaiting(cur)) { pnSave(); render(); window.scrollTo(0, 0); return; }
+  if (cur.k === 18 && pnWaiting(cur)) { pnKmHole(cur, 18); pnSave(); render(); window.scrollTo(0, 0); return; }
   if (cur.k === 18) return pnEndRound();
   cur.vals = cur.humans.map(() => cur.pars[cur.k]);
+  if (pnRevMode() === 'seq' && cur.sim !== 'tee') pnRevStart(cur); else pnKmHole(cur, cur.k);
   pnSave(); render();
   if (!isPC()) { const t = document.getElementById('boardTop'); if (t && act.length <= 2) { /* l'écran de saisie reste visible */ } }
 }
@@ -305,14 +373,53 @@ function vPnCut() {
   return h + cols(L, '<h2>Classement après la ronde 1</h2>' + pnBoard(cur, 0, 18));
 }
 function pnRound2(simOnly) {
-  const cur = PNX.cur; cur.r = 1; cur.k = 0; cur.phase = 'play';
+  const cur = PNX.cur; cur.r = 1; cur.k = 0; cur.phase = 'play'; cur.mvb = null; cur.km = [];
   pnSimAI(cur, 1);
   cur.vals = cur.humans.map(() => cur.pars[0]);
   if (simOnly) { cur.k = 18; return pnFinish(); }
   pnSave(); VIEW = { name: 'pnPlay' }; render(); window.scrollTo(0, 0);
 }
+/* v442 : prolongation en mort subite si égalité en tête, comme en carrière (demande de Max) */
+function pnPoHole(cur, keys, j) {
+  const grid = gridFor(cur.pars), G = {}, D = {}, base = {};
+  keys.forEach(key => { const f = cur.field[+key.slice(1)]; G[key] = f.g; D[key] = solveDelta(grid, roundTarget(f.g, cur.ctx, 1, 0) - lvlFor(f.g) + (cur.d || 0)); base[key] = 0; });
+  const H = liveFill(MODEL, cur.pars, cur.index, cur.ctx.hv && cur.ctx.hv[1], keys, G, D, base, true, {}, 18, null), o = {};
+  keys.forEach(key => { o[key] = H[key][j]; }); return o;
+}
+function pnPoStep(simAll) {
+  const cur = PNX.cur, P = cur.po; if (!P || P.w != null) return;
+  let g = 0;
+  do {
+    const j = P.h.length % 18, ai = P.live.filter(k => k[0] !== 'h'), sc = ai.length ? pnPoHole(cur, ai, j) : {};
+    P.live.filter(k => k[0] === 'h').forEach(k => { sc[k] = simAll ? cur.pars[j] : (P.vals[k] != null ? P.vals[k] : cur.pars[j]); });
+    P.h.push(sc);
+    const m = Math.min.apply(null, P.live.map(k => sc[k]));
+    P.live = P.live.filter(k => sc[k] === m);
+    if (P.live.length === 1) P.w = P.live[0]; else if (P.h.length >= 20) { P.w = P.live[Math.floor(Math.random() * P.live.length)]; P.live = [P.w]; }
+    P.vals = {}; P.live.filter(k => k[0] === 'h').forEach(k => { P.vals[k] = cur.pars[P.h.length % 18]; });
+  } while (simAll && P.w == null && g++ < 25);
+  pnSave(); render();
+}
+function vPnPo() {
+  const cur = PNX.cur, P = cur.po, n = P.h.length, j = n % 18, par = cur.pars[j], nm = k => esc(pnNameOf(cur, k));
+  let h = '<div class="top"><div><h1>Prolongation</h1><div class="ctx">' + esc(cur.name) + '</div></div></div>';
+  let L = '<div class="block hero">' + (P.w == null ? '<div class="ctx"><span>Trou de prolongation ' + (n + 1) + '</span> · <span>trou ' + (j + 1) + '</span> · <span>index ' + cur.index[j] + '</span></div><div class="big">Par ' + par + '</div><p class="mute" style="margin:6px 0 0">' + P.live.map(nm).join(' · ') + '</p>'
+    : '<div class="ctx">Vainqueur en prolongation</div><div class="big">' + nm(P.w) + '</div><p class="mute" style="margin:6px 0 0"><span>au trou de prolongation ' + n + '</span></p>') + '</div>';
+  const hum = P.w == null ? P.live.filter(k => k[0] === 'h') : [];
+  if (hum.length) L += '<div class="hole pnhole"><div class="lbl">Trou ' + (j + 1) + '</div><div class="par">Par ' + par + '</div>' + hum.map(k => { const i = +k.slice(1), v = P.vals[k]; return '<div class="pnrow"><span class="pnname"><span class="pndot" style="background:' + cur.humans[i].c + '"></span>' + esc(cur.humans[i].n) + '</span><button class="pm" data-a="pnpodec" data-k="' + k + '">\u2212</button><span class="pnval">' + v + '</span><button class="pm" data-a="pnpoinc" data-k="' + k + '">+</button><span class="pnw">' + verdictFor(v - par, v) + '</span></div>'; }).join('') + '</div>';
+  let F = P.w != null ? '<button class="btn" data-a="pnpoend">Voir les résultats</button>' : hum.length ? '<button class="btn" data-a="pnpook">Valider le trou de prolongation</button>' : '<button class="btn" data-a="pnpook">Simuler le trou de prolongation</button><button class="btn sec" data-a="pnpoall">Simuler toute la prolongation</button>';
+  L += F;
+  let R = '<h2>Carte de la prolongation</h2>';
+  if (!n) R += '<div class="block"><p class="mute" style="margin:0">La prolongation repart du trou 1 et suit la carte jusqu’au bris d’égalité.</p></div>';
+  else R += '<div class="cardwrap pocard"><table class="cards"><thead><tr class="hn"><th class="s1">Golfeur</th>' + P.h.map((x, k) => '<th>' + (k % 18 + 1) + '</th>').join('') + '</tr><tr class="hp"><th class="s1">Par</th>' + P.h.map((x, k) => '<th>' + cur.pars[k % 18] + '</th>').join('') + '</tr></thead><tbody>' +
+    P.keys.map(key => { const out = !P.live.includes(key) && P.w !== key; return '<tr class="' + (key[0] === 'h' ? 'me' : '') + (out ? ' poout' : '') + (key === P.w ? ' powin' : '') + '"' + (key[0] === 'h' ? ' style="--me:' + cur.humans[+key.slice(1)].c + ';--meSolid:color-mix(in srgb,' + cur.humans[+key.slice(1)].c + ' 34%,var(--paper))"' : '') + '><td class="s1">' + pnDot(cur, key) + ' ' + nm(key) + '</td>' + P.h.map((sc, k) => sc[key] == null ? '<td></td>' : holeCell(sc[key], cur.pars[k % 18])).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
+  return h + cols(L, R);
+}
 function pnFinish() {
-  const cur = PNX.cur; cur.phase = 'end'; cur.k = 18;
+  const cur = PNX.cur; cur.k = 18;
+  if (!cur.po) { const rows = pnRows(cur, cur.fmt === 2 ? 1 : 0, 18).filter(x => !x.cut), t = rows.filter(x => x.pos === 1).map(x => x.key);
+    if (t.length > 1) { cur.po = { keys: t, live: t.slice(), h: [], w: null, vals: {} }; t.filter(k => k[0] === 'h').forEach(k => { cur.po.vals[k] = cur.pars[0]; }); cur.phase = 'po'; pnSave(); VIEW = { name: 'pnPo' }; render(); window.scrollTo(0, 0); return; } }
+  cur.phase = 'end';
   pnSave(); VIEW = { name: 'pnEnd' }; render(); window.scrollTo(0, 0);
 }
 function pnCard(cur, i) {
@@ -328,27 +435,41 @@ function pnCard(cur, i) {
 function vPnEnd() {
   const cur = PNX.cur, r = cur.fmt === 2 ? 1 : 0, rows = pnRows(cur, r, 18), lead = rows.filter(x => !x.cut && x.pos === 1);
   const nm = x => esc(pnNameOf(cur, x.key));
-  let head = lead.length > 1 ? 'Égalité en tête à ' + fmt(lead[0].tot) + ' : ' + lead.map(nm).join(', ') : nm(lead[0]) + ' remporte le tournoi à ' + fmt(lead[0].tot);
+  let head = cur.po && cur.po.w != null ? nm(lead[0]) + ' remporte le tournoi en prolongation à ' + fmt(lead[0].tot) : lead.length > 1 ? 'Égalité en tête à ' + fmt(lead[0].tot) + ' : ' + lead.map(nm).join(', ') : nm(lead[0]) + ' remporte le tournoi à ' + fmt(lead[0].tot);
   let h = '<div class="top"><div><h1>Tournoi terminé</h1><div class="ctx">' + esc(cur.name) + ' · tees ' + esc(cur.tee) + '</div></div></div>';
   let L = '<div class="block hero"><div class="big" style="font-size:30px;line-height:1.15">' + head + '</div></div>';
   L += '<div class="block"><h3 style="margin-top:0">Vos résultats</h3>' + cur.humans.map((hu, i) => { const x = rows.find(y => y.key === 'h' + i); return '<p class="pnres"><span class="pndot" style="background:' + hu.c + '"></span><b>' + esc(hu.n) + '</b> · <span>' + (x.cut ? 'coupure ratée' : (x.tie ? 'T' : '') + x.pos + (x.pos === 1 ? 'er' : 'e') + ' sur ' + rows.length) + '</span> · <span class="' + cls(x.tot) + '">' + fmt(x.tot) + '</span> <span class="mute small">(' + (sum(hu.h[0]) + sum(hu.h[1])) + ' coups)</span></p>' + pnCard(cur, i); }).join('') + '</div>';
   L += '<button class="btn" data-a="pnagain">Rejouer avec les mêmes réglages</button><button class="btn sec" data-a="pnsetup">Nouveau tournoi</button><button class="btn sec" data-a="pnexit">Retour</button>';
-  return h + cols(L, '<h2>Classement final</h2>' + pnBoard(cur, r, 18, { fin: true }));
+  /* v442 : les cartes de score de tout le champ, comme en carrière (Résultats, cartes de chaque ronde, cartes combinées) */
+  const tabs = [['res', 'Résultats']].concat(cur.fmt === 2 ? [['c1', 'Cartes ronde 1'], ['c2', 'Cartes ronde 2'], ['cc', 'Cartes combinées']] : [['c1', 'Cartes de scores']]), tv = tabs.some(t => t[0] === VIEW.pnet) ? VIEW.pnet : 'res';
+  let R = '<h2>Classement final</h2>' + chipRow(tabs, tv, 'pnet');
+  if (tv === 'res') R += pnBoard(cur, r, 18, { fin: true });
+  else {
+    const rr = tv === 'c2' ? 1 : 0, one = tv !== 'cc', base = tv === 'cc' ? pnRows(cur, r, 18) : pnRows(cur, rr, 18).filter(x => !x.cut || rr === 0);
+    let list = base.filter(x => tv !== 'c2' || !x.cut);
+    if (tv === 'c1' && cur.fmt === 2) { list = list.map(x => Object.assign({}, x, { tot: relTo(pnHoles(cur, x.key, 0), cur.pars, 18) })); list.sort((a, b) => a.tot - b.tot); let i = 0; while (i < list.length) { let j = i; while (j + 1 < list.length && list[j + 1].tot === list[i].tot) j++; for (let x = i; x <= j; x++) { list[x] = Object.assign({}, list[x], { pos: i + 1, tie: j > i }); } i = j + 1; } }
+    if (tv === 'c2') list = list.map(x => Object.assign({}, x, { tot: relTo(pnHoles(cur, x.key, 1), cur.pars, 18) })).sort((a, b) => a.tot - b.tot).map((x, i, A) => Object.assign({}, x, { pos: A.findIndex(y => y.tot === x.tot) + 1, tie: A.filter(y => y.tot === x.tot).length > 1 }));
+    const item = x => { const hu = x.key[0] === 'h', f = hu ? null : cur.field[+x.key.slice(1)]; return { pn: true, name: pnNameOf(cur, x.key), nat: f ? f.nat : '', color: hu ? cur.humans[+x.key.slice(1)].c : null, me: hu, pos: x.cut ? 'CUT' : (x.tie ? 'T' : '') + x.pos, tot: x.tot,
+      holes: tv === 'cc' ? (x.cut ? pnHoles(cur, x.key, 0) : pnHoles(cur, x.key, 1)) : pnHoles(cur, x.key, rr), r1: tv === 'cc' && !x.cut ? cur.r1[x.key] : null }; };
+    R += cardsHTML(list.map(item), cur.pars, { showR1: tv === 'cc', next: -1, index: cur.index });
+  }
+  return h + cols(L, R);
 }
 function pnRender() {
-  const V = { pnSetup: vPnSetup, pnPlay: vPnPlay, pnCut: vPnCut, pnEnd: vPnEnd, pnCres: vCourseResume }[VIEW.name];
+  const V = { pnSetup: vPnSetup, pnPlay: vPnPlay, pnCut: vPnCut, pnEnd: vPnEnd, pnPo: vPnPo, pnCres: vCourseResume }[VIEW.name];
   if (!V || (VIEW.name !== 'pnSetup' && VIEW.name !== 'pnCres' && !PNX.cur)) { VIEW = { name: 'pnSetup' }; return pnRender(); }
   const scenic = VIEW.name !== 'pnPlay';
   $tabs.hidden = true;
   $app.innerHTML = (scenic ? scene() : '') + '<div class="wrap' + (scenic ? ' sc' : '') + '">' + V() + '</div>';
+  setTimeout(() => { try { pnKmRender(); } catch (e) { } }, 0);   // v443 : bande « Moments clés »
 }
 function pnOpen() {
   const c = PNX.cur;
-  VIEW = { name: c && c.phase === 'play' ? 'pnPlay' : c && c.phase === 'cut' ? 'pnCut' : 'pnSetup' };
+  VIEW = { name: c && c.phase === 'play' ? 'pnPlay' : c && c.phase === 'cut' ? 'pnCut' : c && c.phase === 'po' ? 'pnPo' : c && c.phase === 'end' ? 'pnEnd' : 'pnSetup' };
   render(); window.scrollTo(0, 0);
 }
 function pnHomeBtn() {
-  const c = PNX.cur, live = c && (c.phase === 'play' || c.phase === 'cut');
+  const c = PNX.cur, live = c && (c.phase === 'play' || c.phase === 'cut' || c.phase === 'po');
   return '<button class="btn sec pnhome" data-a="pnopen">' + (live ? 'Reprendre Play Now · ' + esc(c.name) : 'Play Now · tournoi rapide') + '</button>';
 }
 function pnAct(a, el) {
@@ -356,11 +477,17 @@ function pnAct(a, el) {
   switch (a) {
     case 'pnopen': pnOpen(); return;
     case 'pnrrand': { const r2 = d.r === '2'; C[r2 ? 'pin2' : 'pin'] = randomPin(); C[r2 ? 'wind2' : 'wind'] = randomWind(); pnSave(); render(); toast('Ronde ' + (r2 ? 2 : 1) + ' : ' + PIN_LABELS[C[r2 ? 'pin2' : 'pin']] + ' \u00b7 ' + WIND_LABELS[C[r2 ? 'wind2' : 'wind']]); return; }
-    case 'pnexit': VIEW = S ? { name: 'home' } : { name: 'new' }; render(); window.scrollTo(0, 0); return;
+    case 'pnexit': { const c = PNX.cur, live = c && (c.phase === 'play' || c.phase === 'cut' || c.phase === 'po'); VIEW = S ? { name: 'home' } : { name: 'new' }; render(); window.scrollTo(0, 0); if (live) toast('Ton tournoi rapide est gardé : reprends-le quand tu veux avec « Reprendre Play Now »'); return; }   // v442
+    case 'pnpoinc': case 'pnpodec': { const P = PNX.cur.po, k = d.k, par = PNX.cur.pars[P.h.length % 18], hr = holeRange(par); P.vals[k] = Math.max(hr[0], Math.min(hr[1], (P.vals[k] || par) + (a === 'pnpoinc' ? 1 : -1))); pnSave(); render(); return; }
+    case 'pnpook': pnPoStep(false); return;
+    case 'pnpoall': pnPoStep(true); return;
+    case 'pnpoend': { const cur = PNX.cur; cur.phase = 'end'; pnSave(); VIEW = { name: 'pnEnd' }; render(); window.scrollTo(0, 0); return; }
+    case 'pnet': VIEW.pnet = d.v; render(); return;
+    case 'pnrev': PNX.cfg.rev = d.v; if (d.v === 'instant') pnRevStop(); pnSave(); render(); return;
     case 'pnsetup': PNX.cur = null; pnSave(); VIEW = { name: 'pnSetup' }; render(); window.scrollTo(0, 0); return;
     case 'pnagain': pnStart(); return;
     case 'pnstart': {
-      if (PNX.cur && (PNX.cur.phase === 'play' || PNX.cur.phase === 'cut') && !VIEW.pnConfirm) { VIEW.pnConfirm = true; toast('Un tournoi est en cours : touche encore pour le remplacer'); return; }
+      if (PNX.cur && (PNX.cur.phase === 'play' || PNX.cur.phase === 'cut' || PNX.cur.phase === 'po') && !VIEW.pnConfirm) { VIEW.pnConfirm = true; toast('Un tournoi est en cours : touche encore pour le remplacer'); return; }
       pnStart(); return;
     }
     case 'pnadd': if (C.players.length < 8) { pnSyncNames(); C.players.push('Joueur ' + (C.players.length + 1)); pnSave(); render(); } return;
@@ -458,9 +585,10 @@ function vMore() {
   _m.push(h); h = '';
   if (duoOn()) h += '<div class="block"><h3 style="margin-top:0">Parties</h3><p style="margin:0">Partie ouverte : <b>' + (SLOT === 'save-duo' ? 'Duo' : 'Ma carri\u00e8re') + '</b></p><p class="small mute" style="margin:4px 0 8px">Ta carri\u00e8re et la partie Duo sont gard\u00e9es s\u00e9par\u00e9ment ; passer de l\u2019une \u00e0 l\u2019autre ne change rien \u00e0 l\u2019autre.</p><button class="btn sec" data-a="slot" data-v="' + (SLOT === 'save-duo' ? 'save' : 'save-duo') + '">' + (SLOT === 'save-duo' ? 'Ouvrir ma carri\u00e8re' : 'Ouvrir la partie Duo') + '</button></div>';
   h += '<h2>Sauvegarde</h2><p class="small mute">La partie est enregistr\u00e9e automatiquement dans ce navigateur, sur cet appareil. Exporte un fichier de temps en temps pour la conserver ou la d\u00e9placer.</p>' +
-    '<div class="block" id="bklist"><b>Copies automatiques</b><p class="small mute" style="margin:2px 0 6px">Apr\u00e8s chaque tournoi, le jeu garde une copie de ta partie dans ce navigateur (les ' + BK_N + ' derni\u00e8res)' + (canPickDir() ? ' et, si tu as choisi le dossier Saved Games, un fichier auto-1 \u00e0 auto-' + BK_N + ' qui tourne' : '') + '.</p><div id="bkrows" class="small mute">\u2026</div></div>' +
+    '<div class="block" id="bklist"><b>Copies automatiques</b><label for="bkm" style="margin-top:6px">Fréquence</label><select id="bkm" data-c="bkm">' + BK_MODES.map(([k, t]) => '<option value="' + k + '"' + (((S.bkm || 't') === k) ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>' +
+    ((S.bkm || 't') === 'n' ? '<p class="small mute" style="margin:6px 0">Aucune copie automatique.</p>' : '<p class="small mute" style="margin:6px 0">' + (canPickDir() ? (SAVEDIR ? 'Les ' + BK_N + ' dernières copies vont dans le dossier <b class="notr">' + esc(SAVEDIR.name) + '</b> (fichiers « auto - … - 1 » à « - ' + BK_N + ' », qui tournent), et une copie reste aussi dans ce navigateur.' : 'Choisis le dossier « Saved Games » (lien « Choisir maintenant », près du bouton de sauvegarde) pour que les copies aillent dans un fichier sur ton ordinateur. Pour l’instant, elles restent dans ce navigateur.') : 'Ici, les copies restent dans ce navigateur : pour les avoir dans un dossier, joue avec le fichier téléchargé, dans Chrome ou Edge.') + '</p>') + '<div id="bkrows" class="small mute">\u2026</div></div>' +
     '<label for="expn">Nom du fichier (optionnel)</label><input type="text" id="expn" placeholder="' + esc(defaultSaveName()) + '" value="' + esc(VIEW.exportName || '') + '" autocomplete="off">' +
-    (S.saveBase ? '<p class="small mute" style="margin:4px 0 0"><span>Par défaut :</span> <b class="notr">' + esc(defaultSaveName()) + '</b> · <span>écris un autre nom pour le changer.</span></p>' : '<p class="small mute" style="margin:4px 0 0">Le nom que tu écris devient le nom par défaut : le jeu y ajoutera l’année et le tournoi (ex. « max vrai - ' + saveTag() + ' »).</p>') +
+    '<p class="small mute" style="margin:4px 0 0"><span>Ta partie :</span> <b class="notr">' + esc(defaultSaveName()) + '</b> · <span>ce fichier est remplacé à chaque sauvegarde. Écris un autre nom pour garder une copie à part.</span></p>' +   // v441
     '<button class="btn" data-a="export" style="margin-top:6px">' + (canPickDir() ? 'Sauvegarder la partie' : 'T\u00e9l\u00e9charger un fichier de sauvegarde') + '</button>' +
     (canPickDir() ? '<p class="small mute" style="margin:4px 0 10px">' + (SAVEDIR ? 'Les sauvegardes vont directement dans le dossier <b>' + esc(SAVEDIR.name) + '</b>. <a href="#" data-a="savedir">Changer de dossier</a>' : 'La premi\u00e8re fois, choisis le dossier \u00ab Saved Games \u00bb dans le dossier du jeu : les sauvegardes suivantes iront directement l\u00e0. <a href="#" data-a="savedir">Choisir maintenant</a>') + '</p>' : '') +
     (!canPickDir() && typeof window !== 'undefined' && window.showSaveFilePicker ? '<p class="small mute" style="margin:4px 0 10px">Une bo\u00eete \u00ab Enregistrer sous \u00bb s\u2019ouvre : tu y choisis aussi le dossier.</p>' : '') +

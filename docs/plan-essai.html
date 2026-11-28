@@ -64,12 +64,12 @@ footer{color:var(--mute);font-size:13px;text-align:center}
 @media (max-width:640px){li.it{grid-template-columns:1fr}.v{justify-content:flex-start}.sh .cnt{display:none}}
 .mods{grid-column:1/-1;list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
 .mod{display:grid;grid-template-columns:auto auto auto minmax(0,1fr) auto auto;gap:8px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 8px}
-.mod.af{border-color:var(--red)}.mod.fait{border-color:var(--green)}.mod.ver{opacity:.6}.mod.ver input.mt{text-decoration:line-through}
+.mod.af{border-color:var(--red)}.mod.fait{border-color:var(--green)}.mod.ver{opacity:.6}.mod.ver .mt{text-decoration:line-through}
 .mod label{display:inline-flex;align-items:center;gap:4px;font:600 11px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--mute);cursor:pointer;white-space:nowrap}
 .mod label input{width:16px;height:16px;accent-color:var(--green);margin:0}
 .mod label.la input{accent-color:var(--red)}
-.mod input.mt{font:14px/1.4 var(--f-body);color:var(--ink);background:transparent;border:0;padding:4px 2px;min-width:0;width:100%}
-.mod input.mt:focus-visible,.mod button:focus-visible,.addm input:focus-visible,.addm button:focus-visible,.mod label input:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.mod .mt{font:14px/1.45 var(--f-body);color:var(--ink);background:transparent;border:0;padding:4px 2px;min-width:0;width:100%;resize:none;overflow:hidden;field-sizing:content;min-height:24px;display:block}
+.mod .mt:focus-visible,.mod button:focus-visible,.addm input:focus-visible,.addm button:focus-visible,.mod label input:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .mod .del{border:0;background:none;color:var(--mute);font-size:16px;cursor:pointer;padding:2px 6px;border-radius:6px;white-space:nowrap}
 .mod .del.sure{color:var(--red);font:600 12px var(--f-body)}
 .mod .clip{border:0;background:none;font-size:15px;cursor:pointer;padding:2px 6px;border-radius:6px}.mod .clip:focus-visible{outline:2px solid var(--green)}
@@ -86,11 +86,41 @@ footer{color:var(--mute);font-size:13px;text-align:center}
 .pill.d b{color:var(--sand)}
 @media (max-width:640px){.mod{grid-template-columns:auto auto auto minmax(0,1fr) auto auto}.mod label span{display:none}}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}.mic.on{animation:none}}
+/* Suivi : ce qui est à faire et ce qui est fait, en haut ; un statut bien visible sur chaque élément ; déplacer un élément */
+.mod{grid-template-columns:auto auto auto auto minmax(0,1fr) auto auto auto;border-left-width:4px}
+.mod .st{font:600 11px var(--f-body);letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 8px;white-space:nowrap;color:var(--mute);background:var(--card);border:1px solid var(--line)}
+.mod .st:empty{display:none}
+.mod.af{background:var(--red-soft);border-color:var(--red)}.mod.af .st{color:var(--red);border-color:var(--red)}
+.mod.fait{background:var(--green-soft);border-color:var(--green)}.mod.fait .st{color:var(--green);border-color:var(--green)}
+.mod.ver .st{color:var(--mute)}
+.mod select.mv{font:12px var(--f-body);color:var(--mute);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:3px 4px;max-width:118px;cursor:pointer}
+.mod select.mv:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.track{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px 22px}
+.track h2{margin:0 0 8px;font:800 18px/1.2 var(--f-disp);display:flex;align-items:baseline;gap:8px}
+.track h2 b{font:500 13px var(--f-mono);border-radius:999px;padding:1px 9px}
+.track .todo h2 b{background:var(--red-soft);color:var(--red)}.track .made h2 b{background:var(--green-soft);color:var(--green)}
+.track ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.track li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;border-left:4px solid var(--red);background:var(--red-soft);border-radius:8px;padding:7px 10px}
+.track .made li{border-left-color:var(--green);background:var(--green-soft)}
+.track li .tx{min-width:0;font-size:14px}
+.track li .go{grid-column:1;border:0;background:none;padding:0;font:600 12px var(--f-body);color:var(--mute);text-align:left;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.track li .go:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.track li label{grid-row:1/3;grid-column:2;display:inline-flex;align-items:center;gap:5px;font:600 11px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--mute);cursor:pointer}
+.track li label input{width:16px;height:16px;accent-color:var(--green);margin:0}
+.track .none{color:var(--mute);font-size:14px;background:none;border:0;padding:0}
+li.it.flash,.divers.flash{animation:flash 1.6s ease-out}
+@keyframes flash{0%{box-shadow:inset 0 0 0 3px var(--sand)}100%{box-shadow:inset 0 0 0 3px transparent}}
+@media (max-width:640px){.mod{grid-template-columns:auto auto auto minmax(0,1fr) auto auto;}.mod .st{grid-column:1/-1;justify-self:start}.mod select.mv{grid-column:1/-1;max-width:none}}
+/* le texte de chaque élément sur toute la largeur, en entier (demande de Max) */
+.mod{display:flex!important;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.mod .clip{margin-left:auto}
+.mod .mt{flex:1 1 100%;order:10;padding:2px 2px 4px}
+.mod .shots{flex:1 1 100%;order:11}
 </style>
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">Indoor Golf Career · v433</div>
+    <div class="eyebrow">Indoor Golf Career</div>
     <h1>Banc d’essai avant publication</h1>
     <p>Tout ce qu’il faut essayer toi-même avant de publier le jeu, dans l’ordre où tu le vivras en jouant. Pour chaque point, donne ton verdict et note ce que tu changerais. Claude peut relire tes notes : dis-lui simplement « regarde mes notes du banc d’essai ».</p>
     <div class="sum" aria-live="polite">
@@ -103,6 +133,11 @@ footer{color:var(--mute);font-size:13px;text-align:center}
       <span class="save" id="saveState">Chargement de tes notes…</span>
     </div>
   </header>
+
+  <section class="track" id="track" aria-label="Suivi des modifications">
+    <div class="todo"><h2>À faire <b id="tTodoN">0</b></h2><ul id="tTodo"></ul></div>
+    <div class="made"><h2>Faites, à vérifier <b id="tMadeN">0</b></h2><ul id="tMade"></ul></div>
+  </section>
 
   <div class="how">
     <div><b>Avant de commencer</b><span>Exporte ta partie actuelle (<code>Save the game</code>) : tu pourras y revenir. Fais les essais dans une nouvelle carrière.</span></div>
@@ -232,6 +267,7 @@ const STEPS = [
   ]},
 ];
 
+const PNAME = { divers: 'À faire ailleurs' }; STEPS.forEach(s => s.items.forEach(i => { PNAME[i[0]] = i[1]; }));
 const STATE = {};   // id -> { v: 'aime'|'bof'|'chg'|null, n: string }
 let db = null, assets = null, onlyTodo = false, dict = null, dictId = null, dictBase = '';
 const MODS = {};   // id -> { p: point, t: texte, o: ordre, af: à faire (Max), fait: fait (Claude), ver: vérifié (Max) }
@@ -287,6 +323,7 @@ function paint() {
   });
   STEPS.forEach((s, k) => { const n = s.items.filter(i => (STATE[i[0]] || {}).v).length; $('#cnt' + k).textContent = n + ' / ' + s.items.length; document.querySelector('section[data-k="' + k + '"]').hidden = onlyTodo && s.items.every(i => document.getElementById('it-' + i[0]).hidden); });
   paintMods('divers');
+  paintTrack();
   const M = Object.values(MODS); $('#mTodo').textContent = M.filter(m => m.af && !m.fait && !m.ver).length; $('#mDem').textContent = M.filter(m => m.fait && !m.ver).length; $('#mVer').textContent = M.filter(m => m.ver).length;
   $('#nDone').textContent = done; $('#nAll').textContent = ALL.length; $('#nAime').textContent = a; $('#nBof').textContent = b; $('#nChg').textContent = c;
   const pct = Math.round(done / ALL.length * 100); $('#barfill').style.width = pct + '%'; document.querySelector('.bar').setAttribute('aria-valuenow', String(pct));
@@ -316,23 +353,48 @@ function paintMods(pid) {
       const l0 = el('label', 'la'); const c0 = el('input'); c0.type = 'checkbox'; c0.dataset.ck = 'af'; c0.dataset.m = mid; l0.appendChild(c0); l0.appendChild(el('span', null, 'À faire'));
       const l1 = el('label', 'lf'); const c1 = el('input'); c1.type = 'checkbox'; c1.dataset.ck = 'fait'; c1.dataset.m = mid; l1.appendChild(c1); l1.appendChild(el('span', null, 'Fait'));
       const l2 = el('label', 'lv'); const c2 = el('input'); c2.type = 'checkbox'; c2.dataset.ck = 'ver'; c2.dataset.m = mid; l2.appendChild(c2); l2.appendChild(el('span', null, 'Vérifié'));
-      const tx = el('input', 'mt'); tx.type = 'text'; tx.dataset.mt = mid; tx.setAttribute('aria-label', 'Modification');
+      const tx = el('textarea', 'mt'); tx.rows = 1; tx.dataset.mt = mid; tx.setAttribute('aria-label', 'Modification');
       const del = el('button', 'del', '×'); del.type = 'button'; del.dataset.del = mid; del.setAttribute('aria-label', 'Supprimer cette modification');
       const clip = el('button', 'clip', '📎'); clip.type = 'button'; clip.dataset.clip = mid; clip.hidden = !assets; clip.setAttribute('aria-label', 'Joindre une capture'); clip.title = 'Joindre une capture';
       const sh = el('div', 'shots'); sh.dataset.shots = mid;
-      li.append(l0, l1, l2, tx, clip, del, sh);
+      const st = el('span', 'st');
+      const mv = el('select', 'mv'); mv.dataset.mv = mid; mv.setAttribute('aria-label', 'Déplacer vers un autre point'); mv.title = 'Déplacer vers un autre point';
+      const o0 = el('option', null, 'Déplacer…'); o0.value = ''; mv.appendChild(o0);
+      const od = el('option', null, 'À faire ailleurs'); od.value = 'divers'; mv.appendChild(od);
+      STEPS.forEach((s2, k2) => { const g = el('optgroup'); g.label = (k2 + 1) + '. ' + s2.t; s2.items.forEach(([iid, it]) => { const o = el('option', null, it); o.value = iid; g.appendChild(o); }); mv.appendChild(g); });
+      li.append(st, l0, l1, l2, clip, mv, del, tx, sh);
     }
     if (ul.children[i] !== li) ul.insertBefore(li, ul.children[i] || null);
     const c0 = li.querySelector('[data-ck="af"]'), c1 = li.querySelector('[data-ck="fait"]'), c2 = li.querySelector('[data-ck="ver"]'), tx = li.querySelector('.mt');
     c0.checked = !!m.af; c1.checked = !!m.fait; c2.checked = !!m.ver; c0.setAttribute('aria-label', 'À faire : ' + m.t); c1.setAttribute('aria-label', 'Fait : ' + m.t); c2.setAttribute('aria-label', 'Vérifié : ' + m.t);
-    if (document.activeElement !== tx && tx.value !== m.t) tx.value = m.t;
+    if (document.activeElement !== tx && tx.value !== m.t) { tx.value = m.t; requestAnimationFrame(() => fitMt(tx)); }
     const sh = li.querySelector('.shots'), imgs = m.img || [], up = UPL[mid] || 0;
     const key = imgs.join(',') + '|' + up; if (sh.dataset.key !== key) { sh.dataset.key = key; sh.textContent = '';
       imgs.forEach(aid => { const d = el('div', 'shot'); const a = el('a'); a.href = '/_blob/' + aid; a.target = '_blank'; a.rel = 'noopener'; const im = el('img'); im.src = '/_blob/' + aid; im.alt = 'Capture jointe'; im.loading = 'lazy'; a.appendChild(im); d.appendChild(a);
         const rm = el('button', 'rm', '×'); rm.type = 'button'; rm.dataset.rmshot = mid + '|' + aid; rm.setAttribute('aria-label', 'Retirer cette capture'); d.appendChild(rm); sh.appendChild(d); });
       for (let k = 0; k < up; k++) sh.appendChild(el('div', 'shot up', 'Envoi…')); }
     li.classList.toggle('af', !!m.af && !m.fait && !m.ver); li.classList.toggle('fait', !!m.fait && !m.ver); li.classList.toggle('ver', !!m.ver);
+    li.querySelector('.st').textContent = m.ver ? 'Vérifié' : m.fait ? 'Fait · à vérifier' : m.af ? 'À faire' : '';
+    const mv = li.querySelector('select.mv'); if (document.activeElement !== mv) mv.value = '';
   });
+}
+/* le panneau du haut : ce qui est coché « À faire » (pas encore fait), puis ce qui est fait et reste à vérifier */
+function paintTrack() {
+  const all = Object.entries(MODS).sort((a, b) => (a[1].o || 0) - (b[1].o || 0));
+  const todo = all.filter(([, m]) => m.af && !m.fait && !m.ver), made = all.filter(([, m]) => m.fait && !m.ver);
+  const fill = (ul, list, empty, box) => {
+    ul.textContent = '';
+    if (!list.length) { ul.appendChild(el('li', 'none', empty)); return; }
+    list.forEach(([mid, m]) => {
+      const li = el('li'); const tx = el('div', 'tx', m.t); li.appendChild(tx);
+      const go = el('button', 'go', PNAME[m.p] || m.p); go.type = 'button'; go.dataset.go = m.p; li.appendChild(go);
+      const lb = el('label'); const c = el('input'); c.type = 'checkbox'; c.dataset.ck = box; c.dataset.m = mid; c.checked = !!m[box]; c.setAttribute('aria-label', (box === 'ver' ? 'Vérifié : ' : 'À faire : ') + m.t); lb.append(c, el('span', null, box === 'ver' ? 'Vérifié' : 'À faire')); li.appendChild(lb);
+      ul.appendChild(li);
+    });
+  };
+  fill($('#tTodo'), todo, 'Rien à faire pour l’instant. Coche « À faire » sur un élément pour le voir ici.', 'af');
+  fill($('#tMade'), made, 'Rien à vérifier pour l’instant.', 'ver');
+  $('#tTodoN').textContent = todo.length; $('#tMadeN').textContent = made.length;
 }
 const mbusy = {}, magain = {};
 async function writeMod(mid) {
@@ -364,17 +426,19 @@ const picker = document.createElement('input'); picker.type = 'file'; picker.acc
 let pickFor = null;
 picker.addEventListener('change', () => { if (pickFor) attach(pickFor, [...picker.files]); picker.value = ''; });
 document.addEventListener('paste', e => {
-  const tx = e.target.closest && e.target.closest('input[data-mt]'); if (!tx || !assets) return;
+  const tx = e.target.closest && e.target.closest('[data-mt]'); if (!tx || !assets) return;
   const fs = [...(e.clipboardData ? e.clipboardData.files : [])].filter(f => /^image\//.test(f.type)); if (!fs.length) return;
   e.preventDefault(); attach(tx.dataset.mt, fs);
 });
 function addFromInput(pid) { const ai = document.getElementById('a-' + pid); if (ai && addMod(pid, ai.value)) { ai.value = ''; ai.focus(); } }
+document.addEventListener('change', e => { const mv = e.target.closest('select[data-mv]'); if (mv) { const m = MODS[mv.dataset.mv], to = mv.value; if (m && to && to !== m.p) { m.p = to; m.o = Date.now(); paint(); writeMod(mv.dataset.mv); $('#saveState').textContent = 'Déplacé vers « ' + (PNAME[to] || to) + ' »'; } else mv.value = ''; } });
+document.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (!g) return; const t = document.getElementById('it-' + g.dataset.go); if (!t) return; if (onlyTodo && t.hidden) { onlyTodo = false; $('#onlyTodo').hidden = false; $('#showAll').hidden = true; paint(); } t.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' }); t.classList.remove('flash'); void t.offsetWidth; t.classList.add('flash'); });
 document.addEventListener('change', e => { const c = e.target.closest('[data-ck]'); if (!c) return; const m = MODS[c.dataset.m]; if (!m) return; m[c.dataset.ck] = c.checked; paint(); writeMod(c.dataset.m); });
 document.addEventListener('keydown', e => {
   const ai = e.target.closest && e.target.closest('input[data-add]'); if (ai && e.key === 'Enter') { e.preventDefault(); addFromInput(ai.dataset.add); return; }
-  const tx = e.target.closest && e.target.closest('input[data-mt]'); if (tx && e.key === 'Enter') { e.preventDefault(); tx.blur(); }
+  const tx = e.target.closest && e.target.closest('[data-mt]'); if (tx && e.key === 'Enter') { e.preventDefault(); tx.blur(); }
 });
-document.addEventListener('focusout', e => { const tx = e.target.closest && e.target.closest('input[data-mt]'); if (!tx) return; const m = MODS[tx.dataset.mt]; const v = tx.value.trim(); if (!m || v === m.t) return; if (!v) { tx.value = m.t; return; } m.t = v; writeMod(tx.dataset.mt); paint(); });
+document.addEventListener('focusout', e => { const tx = e.target.closest && e.target.closest('[data-mt]'); if (!tx) return; const m = MODS[tx.dataset.mt]; const v = tx.value.trim(); if (!m || v === m.t) return; if (!v) { tx.value = m.t; return; } m.t = v; writeMod(tx.dataset.mt); paint(); });
 const timers = {};
 /* dictée : le texte dicté s'ajoute à la note du point choisi */
 const joinTxt = (a, b) => { a = a || ''; b = (b || '').trim(); if (!b) return a; return a && !/\s$/.test(a) ? a + ' ' + b : a + b; };
@@ -399,6 +463,8 @@ document.addEventListener('click', e => {
   if (e.target.id === 'onlyTodo') { onlyTodo = true; $('#onlyTodo').hidden = true; $('#showAll').hidden = false; paint(); }
   if (e.target.id === 'showAll') { onlyTodo = false; $('#onlyTodo').hidden = false; $('#showAll').hidden = true; paint(); }
 });
+document.addEventListener('input', e => { const mt = e.target.closest && e.target.closest('textarea.mt'); if (mt) fitMt(mt); });
+const fitMt = t => { if (CSS.supports && CSS.supports('field-sizing', 'content')) return; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; };
 document.addEventListener('input', e => { const ta = e.target.closest('textarea[data-id]'); if (!ta) return; const id = ta.dataset.id; STATE[id] = Object.assign({}, STATE[id], { n: ta.value }); clearTimeout(timers[id]); timers[id] = setTimeout(() => write(id), 900); });
 document.addEventListener('focusout', e => { const ta = e.target.closest && e.target.closest('textarea[data-id]'); if (ta && timers[ta.dataset.id]) { clearTimeout(timers[ta.dataset.id]); write(ta.dataset.id); } });
 

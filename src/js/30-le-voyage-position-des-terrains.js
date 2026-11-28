@@ -3,7 +3,7 @@
    elles sont gardées dans le navigateur (igc-geo) et dans la partie (S.geo, pour les terrains joués). */
 const GEO_KEY = 'igc-geo', GEOQ = { q: [], busy: false, err: null, done: 0 };
 let GEO = null;
-function geoAll() { if (GEO) return GEO; GEO = {}; try { GEO = JSON.parse(localStorage.getItem(GEO_KEY) || '{}') || {}; } catch (e) { GEO = {}; } if (S && S.geo) Object.keys(S.geo).forEach(k => { if (!GEO[k] || (GEO[k].la == null && S.geo[k] && S.geo[k].la != null)) GEO[k] = S.geo[k]; }); try { const T = window.CG_TERRAINS; (T && T.courses || []).forEach(c => { if (c && c.geo && c.name) { const k = normName(c.name); if (!GEO[k] || GEO[k].la == null || GEO[k].src === 'liste' || GEO[k].src === 'max') GEO[k] = Object.assign({ src: 'liste' }, c.geo); } }); } catch (e) { } /* v357 : positions incluses dans terrains-data.js ; v441 : une position venue de la liste suit toujours la liste (corrections), une position choisie par le joueur est gardée */ return GEO; }
+function geoAll() { if (GEO) return GEO; GEO = {}; try { GEO = JSON.parse(localStorage.getItem(GEO_KEY) || '{}') || {}; } catch (e) { GEO = {}; } if (S && S.geo) Object.keys(S.geo).forEach(k => { if (!GEO[k] || (GEO[k].la == null && S.geo[k] && S.geo[k].la != null)) GEO[k] = S.geo[k]; }); try { const T = window.CG_TERRAINS; (T && T.courses || []).forEach(c => { if (c && c.geo && c.name) { const k = normName(c.name); if (!GEO[k] || GEO[k].la == null || GEO[k].src === 'liste' || GEO[k].src === 'max') GEO[k] = Object.assign({ src: 'liste' }, c.geo); } }); } catch (e) { } /* v357 : positions incluses dans terrains-data.js ; v456 : une position venue de la liste suit toujours la liste (corrections), une position choisie par le joueur est gardée */ return GEO; }
 function geoExportJSON() { const G = geoAll(), out = {}; Object.keys(G).forEach(k => { const g = G[k]; if (g && g.la != null) out[k] = { la: +(+g.la).toFixed(5), lo: +(+g.lo).toFixed(5), cc: g.cc || '', pl: g.pl || '', src: g.src || '' }; }); return { type: 'igc-lieux', v: 1, exported: new Date().toISOString().slice(0, 10), n: Object.keys(out).length, geo: out }; }
 function geoImportJSON(txt) { let d; try { d = JSON.parse(txt); } catch (e) { return -1; } if (!d || d.type !== 'igc-lieux' || !d.geo) return -1; const G = geoAll(); let n = 0; Object.keys(d.geo).forEach(k => { const g = d.geo[k], cur = G[k]; if (g && g.la != null && !(cur && cur.la != null)) { G[k] = g; if (S) { S.geo = S.geo || {}; S.geo[k] = g; } n++; } }); try { localStorage.setItem(GEO_KEY, JSON.stringify(G)); } catch (e) { } if (S) persist(); return n; }
 let GEOL = null;   // v373 : positions de la liste incluse, toujours disponibles en secours (une recherche ratée ne les cache plus)
@@ -14,15 +14,21 @@ function geoSet(name, v) { const k = normName(name); geoAll()[k] = v; try { loca
 const geoKm = (a, b) => { const R = 6371, r = Math.PI / 180, dLa = (b.la - a.la) * r, dLo = (b.lo - a.lo) * r, x = Math.sin(dLa / 2) ** 2 + Math.cos(a.la * r) * Math.cos(b.la * r) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.min(1, Math.sqrt(x))); };
 const geoCountry = cc => { try { return cc ? new Intl.DisplayNames([LANG === 'en' ? 'en' : 'fr'], { type: 'region' }).of(cc) : ''; } catch (e) { return cc || ''; } };
 async function geoFetch(q) {
-  const r = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&addressdetails=1&accept-language=' + (LANG === 'en' ? 'en' : 'fr') + '&q=' + encodeURIComponent(q), { headers: { Accept: 'application/json' } });
-  if (!r.ok) throw new Error('HTTP ' + r.status); const j = await r.json(); return j && j[0] ? j[0] : null;
+  const r = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&addressdetails=1&accept-language=' + (LANG === 'en' ? 'en' : 'fr') + '&q=' + encodeURIComponent(q), { headers: { Accept: 'application/json' } });
+  if (!r.ok) throw new Error('HTTP ' + r.status); const j = await r.json(); if (!j || !j.length) return null;
+  return j.find(x => x.type === 'golf_course' || /golf/i.test(x.name || '')) || j[0];   // v444 : un terrain de golf d'abord
 }
 const geoClean = n => n.replace(/\b(golf\s*(and|&)\s*country\s*club|golf\s*club|golf\s*course|golf\s*links|golf\s*resort|country\s*club|g\.?c\.?|c\.?c\.?|resort)\b/gi, ' ').replace(/\s+/g, ' ').trim();
 const geoPause = ms => new Promise(r => setTimeout(r, ms));
 function geoVal(res, src) { const a = res.address || {}; return { la: +(+res.lat).toFixed(4), lo: +(+res.lon).toFixed(4), cc: (a.country_code || '').toUpperCase(), pl: a.city || a.town || a.village || a.municipality || a.county || a.state || '', src }; }
+/* v444 : plus d'essais, comme quand on cherche soi-même (demande de Max) : le nom tel quel, avec « golf course »,
+   le nom sans « Golf Club » ni « CC », puis la première partie d'un nom composé (« Pinehurst - No. 2 » → « Pinehurst »).
+   On garde d'abord un résultat qui est un terrain de golf. */
 async function geoLookup(name) {
-  let res = await geoFetch(name);
-  if (!res) { await geoPause(1100); const c = geoClean(name); if (c && c !== name) res = await geoFetch(c + ' golf'); }
+  const c = geoClean(name), first = name.split(/\s+[-–:|]\s+|\s*\(/)[0].trim(), fc = geoClean(first);
+  const tries = [name, /golf/i.test(name) ? null : name + ' golf course', c && c !== name ? c + ' golf' : null, first && first !== name ? first + ' golf' : null, fc && fc !== first ? fc + ' golf course' : null].filter((q, i, A) => q && A.indexOf(q) === i);
+  let res = null;
+  for (let i = 0; i < tries.length && !res; i++) { if (i) await geoPause(1100); res = await geoFetch(tries[i]); if (res && i && !(res.type === 'golf_course' || /golf/i.test(res.name || ''))) res = null; }
   geoSet(name, res ? geoVal(res, 'osm') : { la: null, src: 'none' });
 }
 async function geoManual(name, txt) {   // « ville, pays » ou « 45.5, -73.6 »
@@ -141,14 +147,30 @@ function voyMapHTML(i) {
     const proj = d3.geoNaturalEarth1().rotate([-mid[0], 0]).fitExtent([[pad, 40], [W - pad, H - 46]], arc), pth = d3.geoPath(proj);
     if (proj.scale() > 2600) proj.scale(2600).translate([W / 2, H / 2 - 6]).center([0, 0]).rotate([-mid[0], -mid[1]]);   // très petit trajet : on ne zoome pas à l'infini
     const P = d3.geoPath(proj), pa = proj(A), pb = proj(B);
-    const land = window.CG_WORLD.features.map(ft => P(ft) || '').join('');
+    /* v442 : plus de détails selon le zoom (demande de Max) : contours fins des pays, frontières des États et provinces,
+       noms des pays puis des États et provinces quand le trajet est court (sans chevauchement). */
+    const sc = proj.scale(), ctrV = proj.invert([W / 2, H / 2]) || mid, radV = d3.geoDistance(ctrV, proj.invert([0, 0]) || A) + 0.05;
+    try { voyPrepAll(); } catch (e) { }
+    const visF = F => F && F.features ? F.features.filter(ft => !ft._c || d3.geoDistance(ft._c, ctrV) - ft._r < radV) : [];
+    const W50 = sc > 330 && window.CG_WORLD50, A1 = sc > 650 && window.CG_ADM1;
+    const land = (W50 ? visF(W50._lite || W50) : window.CG_WORLD.features).map(ft => P(ft) || '').join('');
+    const adm = A1 ? visF(A1._lite || A1).map(ft => P(ft) || '').join('') : '';
+    const boxes = [[pa[0] - 70, pa[1] - 40, pa[0] + 70, pa[1] + 40], [pb[0] - 70, pb[1] - 40, pb[0] + 70, pb[1] + 40], [0, H - 34, W, H]], en = LANG === 'en';
+    let names = '';
+    const lab0 = (F, thr, cls, up) => visF(F).filter(ft => ft.properties && ft.properties.r <= thr).sort((x, y) => x.properties.r - y.properties.r).forEach(ft => {
+      const Pp = ft.properties; if (d3.geoDistance([Pp.x, Pp.y], ctrV) > radV) return; const q = proj([Pp.x, Pp.y]); if (!q) return;
+      const t = up ? (en ? Pp.e : Pp.f).toUpperCase() : (en ? Pp.e : Pp.f), w = t.length * (up ? 7 : 6), bx = [q[0] - w / 2, q[1] - 8, q[0] + w / 2, q[1] + 8];
+      if (bx[0] < 4 || bx[2] > W - 4 || bx[1] < 4 || bx[3] > H - 4 || boxes.some(o => bx[0] < o[2] && bx[2] > o[0] && bx[1] < o[3] && bx[3] > o[1])) return;
+      boxes.push(bx); names += '<text x="' + q[0].toFixed(1) + '" y="' + (q[1] + 4).toFixed(1) + '" text-anchor="middle" class="' + cls + '">' + esc(t) + '</text>'; });
+    if (W50) lab0(W50, 1.2 + sc / 260, 'vmc', true);
+    if (A1) lab0(A1, 1.5 + sc / 400, 'vms', false);
     const q1 = proj(ip(0.6)), q2 = proj(ip(0.62)), ang = Math.atan2(q2[1] - q1[1], q2[0] - q1[0]) * 180 / Math.PI;
     const lab = (q, t1, t2, right, col) => { const x = q[0] + (right ? 14 : -14), an = right ? 'start' : 'end', y = q[1] < 60 ? q[1] + 26 : q[1] - 22;
       return '<text x="' + x + '" y="' + y + '" text-anchor="' + an + '" class="vml1" fill="' + col + '">' + esc(t1) + '</text><text x="' + x + '" y="' + (y + 15) + '" text-anchor="' + an + '" class="vml2">' + esc(t2) + '</text>'; };
     const right = pb[0] >= pa[0];
     let svg = '<svg class="vmap" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
       '<rect width="' + W + '" height="' + H + '" fill="#0b1a2a"/><path d="' + (P(d3.geoGraticule10()) || '') + '" fill="none" stroke="rgba(255,255,255,.05)"/>' +
-      '<path d="' + land + '" fill="#1f3b2c" stroke="#2f5a42" stroke-width=".5"/>' +
+      '<path d="' + land + '" fill="#1f3b2c" stroke="#3d6e52" stroke-width="' + (W50 ? .9 : .5) + '"/>' + (adm ? '<path d="' + adm + '" fill="none" stroke="rgba(201,214,222,.28)" stroke-width=".7" stroke-dasharray="3 2"/>' : '') + names +
       '<path d="' + (P(arc) || '') + '" fill="none" stroke="#F0C419" stroke-width="2.4" stroke-dasharray="7 5"/>' +
       '<circle cx="' + pa[0] + '" cy="' + pa[1] + '" r="5" fill="#9fb0bd" stroke="#fff"/>' +
       '<circle class="vmpulse" cx="' + pb[0] + '" cy="' + pb[1] + '" r="16" fill="rgba(240,196,25,.25)"/><circle cx="' + pb[0] + '" cy="' + pb[1] + '" r="7" fill="#F0C419" stroke="#fff" stroke-width="2"/>' +

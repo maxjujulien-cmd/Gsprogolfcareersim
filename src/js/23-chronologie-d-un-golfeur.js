@@ -9,6 +9,7 @@ function tlEvents(id) {
   let wins = 0;
   S.hist.forEach((H, si) => {
     const s = si + 1; let lastL = -1, firstL = -1;
+    { const q = S.pl && S.pl[s], k = q ? q.findIndex(r => r[0] === id) : -1; if (k >= 0) add(s, -0.5, '<span>Avant-saison</span>', 'mv', '⭐', '<b>Classé n° ' + (k + 1) + ' dans le Top 30 des espoirs</b>'); }   // v454
     (H.t || []).forEach((T, ti) => {
       if (!T) return; const l = lgOf(T, id);
       (T.mvs || []).forEach(m => { if (m[0] !== id) return; const up = m[2] < m[1];
