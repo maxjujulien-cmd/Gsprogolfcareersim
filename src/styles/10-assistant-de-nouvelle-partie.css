@@ -111,3 +111,22 @@ html.pc .wrtiles.wrt4{grid-template-columns:repeat(4,1fr)}
 .rct th .rcsb i{font-style:normal;opacity:.45;font-size:.85em}.rct th .rcsb.on{color:var(--acc)}.rct th .rcsb.on i{opacity:1}
 .rct th .rcsb:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .rkb+.hx{margin-left:4px}.rkb{margin-left:6px}
+/* v452 : fiche du golfeur (bandeau + onglets + tableau de bord) */
+.ghead{display:flex;gap:20px;align-items:center;padding:16px 20px;border-radius:12px;border:1px solid var(--line);background:linear-gradient(95deg,color-mix(in srgb,var(--gc) 45%,transparent),var(--paper) 62%);margin-bottom:10px}
+.ghph{width:112px;height:112px;flex:none;border-radius:12px;overflow:hidden;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.22),rgba(0,0,0,.4)),var(--gc)}
+.ghph .phf{width:100%;height:100%;margin:0;position:relative}.ghph .phg{width:100%;height:100%;object-fit:cover}.ghph .phflag{display:none}
+.ghini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font:800 46px Arimo,Arial,sans-serif;color:#fff}
+.ghid{min-width:0}.ghid h1{margin:0;font:800 40px/1.05 Arimo,Arial,sans-serif}.ghctx{color:var(--mute);margin-top:4px;font-size:15px}
+.ghchips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.ghchips>span{padding:4px 10px;border-radius:6px;font-size:13px;font-weight:700;background:rgba(0,0,0,.25)}
+.ghtier{background:var(--gc)!important;color:#fff}.ghpot b{color:#f6dc8a}
+.ghnums{margin-left:auto;display:flex;gap:10px}.ghn{background:rgba(0,0,0,.28);border-radius:8px;padding:9px 16px;min-width:118px}.ghn b{display:block;font:800 30px/1.1 Arimo,Arial,sans-serif}.ghn span{color:var(--mute);font-size:12px}
+.ghwl{align-self:flex-start}.ghwl .wlbar{margin:0}
+.gdash2{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr) minmax(0,1.1fr);gap:12px;align-items:start}.gdc{display:flex;flex-direction:column;gap:12px;min-width:0}.gdc>*{margin:0}
+.gdlv{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 14px 4px}.gdlv>div{background:rgba(0,0,0,.2);border-radius:8px;padding:10px}.gdlv span{display:block;font:700 11px Arimo,Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.gdlv b{display:block;font:800 22px/1.15 Arimo,Arial,sans-serif;margin-top:2px}.gdlv b.pot{color:#f6dc8a}.gdlv small{color:var(--mute)}.gdlv .lcst{font-size:12px;letter-spacing:0;white-space:nowrap;display:block}.gdlv .lcst span{display:inline;letter-spacing:0;text-transform:none;font:inherit}
+.gdtb{width:100%;border-collapse:collapse;margin:6px 0 8px}.gdtb td{padding:6px 14px;border-bottom:1px solid var(--line);font-size:14px}.gdtb td:first-child{color:var(--mute);width:42%}
+.gdchb{display:flex;gap:4px}.gdchb button{font:700 12px Arimo,Arial,sans-serif;padding:4px 10px;border-radius:5px;border:1px solid var(--line);background:transparent;color:var(--mute);cursor:pointer}.gdchb button.on{background:#F0C419;border-color:#F0C419;color:#111}
+.gdch{padding:10px 14px}.gdash2 .chblk{border:0;margin:0;padding:10px 14px;background:none}
+.gdash2{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) minmax(0,1fr)}
+.gdbig{display:grid;grid-template-columns:auto 1fr auto;gap:8px;padding:12px 14px 4px}.gdbig>div{background:rgba(0,0,0,.2);border-radius:8px;padding:8px 12px;min-width:0}.gdbig b{display:block;font:800 24px/1.15 Arimo,Arial,sans-serif}.gdbig span{color:var(--mute);font-size:12px}
+.gdcar{padding:10px 14px}.gdcar .rstl{margin-top:0}.gdsub{padding:4px 14px 10px}.gdsub h4{margin:6px 0;font:700 11px Arimo,Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
