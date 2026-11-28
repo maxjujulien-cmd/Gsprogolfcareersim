@@ -36,6 +36,7 @@ Ce fichier sert à mieux connaître Max d'une session à l'autre. **À la fin d'
 - Il commence sa vraie carrière (27 novembre 2026, v440) et fait confiance aux sauvegardes : il a refusé un test automatique avec sa propre sauvegarde. D'autant plus important : ne jamais casser une partie en cours (migrations dans `loadState`).
 - Il repère les biais du monde généré (trop de Québécois parmi les Canadiens) et préfère le réalisme des proportions à un clin d'œil local.
 - Il veut que tout soit au même endroit : un seul dépôt GitHub, tout y est enregistré à chaque changement.
+- **Ne rien changer dans le jeu tant qu'on n'a pas conclu ensemble** (28 nov. 2026 : la fiche du golfeur intégrée trop tôt en v452 a été retirée). Pour remettre les choses en ordre, il préfère déplacer des lignes (glisser-déposer) plutôt que tout recopier.
 
 ## Décisions d'équilibre à respecter (novembre 2026)
 
@@ -76,7 +77,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 3. Mettre à jour `docs/parametres.md` (et le README si besoin).
 4. **Commit et push sur GitHub, toujours, à la fin de chaque changement.** Ne jamais laisser une version seulement dans l'artifact ou dans un fichier envoyé.
 5. Envoyer à Max le fichier autonome `IndoorGolfCareer-vNNN.html`.
-6. **Republier l'artifact « Indoor Golf Career »** (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) **à chaque nouvelle version** (décision de Max, 27 novembre 2026) : publier `dist/index.html` avec `url`, et un fichier de données (`ootp-names.js`, `ootp-names-extra.js`, `terrains-data.js`) seulement s'il a changé (le relire d'abord avec `action: read` et `path`). L'artifact est partagé « toute personne ayant le lien » : attention à la photo du trophée (voir plus bas). Dernière publication : v451.
+6. **Republier l'artifact « Indoor Golf Career »** (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) **à chaque nouvelle version** (décision de Max, 27 novembre 2026) : publier `dist/index.html` avec `url`, et un fichier de données (`ootp-names.js`, `ootp-names-extra.js`, `terrains-data.js`) seulement s'il a changé (le relire d'abord avec `action: read` et `path`). L'artifact est partagé « toute personne ayant le lien » : attention à la photo du trophée (voir plus bas). Dernière publication : v451 (v452 retirée, voir plus haut).
 
 ## Intersaison en pages « télé » (v425-v428, en cours)
 
