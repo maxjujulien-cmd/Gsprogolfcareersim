@@ -48,5 +48,5 @@ function pickAround(rows, count) {
 const isRookie = g => !!g && g.cs === 0 && S.season > 1 && g.rcl == null;
 function ageTag(id) {
   if (!isPC()) return ''; const g = S.G[id]; if (!g || !g.a) return '';
-  return (isRookie(g) ? '<span class="rkb" title="Recrue" aria-label="Recrue">R</span>' : '') + '<span class="agt notr">' + g.a + (LANG === 'en' ? ' yrs' : ' ans') + '</span>';
+  return '<span class="agt notr">' + g.a + (LANG === 'en' ? ' yrs' : ' ans') + '</span>';
 }

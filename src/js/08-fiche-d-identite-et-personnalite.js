@@ -183,11 +183,21 @@ function mediaPick(g) {
   let r = Math.random() * W.reduce((a, b) => a + b, 0); for (let i = 0; i < L.length; i++) { r -= W[i]; if (r < 0) return L[i].k; } return L[L.length - 1].k;
 }
 function gauss1() { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+/* v446 : ville natale d'un Canadien selon le poids réel de chaque province (demande de Max : le Québec sortait 41 % du
+   temps, pour environ 22 % de la population). La province est tirée d'abord, puis une de ses villes. */
+const BIO_CAN = [
+  [22, ['Montréal, QC', 'Québec, QC', 'Laval, QC', 'Terrebonne, QC', 'Gatineau, QC', 'Sherbrooke, QC', 'Trois-Rivières, QC', 'Saguenay, QC', 'Lévis, QC', 'Longueuil, QC', 'Blainville, QC', 'Rimouski, QC']],
+  [39, ['Toronto, ON', 'Ottawa, ON', 'Mississauga, ON', 'Hamilton, ON', 'London, ON', 'Oakville, ON', 'Kitchener, ON', 'Barrie, ON', 'Windsor, ON', 'Kingston, ON', 'Burlington, ON', 'Markham, ON', 'Sudbury, ON', 'Guelph, ON', 'Niagara Falls, ON']],
+  [14, ['Vancouver, BC', 'Victoria, BC', 'Kelowna, BC', 'Surrey, BC', 'Burnaby, BC', 'Kamloops, BC', 'Nanaimo, BC', 'Whistler, BC']],
+  [12, ['Calgary, AB', 'Edmonton, AB', 'Red Deer, AB', 'Lethbridge, AB', 'Banff, AB']],
+  [3.5, ['Winnipeg, MB', 'Brandon, MB']], [3, ['Regina, SK', 'Saskatoon, SK']], [2.6, ['Halifax, NS', 'Sydney, NS']],
+  [2, ['Moncton, NB', 'Fredericton, NB', 'Saint John, NB']], [1.4, ["St. John's, NL"]], [0.5, ['Charlottetown, PE']]];
+function bioCityCan() { let x = Math.random() * BIO_CAN.reduce((a, p) => a + p[0], 0); for (const [w, L] of BIO_CAN) { if ((x -= w) <= 0) return L[Math.floor(Math.random() * L.length)]; } return 'Toronto, ON'; }
 function bioRoll(g) {
   const c = natCode(g.nat), list = BIO_CITIES[c], N = NATIONS.find(x => x.name === g.nat), asia = N && N.region === 'asie';
   const h = Math.round(Math.max(160, Math.min(203, (asia ? 175 : 181) + gauss1() * 6.5)));
   const bmi = Math.max(20, Math.min(32, 25 + gauss1() * 2.3)), w = Math.round(bmi * (h / 100) * (h / 100));
-  g.bio = { ct: list && list.length ? list[Math.floor(Math.random() * list.length)] : (g.nat || ''), h, w, lf: Math.random() < 0.1 ? 1 : 0, pm: mediaPick(g) };
+  g.bio = { ct: c === 'CAN' ? bioCityCan() : list && list.length ? list[Math.floor(Math.random() * list.length)] : (g.nat || ''), h, w, lf: Math.random() < 0.1 ? 1 : 0, pm: mediaPick(g) };
   return g;
 }
 function bioEnsure(g) { if (g && !g.bio) bioRoll(g); return g; }

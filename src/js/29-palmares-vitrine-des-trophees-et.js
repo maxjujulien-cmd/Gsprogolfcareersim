@@ -121,6 +121,7 @@ function vGolfer() {
     { const ph = hcHolder(id) || (S.old && S.old[id]); B.pa = paHTML(ph && ph.pa, hist.length ? hist[0].s : null); }
     B.best = bestScoresHTML(id); B.riv = rivalsHTML(id);
     { const RR = rsRows(id, past, l), bk = rsBestKey(RR), ch = rsChartHTML(RR, bk, id); rsCh = ch;   // v333
+      B.carIn = rsCareerHTML(id, by, cols, RR, bk, earnAll) + bigWinsHTML(id); B.rsN = rsChartHTML(RR, bk, id, 620);   // v455 : graphique à la taille de la colonne   // v452 : carrière dans l'aperçu (ordinateur)
       B.car = '<h2>Carri\u00e8re</h2><div class="carl">' + rsCareerHTML(id, by, cols, RR, bk, earnAll) + bigWinsHTML(id) + '</div>' + (ch ? '<div class="carr">' + ch + '</div>' : ''); }
     const last = hist.slice(-24), maxp = 100;
     B.bars = '<h3>Points par tournoi</h3><div class="bars" role="img" aria-label="Points gagn\u00e9s lors des derniers tournois">' + last.map(x => '<i class="' + (x.pos === 0 ? 'mc' : '') + '" style="height:' + Math.max(4, Math.round(x.pts / maxp * 100)) + '%" title="' + esc(x.name) + ' : ' + x.pts + ' pts"></i>').join('') + '</div><div class="small mute">Les barres rouges sont des coupures rat\u00e9es.</div>';
@@ -142,18 +143,63 @@ function vGolfer() {
     ['log', isPC() ? 'Carnet de tournois' : 'Carnet', tlogHTML(id)],
     ['stats', 'Stats', charBlock(id, 'jeu') + skStatsHTML(id) + B.hc + B.pa + B.best],
     ['riv', 'Rivaux', B.riv],
-    ['bio', 'Biographie', charBlock(id, 'bio')]
+    ['bio', 'Biographie', charBlock(id, 'bio') + plBioHTML(id)]
   ].filter(t => t[2]);
   const cur = TABS.find(t => t[0] === PTAB) || TABS[0];
   const bar = TABS.length > 1 ? '<div class="ptabs" role="tablist">' + TABS.map(t => '<button class="ptab" role="tab" data-a="ptab" data-v="' + t[0] + '" aria-selected="' + (t === cur) + '">' + t[1] + '</button>').join('') + '</div>' : '';
   h = cur ? cur[2] : '';
   h += '<button class="btn sec" data-a="backview" style="margin-top:14px">Retour</button>';
+  const MP = !g && id === 0 && S.mode !== 'sim' && S.pk && isPC() && isMgr(), gg = g || (MP ? { a: S.pk.a, nat: natOf(0) } : null);   // v452 : ton golfeur manuel a aussi la nouvelle fiche
+  if (CC || MP) return gHeadPC(id, gg, l) + geBlock(id) + bar + '<div class="pcols one">' + (cur && cur[0] === 'ov' ? gDashPC(id, gg, l, B, hist, rsCh, TR, earnAll) : h) + '</div>';   // v452 : fiche refaite (bandeau + onglets + tableau de bord)
   const T2 = T.indexOf('%%GRS%%') >= 0 ? T.replace('%%GRS%%', B.hc ? '<section class="dpn gt-hc gcchc"><header><span>Carte handicap</span></header><div class="dpb">' + B.hc + '</div></section>' : '') : T;
   return T2 + wlBar(id) + geBlock(id) + gTopBand(B, rsCh, T2 !== T) + bar + '<div class="pcols' + (cur && (cur[0] === 'riv' || cur[0] === 'res' || cur[0] === 'ov' || cur[0] === 'log' || cur[0] === 'tl' || cur[0] === 'bio') ? ' one' : '') + '">' + h + '</div>';
 }
 
 
 
+/* v452 : fiche du golfeur sur ordinateur, inspirée de Football Manager et d'OOTP (demande de Max) : un bandeau en haut
+   (photo, identité, niveau, potentiel et 4 chiffres clés), les onglets juste dessous, puis l'aperçu en tableau de bord
+   sur un écran : le golfeur à gauche, la saison et le jeu au centre, les graphiques (au choix) et la carrière à droite. */
+function gHeadPC(id, g, l) {
+  const man = id === 0 && S.mode !== 'sim', ti = man ? 0 : tierOf(g), c = man ? '#4E9A3A' : TIER_HEX[ti], vet = g.a >= 31, pot = man ? '' : vet ? TIERS[peakTierOf(g)][1] : POTS[potOf(g)][1], b = bioOf(id) || {}, hc = hcAt(id), wr = wrPub(id), st = getSt(id), rk = l >= 0 ? (displayRank(l).filter(r => !r.gh).findIndex(r => r.id === id) + 1) || null : null;   // même rang que la carte de saison
+  const ini = nameOf(id).split(/\s+/).map(w => w[0] || '').join('').slice(0, 2).toUpperCase(), tr = man ? null : trendLabel(g);
+  const ctx = [g.nat ? flagVisual(g.nat, 18) + ' <span class="notr">' + esc(g.nat) + '</span>' : '', g.a + ' ans', l >= 0 ? LEAGUE_NAMES[l] : g.rcl ? '<span>Classe de recrues</span> ' + yr(g.rcl) : '', b.ct ? '<span class="notr">' + esc(b.ct) + '</span>' : '', b.lf != null ? (b.lf ? 'Gaucher' : 'Droitier') : '', b.h ? fmtHt(b.h) : '', b.w ? fmtWt(b.w) : ''].filter(Boolean).join(' · ');
+  const num = (v, k) => '<div class="ghn"><b>' + v + '</b><span>' + k + '</span></div>';
+  return '<div class="ghead" style="--gc:' + c + '"><div class="ghph">' + (phFrameHTML(id, 'phgh') || '<div class="ghini">' + esc(ini) + '</div>') + '</div><div class="ghid"><h1>' + (id === 0 ? '<span class="ofpill">Toi</span> ' : '') + esc(nameOf(id)) + '</h1><div class="ghctx">' + ctx + '</div>' +
+    (man ? '' : '<div class="ghchips"><span class="ghtier">' + TIERS[ti][1] + '</span><span class="ghpot"><span>' + (vet ? 'Sommet' : 'Potentiel') + '</span> · <b>' + pot + '</b></span>' + (tr ? '<span class="ghtr">' + (tr.indexOf('progression') >= 0 ? '▲ ' : tr.indexOf('déclin') >= 0 ? '▼ ' : '') + tr + '</span>' : '') + (g.ph && g.phR ? '<span class="ghtr">⚡ Phénomène</span>' : '') + '</div>') + '</div>' +
+    '<div class="ghnums">' + num(hc != null ? fmtHI(hc) : '–', 'Handicap') + num(wr ? '#' + wr : 'NC', 'World Ranking') + num(rk ? ord(rk) : '–', l >= 0 ? 'Rang en L' + (l + 1) : 'Rang') + num(st.pts || 0, 'Points ' + yr(S.season)) + '</div><div class="ghwl">' + wlBar(id) + '</div></div>';
+}
+function gDashPC(id, g, l, B, hist, rsCh, TR, earnAll) {
+  const b = bioOf(id) || {}, tr = id !== 0 && trOn() ? trOf(g) : null, m = b && MEDIA_BY[b.pm], ti = id === 0 && S.mode !== 'sim' ? 0 : tierOf(g), vet = g.a >= 31;
+  const row = (k, v) => v ? '<tr><td>' + k + '</td><td>' + v + '</td></tr>' : '';
+  const stars = '<span class="lcst" aria-label="Palier ' + (ti + 1) + ' sur 9">' + '★'.repeat(ti + 1) + '<span>' + '★'.repeat(8 - ti) + '</span></span>';
+  const man = id === 0 && S.mode !== 'sim';
+  const LVL = (man ? '' : '<div class="gdlv"><div><span>Niveau actuel</span>' + stars + '<b>' + TIERS[ti][1] + '</b><small>' + ageLabel(g.a) + '</small></div><div><span>' + (vet ? 'Sommet en carrière' : 'Potentiel') + '</span><b class="pot">' + (vet ? TIERS[peakTierOf(g)][1] : POTS[potOf(g)][1]) + '</b></div></div>'), PERSO = '<table class="gdtb">' + row('Pays', g.nat ? flagVisual(g.nat, 16) + ' <span class="notr">' + esc(g.nat) + '</span>' : '') + row('Ville natale', b.ct ? '<span class="notr">' + esc(b.ct) + '</span>' : '') + row('Âge', String(g.a)) + row('Taille', b.h ? fmtHt(b.h) : '') + row('Poids', b.w ? fmtWt(b.w) : '') + row('Main', b.lf != null ? (b.lf ? 'Gaucher' : 'Droitier') : '') +
+    row('Tempérament', tr ? TP_ICO[tr.tp - 1] + ' ' + TP_LBL[tr.tp - 1] : '') + row('Fin de tournoi', tr ? MC_ICO[tr.mc - 1] + ' ' + MC_LBL[tr.mc - 1] : '') + row('Personnalité', m ? '🎤 ' + m.fr : '') + '</table>';
+  const fam = famProfileHTML(id).replace(/^<div class="block famblk"><h3 style="margin-top:0">Famille<\/h3>/, '<div class="gfam">');
+  const wins = hist.filter(x => x.pos === 1).length, t10 = hist.filter(x => x.pos > 0 && x.pos <= 10).length, made = hist.filter(x => x.pos > 0).length;
+  let hp = null; try { const P = hofLedger()[hofCurKey(id)]; hp = P ? P.pts : 0; } catch (e) { }
+  const big = (v, k, c) => '<div><b' + (c ? ' style="color:' + c + '"' : '') + '>' + v + '</b><span>' + k + '</span></div>';
+  const wr = wrPub(id), nS = new Set(hist.map(x => x.s)).size;
+  // Colonne 1 : cette saison, puis les classements
+  let c1 = (seaPanel(id, l, TR, earnAll) || tzPanel(TR, earnAll, { active: true, cls: 'tzpc', pid: id }));
+  c1 += dPanel('Points par tournoi', (B.bars ? '<div class="gbars">' + B.bars.replace(/^<h3>[^<]*<\/h3>/, '') + '</div>' : '<p class="mute small" style="padding:12px 14px;margin:0">Aucun tournoi pour l’instant.</p>') + (hist.length ? '<div class="dst3 g4"><div><b>' + wins + '</b><span>Victoires</span></div><div><b>' + t10 + '</b><span>Top 10</span></div><div><b>' + made + '/' + hist.length + '</b><span>Coupures</span></div><div><b>' + (hp == null ? '–' : hp) + '</b><span>Points Temple</span></div></div>' : ''), '<a href="#" data-a="ptab" data-v="res">Tous les résultats →</a>', 'gd-bars');
+  const wrc = wrChartHTML(id);
+  c1 += dPanel('Classements', '<div class="gdbig">' + big(wr ? '#' + wr : 'NC', 'World Ranking') + big(l >= 0 ? LEAGUE_NAMES[l] : '–', 'Ligue actuelle') + big(nS, nS > 1 ? 'saisons' : 'saison') + '</div>' + ((B.rsN || rsCh) ? '<div class="gdch">' + (B.rsN || rsCh).replace(/<h3>Progression<\/h3>/, '') + '</div>' : '') + (wrc ? '<div class="gdch">' + wrc + '</div>' : ''), '', 'gd-cls');
+  // Colonne 2 : niveau et potentiel, puis handicap et statistiques
+  let c2 = '';
+  if (LVL || B.prog) c2 += dPanel('Niveau et potentiel', LVL + (B.prog ? '<div class="gdch">' + B.prog.replace(/^<h3>[^<]*<\/h3>/, '') + '</div>' : ''), '', 'gd-lv');
+  const rad = (radarHTML(id) || '').replace(/^<div class="block radblk"><h3>Profil statistique<\/h3>/, '<div class="radblk gpr">');
+  c2 += dPanel('Handicap et statistiques', (B.hc ? '<div class="gdch">' + B.hc + '</div>' : '') + (rad ? '<div class="gdch">' + rad + '</div>' : ''), '<a href="#" data-a="ptab" data-v="stats">Toutes les stats →</a>', 'gd-hc');
+  // Colonne 3 : carrière, puis le golfeur
+  let c3 = '';
+  const plb = plBest(id), car = (B.carIn || '') + (plb ? '<div class="apvbest">⭐ <span>Meilleur rang d’espoir</span> <b>n° ' + plb[1] + '</b> · ' + yr(plb[0]) + '</div>' : ''), hof = hofProfileHTML(id, true);
+  if (car || hof) c3 += dPanel('Carrière', '<div class="gdcar">' + hof + car + '</div>', '<a href="#" data-a="ptab" data-v="tl">Toute la chronologie →</a>', 'gd-car');
+  const jeu = charBlock(id, 'jeu');
+  c3 += dPanel('Le golfeur', PERSO + (jeu ? jeu.replace('<div class="block chblk', '<div class="chblk') : '') + (fam ? '<div class="gdsub"><h4>Famille</h4>' + fam + '</div>' : '') + (B.traits ? B.traits.replace('<div class="block traits">', '<div class="traits gtraits">') : ''), '', 'gd-me');
+  if (B.ret) c3 += B.ret;
+  return '<div class="gdash2"><div class="gdc">' + c1 + '</div><div class="gdc">' + c2 + '</div><div class="gdc">' + c3 + '</div></div>';
+}
 /* ---- Fiche golfeur, onglet Aperçu, style gestionnaire (v195) : mêmes infos, rangées en panneaux ---- */
 function golferOvMgr(id, B, hist, l) {
   const noH3 = s => (s || '').replace(/^<h3>[^<]*<\/h3>/, '');
@@ -210,8 +256,8 @@ function recCard(d, entries, subFn, tagFn) {
 }
 function vRecords() {
   const sub = VIEW.rv || 'records';
-  let h = '<div class="top"><h1>Historique</h1></div>' + chipRow([['records', 'Records'], ['hof', 'Temple'], ['rc', 'Cuvées'], ['arch', 'Archives des entre-saisons']].concat(isPC() ? [] : [['alm', 'Almanac']]), sub, 'rv');
-  return h + (sub === 'arch' ? vArchives() : sub === 'hof' ? vHof() : sub === 'rc' ? vRcIndex() : vRecordsBoard());
+  let h = '<div class="top"><h1>Historique</h1></div>' + chipRow([['records', 'Records'], ['hof', 'Temple'], ['rc', 'Cuvées'], ['arch', 'Archives des entre-saisons'], ['pl', '⭐ Top Prospects']].concat(isPC() ? [] : [['alm', 'Almanac']]), sub, 'rv');
+  return h + (sub === 'pl' ? vPlHist() : sub === 'arch' ? vArchives() : sub === 'hof' ? vHof() : sub === 'rc' ? vRcIndex() : vRecordsBoard());
 }
 function vArchives() {
   const l = JV.l == null ? vLg() : JV.l;
@@ -299,7 +345,7 @@ function courseFields(scope, i, c, locked, showPinWind) {
   const dis = locked ? ' disabled' : '';
   const own = scope === 'c' ? bankTeesOf(c.name).sort((a, b) => teeRank(a) - teeRank(b)) : [], teeList = own.length ? own : TEE_OPTIONS;
   let h = '<div class="sectlab">Identit\u00e9</div><div class="tgrid">' +
-    '<div class="ti"><label for="' + A.tee + i + '">Tee de d\u00e9part</label><select id="' + A.tee + i + '" data-c="' + A.tee + '" data-i="' + i + '"' + dis + '>' + (teeList.includes(c.tee) ? [] : [c.tee]).concat(teeList).map(t => '<option' + (t === c.tee ? ' selected' : '') + '>' + esc(t) + '</option>').join('') + '</select></div>' +
+    '<div class="ti"><label for="' + A.tee + i + '">Tee de d\u00e9part</label><select id="' + A.tee + i + '" data-c="' + A.tee + '" data-i="' + i + '"' + dis + '>' + (teeList.includes(c.tee) ? [] : [c.tee]).concat(teeList).map(t => teeOptHTML(c.name, t, t === c.tee)).join('') + '</select></div>' +
     '<div class="ti"><label for="' + A.dist + i + '">Distance totale (verges)</label><input type="number" id="' + A.dist + i + '" data-c="' + A.dist + '" data-i="' + i + '" min="1000" max="9000" step="1" value="' + c.dist + '"' + dis + '></div></div>';
   h += '<div class="sectlab">Difficult\u00e9</div><div class="tgrid">' +
     '<div class="ti"><label for="' + A.cr + i + '">Course rating</label><input type="number" id="' + A.cr + i + '" data-c="' + A.cr + '" data-i="' + i + '" min="40" max="90" step="0.1" value="' + c.cr + '"' + dis + '></div>' +

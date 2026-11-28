@@ -269,6 +269,7 @@ function createPlayerGolfer(opts) {
   if (opts.league === 4) { g.rcl = S.season; plJoinRc(); } else { makeRoom(opts.league); S.L[opts.league].push(0); }
   S.st[0] = newStanding();
   S.needsPlayerCreate = false; S.spect = false;
+  try { plBuild(S.season); } catch (e) { }   // v455 : ton golfeur simulé entre dans la liste des espoirs de la saison
   persist();
 }
 /* Ligues à 150 : si une partie plus ancienne a des ligues plus petites, on les complète avec des recrues
@@ -289,6 +290,7 @@ function topUpLeagues() {
 }
 function loadState(obj) {
   WRM.clear();
+  if (obj && obj.pnx) { try { if (obj.pnx.cur) { PNX = obj.pnx; pnSave(); } } catch (e) { } delete obj.pnx; }   // v442 : tournoi rapide gardé dans le fichier
   S = obj;
   if (!S.lkv) { S.cfg = S.cfg || {}; if (S.cfg.lowK == null) S.cfg.lowK = 1; S.lkv = 1; }
   if (!S.tev) { S.cfg = S.cfg || {}; if (S.cfg.topEdge == null) S.cfg.topEdge = 0; S.tev = 1; }
@@ -300,6 +302,7 @@ function loadState(obj) {
   if (S.pav !== 1) { paBackfill(); persist(); }
   if (S.almv !== 1) { almBackfill(); persist(); }
   if (S.talv !== 1) { talMigrate(); persist(); }
+  if (S.plv !== 2) { S.pl = {}; try { plBackfill(); } catch (e) { } S.plv = 2; persist(); }   // v455 : refaites aussi pour inclure ton golfeur simulé   // v454 : listes des espoirs refaites pour les saisons passées
   if (S.biov !== 1) { bioMigrate(); persist(); }   // v286 : fiche d'identité et personnalité médiatique
   if (S.skv !== 1) { skMigrate(); persist(); }   // v220 : cotes de jeu   // v214 : talents cachés pour les golfeurs des anciennes parties
   try { wrBackfill(); } catch (e) { }
@@ -324,7 +327,7 @@ function beginTournamentIfNeeded() {
   if (S.cur) return;
   if (S.off) S.off = null;
   const c = curCourse();
-  const sw = spOn() && (S.t < N_TOURN || finalePending());   // v292 : mode spectateur, on suit une ligue en direct (v324 : la Finale aussi)
+  const sw = spOn() && (S.t < N_TOURN || finalePending()) || (S.t >= N_TOURN && finalePending() && !(finField().includes(0) && leagueOf(0) === 0));   // v292 : mode spectateur, on suit une ligue en direct (v324 : la Finale aussi) ; v448 : la Finale se regarde aussi quand tu n'y es pas
   const pl = sw ? spwL() : plLeague();
   if (S.ui) S.ui.lgv = null;   // chaque tournoi commence sur ta ligue
   S.cur = {
@@ -580,6 +583,7 @@ function gbgPick(k, ids) {
   return top.concat(rest).filter(x => x.b < x.a || ++dn <= 3).slice(0, GBG_MAX).sort((x, y) => y.b - x.b || y.a - x.a).map(x => x.id);   // du bas vers le haut : la tête en dernier
 }
 function startReveal(k, onDone, only) {
+  ANIM.hk++;   // v453 : nouveau trou (efface les chiffres de mouvement du trou précédent)
   if (S.ui.reveal !== 'seq' && S.ui.reveal !== 'gbg') { onDone(); return; }
   const c = S.cur;
   const ids = (only || (c.r === 0 ? fld(c) : c.alive)).filter(id => id !== 0);

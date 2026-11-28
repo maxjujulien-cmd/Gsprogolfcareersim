@@ -204,6 +204,7 @@ function kmShown() {
   return lv != null && lv >= 0 && lv <= 3 && c.oth && c.oth[lv] ? lv : null;
 }
 function kmRender() {
+  if (VIEW && VIEW.name === 'pnPlay') return;   // v443 : le tournoi rapide a sa propre bande (pnKmRender)
   let el = document.getElementById('kmt');
   const on = typeof isMgr === 'function' && isMgr() && S && S.cur && VIEW && /^(play|spec)$/.test(VIEW.name) && !!document.querySelector('#app .cols.play');
   document.documentElement.classList.toggle('kmon', !!on);

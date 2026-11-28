@@ -398,6 +398,7 @@ function doSeasonEnd() {
   S.hist.forEach(H => { if (H.s < S.season - 3) { H.t.forEach(t => { if (t) t.lg.forEach(x => { delete x.h; delete x.sx; delete x.sp; }); if (t.rc) delete t.rc.h; }); if (H.fin && H.fin.lg) H.fin.lg.forEach(x => { if (x) { delete x.h; delete x.sx; delete x.sp; } }); } });
   S.L.forEach(l => l.forEach(id => { S.st[id] = newStanding(); }));
   S.hist.push({ s: S.season, t: Array(N_TOURN).fill(null), end: null });
+  try { plBuild(S.season); } catch (e) { }   // v454 : Top 30 Prospects de la nouvelle saison
   autoDrawCourses();   // terrains non barrés tirés au hasard selon les filtres (rien pendant l'histoire présimulée)
   VIEW = { name: 'off', s: S.season - 1, i: 0 };   // v215 : l'intersaison se lit en chapitres (la cérémonie du Temple en fait partie)
   if (!S.presim) S.off = { s: S.season - 1, i: 0 };

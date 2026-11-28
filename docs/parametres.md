@@ -652,3 +652,7 @@ Voir les essais dans `docs/analyse-100-saisons.md` (point 2). **Rappel : dans le
 - Réglage avancé « Se ressaisir après une mauvaise série » (`regroup`, 100 % par défaut, 0 = jamais). Les parties commencées avant la v422 restent à 0 (drapeau `rgv`).
 - Mesuré dans le jeu v422 (L1, 15 saisons, défi +3, écart avec le score médian du champ) : rondes à +15 ou pire **73 → 21**, à +12 ou pire **267 → 100**, pire ronde +25 → +19. Les meilleures rondes ne changent pas.
 - Circuit complet (3 mondes × 30 saisons, version 7 au banc) : écarts de coupure +2,7 / +2,5 / +3,6 (marge de hasard). Generational : 5,7 % de victoires, 35 % de top 10, 16 % de coupures ratées. Ils sont un peu moins dominants qu'en v421, puisque les autres limitent aussi leurs dégâts.
+- v452 : fiche du golfeur refaite (affichage seulement, aucun changement d'équilibre).
+- v453 : le chiffre de places gagnées/perdues reste affiché jusqu'au trou suivant (affichage seulement).
+- v454 : Aperçu de la saison (favoris, montée selon les analystes) et Top 30 Prospects (affichage et historique ; aucun changement d'équilibre).
+- v455 : listes des espoirs avec le golfeur simulé du joueur, menu d'années, graphique des ligues lisible dans la fiche (affichage seulement).
