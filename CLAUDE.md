@@ -68,7 +68,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 
 ## À chaque nouvelle version
 
-1. Numéro de version suivant (dernière : **v449**), noté dans les commentaires du code modifié, **et dans `GAME_V` (`src/js/02-carriere-de-golf-moteur-de.js`)** : c'est le numéro affiché en bas à gauche du jeu (v432, choix de Max).
+1. Numéro de version suivant (dernière : **v450**), noté dans les commentaires du code modifié, **et dans `GAME_V` (`src/js/02-carriere-de-golf-moteur-de.js`)** : c'est le numéro affiché en bas à gauche du jeu (v432, choix de Max).
 2. **Vérifications en trois niveaux** (décision de Max, 27 novembre 2026 : les vérifications répétées coûtaient trop de temps et de données) :
    - **Toujours** (moins d'une minute) : `npm run build`, puis `npm test` **une seule fois** (aller-retour, démarrage, et un seul passage du test anglais).
    - **Seulement quand c'est pertinent** : **une seule** capture 1920 × 1080 pour un changement visible ; le test anglais relancé plusieurs fois seulement après un gros ajout de textes (nouvelle page) ; une ronde jouée depuis une sauvegarde chargée seulement si le changement touche au chargement des parties ou au déroulement d'une ronde ; le banc d'essai seulement pour un changement d'équilibre.
@@ -76,7 +76,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 3. Mettre à jour `docs/parametres.md` (et le README si besoin).
 4. **Commit et push sur GitHub, toujours, à la fin de chaque changement.** Ne jamais laisser une version seulement dans l'artifact ou dans un fichier envoyé.
 5. Envoyer à Max le fichier autonome `IndoorGolfCareer-vNNN.html`.
-6. **Republier l'artifact « Indoor Golf Career »** (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) **à chaque nouvelle version** (décision de Max, 27 novembre 2026) : publier `dist/index.html` avec `url`, et un fichier de données (`ootp-names.js`, `ootp-names-extra.js`, `terrains-data.js`) seulement s'il a changé (le relire d'abord avec `action: read` et `path`). L'artifact est partagé « toute personne ayant le lien » : attention à la photo du trophée (voir plus bas). Dernière publication : v449.
+6. **Republier l'artifact « Indoor Golf Career »** (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) **à chaque nouvelle version** (décision de Max, 27 novembre 2026) : publier `dist/index.html` avec `url`, et un fichier de données (`ootp-names.js`, `ootp-names-extra.js`, `terrains-data.js`) seulement s'il a changé (le relire d'abord avec `action: read` et `path`). L'artifact est partagé « toute personne ayant le lien » : attention à la photo du trophée (voir plus bas). Dernière publication : v450.
 
 ## Intersaison en pages « télé » (v425-v428, en cours)
 
@@ -84,6 +84,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 - « Ta saison » = maquette B2 (v426) : Max aimait les infos de la carte de pointage (option B) mais voulait le look télé de la A2. Ton rang géant, bandeau de stats, carte de la saison (rondes, total, place, points, gains par tournoi), moments, saison suivante et bouton de retraite discret.
 - « Retraites » = maquette C (v427) : tableau télé des départs classés par gains (âge, années de carrière, titres de L1, majeurs, meilleur rang mondial), 4 chiffres de la saison à droite, bandeau défilant des autres départs. Max a préféré le tableau clair à l'hommage plus émotif que je recommandais.
 - « Promotions et relégations » = maquette D (v449) : les trois frontières, toutes les listes complètes.
+- « World Ranking » = A (v450 : bandeau du n° 1, top 100 complet, 4 chiffres) ; « La nouvelle classe » = C (v450 : top 5 des dépisteurs avec leurs citations, puis toutes les recrues) ; « Les familles » = A (v450 : recrue et parent face à face, carrière du parent en 4 chiffres). Fonctions `offWrHTML`, `offRkHTML`, `offFamHTML`.
 - « Progression » = maquette C (v428), avec une demande de Max : pouvoir faire défiler pour voir TOUS les golfeurs qui changent de palier. Tableau défilant (grands mouvements d'abord, puis montées, puis reculs), 4 chiffres à droite, bandeau « Dans les coulisses ».
 - Max veut toujours pouvoir accéder à la liste complète : une page résumée ne doit pas cacher des golfeurs.
 - Chapitres suivants : on garde la liste actuelle des chapitres (Max a refusé d'en ajouter pour l'instant).

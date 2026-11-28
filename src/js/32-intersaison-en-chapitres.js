@@ -81,7 +81,7 @@ function offChapters(s) {
     const n1 = E.wr[0], p1 = P && P.wr ? P.wr[0] : null;
     let k = 1; for (let j = s - 1; j >= 1; j--) { const e = S.hist[j - 1] && S.hist[j - 1].end; if (e && e.wr && e.wr[0] === n1) k++; else break; }
     const h = '<div class="ofs gold"><div class="tg">🌍 ' + (p1 != null && p1 !== n1 ? 'Nouveau n°1 mondial' : 'N°1 mondial') + '</div><div class="nm big">' + offLnk(n1) + '</div><p>' + (k > 1 ? ord(k) + ' saison de suite au sommet' : p1 != null && p1 !== n1 ? 'Succède à ' + esc(nameOf(p1)) : 'Au sommet du classement mondial') + '</p></div>';
-    C.push({ id: 'wr', ico: '🌍', t: 'World Ranking', sub: 'Le classement mondial à la fin de ' + yr(s), h, R: wrSeasonHTML(s) });
+    C.push({ id: 'wr', ico: '🌍', t: 'World Ranking', full: 1, img: HERO_IMG, dim: 1, h: offWrHTML(s, E, P) });   // v450 : page télé (option A)
   }
   /* 8b. v252 : bilan de la classe de recrues de la saison */
   if (E.rc && E.rc.length) {
@@ -108,7 +108,8 @@ function offChapters(s) {
     h += '<div class="block"><h3 style="margin-top:0">Les suivants</h3>' + rc.slice(1, 5).map((g, i) => offRow(offLnk(g.id) + ' <small class="mute">' + g.a + ' ans</small>', POTS[scale(POTS, pOf(g))][1])).join('') + '<p style="margin:8px 0 0"><a href="#" data-a="rclass" data-s="' + s + '">Voir toute la classe ›</a></p></div>';
     if (rcIn) h = '<p style="margin:0 0 12px">Ils joueront la saison ' + yr(s + 1) + ' dans la classe de recrues : dix tournois, sans coupure ni points. Leur index à la fin de la saison décidera de leur ligue de départ… ou de leur retranchement.</p>' + h;
     if (E.roy) h += '<div class="block"><h3 style="margin-top:0">🏆 Recrue de l’année ' + yr(s) + '</h3><p style="margin:0">' + offLnk(E.roy.id) + ' · ' + E.roy.pts + ' points en Ligue ' + (E.roy.l + 1) + '</p></div>';
-    C.push({ id: 'rk', ico: '⭐', t: rcIn ? 'La nouvelle classe de recrues' : 'La classe ' + yr(s + 1), sub: rcIn ? plural(rc.length, 'recrue') + ' entrent dans la classe de recrues ' + yr(s + 1) : plural(rc.length, 'recrue') + ', classées par les dépisteurs', h });
+    if (rc.length) C.push({ id: 'rk', ico: '⭐', t: rcIn ? 'La nouvelle classe de recrues' : 'La classe ' + yr(s + 1), full: 1, img: HERO_IMG, dim: 1, h: offRkHTML(s, rc, snp, rcIn, E) });   // v450 : page télé (option C)
+    else C.push({ id: 'rk', ico: '⭐', t: rcIn ? 'La nouvelle classe de recrues' : 'La classe ' + yr(s + 1), sub: rcIn ? plural(rc.length, 'recrue') + ' entrent dans la classe de recrues ' + yr(s + 1) : plural(rc.length, 'recrue') + ', classées par les dépisteurs', h });
     /* 10. les familles */
     const fam = rc.map(g => ({ g, m: famMain(g.id) })).filter(f => f.m && famRec(f.m[0]));
     if (fam.length) {
@@ -120,7 +121,7 @@ function offChapters(s) {
       const top = fam.slice().sort((a, b) => (famRec(b.m[0]).cw || 0) - (famRec(a.m[0]).cw || 0));
       let h = top.slice(0, 2).map(card).join('');
       if (top.length > 2) h += '<div class="block"><h3 style="margin-top:0">Aussi dans la classe</h3>' + top.slice(2).map(f => offRow(offLnk(f.g.id), relL[f.m[1]] + ' ' + esc(nameOf(f.m[0])))).join('') + '</div>';
-      C.push({ id: 'fam', ico: '👪', t: 'Les familles', sub: plural(fam.length, 'recrue') + ' avec un nom déjà connu sur le circuit', h });
+      C.push({ id: 'fam', ico: '👪', t: 'Les familles', full: 1, img: HERO_IMG, dim: 1, h: offFamHTML(s, fam) });   // v450 : page télé (option A)
     }
   }
   /* 11. coup d'envoi */
@@ -172,6 +173,41 @@ function offTcHTML(s, E, x) {
   if (sc.length) { const it = sc.map(([n, i]) => '<span>' + newsHTML(n, (E.nids && E.nids[i]) || idsIn(n)) + '</span>').join('');
     h += '<div class="ofxtk ofrtk oftck"><div class="lab"><span>Dans les coulisses</span></div><div class="its"><div class="mq" style="animation-duration:' + Math.max(30, sc.length * 9) + 's"><div>' + it + '</div><div aria-hidden="true" class="dup">' + it.replace(/<a /g, '<a tabindex="-1" ') + '</div></div></div></div>'; }
   return h;
+}
+/* v450 : trois chapitres de plus en page télé (choix de Max) : World Ranking (A), la nouvelle classe (C), les familles (A) */
+const offAv = (id, sz, c) => '<div class="ofav" style="width:' + sz + 'px;height:' + sz + 'px;font-size:' + Math.round(sz * .36) + 'px;--c:' + (c || '#2f8f7a') + '">' + (phFrameHTML(id, 'phhv') || esc(nameOf(id).split(/\s+/).map(w => w[0] || '').join('').slice(0, 2).toUpperCase())) + '</div>';
+const offBox = (v, k, c) => '<div class="ofrtb" style="border-color:' + c + '"><b>' + v + '</b><span>' + k + '</span></div>';
+function offWrHTML(s, E, P) {
+  const cur = {}, prev = {}; E.wr.forEach((id, i) => cur[id] = i + 1); if (P && P.wr) P.wr.forEach((id, i) => prev[id] = i + 1);
+  const top = E.wr.slice(0, WR_TOP), pr = id => prev[id] && prev[id] <= WR_TOP ? prev[id] : null, dl = id => pr(id) ? pr(id) - cur[id] : null, hasP = !!(P && P.wr);
+  const mv = id => { if (!hasP) return '—'; const d = dl(id); return d == null ? '<span class="ofmvn">Nouveau</span>' : d > 0 ? '<span class="ofmvu">▲ ' + d + '</span>' : d < 0 ? '<span class="ofmvd">▼ ' + (-d) + '</span>' : '<span class="mute">=</span>'; };
+  const lgc = OFX_LC, lch = id => { const l = leagueOf(id); return l >= 0 ? '<span class="oftc" style="background:' + lgc[l] + '">L' + (l + 1) + '</span>' : '—'; };
+  const n1 = top[0], p1 = hasP ? P.wr[0] : null; let k = 1; for (let j = s - 1; j >= 1; j--) { const e = S.hist[j - 1] && S.hist[j - 1].end; if (e && e.wr && e.wr[0] === n1) k++; else break; }
+  const ups = top.filter(id => dl(id) > 0).length, dns = top.filter(id => dl(id) < 0).length, nws = hasP ? top.filter(id => dl(id) == null).length : 0;
+  let h = '<div class="ofxnm ofrth" role="heading" aria-level="2">World Ranking</div><p class="ofrtl"><span>Le classement mondial à la fin de</span> ' + yr(s) + ' · <span>Fais défiler pour voir le top 100</span></p>';
+  h += '<div class="ofwr1"><span class="ofwr1a">' + offAv(n1, 76, '#c9a227') + '</span><div><div class="ofwr1k">' + (p1 != null && p1 !== n1 ? 'Nouveau n° 1 mondial' : 'N° 1 mondial') + '</div><div class="ofwr1n">' + offLnk(n1) + '</div><div class="ofwr1s">' + (k > 1 ? ord(k) + ' saison de suite au sommet' : p1 != null && p1 !== n1 ? 'Succède à ' + esc(nameOf(p1)) : 'Au sommet du classement mondial') + '</div></div><div class="ofwr23">' + top.slice(1, 3).map(id => '<div><b>#' + cur[id] + '</b>' + offLnk(id) + '</div>').join('') + '</div></div>';
+  h += '<div class="ofrtg"><div class="ofmsc ofrtt oftct"><div class="h"><div class="lab">Top ' + WR_TOP + '</div></div><div class="scroll oftcs" style="max-height:520px"><table><thead><tr><th class="r">#</th><th class="l">Golfeur</th><th>Ligue</th><th>Mouv.</th><th>' + yr(s - 1) + '</th></tr></thead><tbody>' +
+    top.map(id => '<tr' + (id === 0 ? ' class="me"' : '') + '><td class="r"><b>' + cur[id] + '</b></td><td class="l n">' + offLnk(id) + '</td><td>' + lch(id) + '</td><td>' + mv(id) + '</td><td class="mute">' + (pr(id) ? ord(pr(id)) : '—') + '</td></tr>').join('') + '</tbody></table></div></div>';
+  h += '<div class="ofrts">' + offBox(ups, ups > 1 ? 'montent' : 'monte', '#5CC796') + offBox(dns, dns > 1 ? 'reculent' : 'recule', '#c8473a') + offBox(nws, nws > 1 ? 'nouveaux dans le top 100' : 'nouveau dans le top 100', '#F0C419') + offBox(k, k > 1 ? 'saisons de suite au n° 1' : 'saison au n° 1', '#3987e5') + '</div></div>';
+  return h;
+}
+function offRkHTML(s, rc, snp, rcIn, E) {
+  const pot = g => POTS[scale(POTS, snp(g) ? snp(g).p0 : g.p)][1], st = i => rcStarsHTML(rcStars(i, rc.length)), rp = g => esc(snp(g) ? snp(g).rp : rcReport(g));
+  let h = '<div class="ofxnm ofrth" role="heading" aria-level="2">' + (rcIn ? 'La nouvelle classe' : 'La classe ' + yr(s + 1)) + '</div><p class="ofrtl"><span>' + plural(rc.length, 'recrue') + '</span> · <span>Le top 5 des dépisteurs, et tous les autres</span></p>';
+  h += '<div class="ofrk5">' + rc.slice(0, 5).map((g, i) => '<div class="' + (i ? '' : 'j') + '"><div class="t">' + offAv(g.id, 50, i ? '#2f8f7a' : '#6b5bd1') + '<b>#' + (i + 1) + '</b></div><div class="n">' + offLnk(g.id) + '</div><div class="mute">' + g.a + ' <span>ans</span> · ' + st(i) + '</div><div class="p">' + pot(g) + '</div><div class="q">« ' + rp(g) + ' »</div></div>').join('') + '</div>';
+  h += '<div class="ofmsc ofrtt oftct" style="margin-top:14px"><div class="h"><div class="lab">Toutes les recrues</div>' + (E.roy ? '<span class="ofshint">🏆 <span>Recrue de l’année</span> ' + yr(s) + ' : ' + esc(nameOf(E.roy.id)) + '</span>' : '') + '</div><div class="scroll oftcs" style="max-height:330px"><table><thead><tr><th class="r">#</th><th class="l">Recrue</th><th>Âge</th><th>Dépisteurs</th><th class="l">Potentiel</th></tr></thead><tbody>' +
+    rc.map((g, i) => '<tr' + (g.id === 0 ? ' class="me"' : '') + '><td class="r">' + (i + 1) + '</td><td class="l n">' + offLnk(g.id) + (g.prd ? ' <span class="ofpill">Prêt à jouer</span>' : '') + '</td><td>' + g.a + '</td><td>' + st(i) + '</td><td class="l">' + pot(g) + '</td></tr>').join('') + '</tbody></table></div></div>';
+  h += '<p class="ofmvf">' + (rcIn ? '<span>Ils joueront la saison ' + yr(s + 1) + ' dans la classe de recrues : leur index à la fin de la saison décidera de leur ligue de départ.</span> ' : '') + '<a href="#" data-a="rclass" data-s="' + s + '">Voir toute la classe ›</a></p>';
+  return h;
+}
+function offFamHTML(s, fam) {
+  const relN = { pere: 'Son père', frere: 'Son frère', cousin: 'Son cousin', fils: 'Son fils' }, relT = { pere: 'Fils d’un ancien golfeur', frere: 'Frères réunis', cousin: 'Cousins', fils: 'Père et fils' };
+  const L = fam.slice().sort((a, b) => (famRec(b.m[0]).cw || 0) - (famRec(a.m[0]).cw || 0));
+  let h = '<div class="ofxnm ofrth" role="heading" aria-level="2">Les familles</div><p class="ofrtl"><span>' + plural(fam.length, 'recrue') + ' avec un nom déjà connu sur le circuit</span></p><div class="offm">';
+  L.forEach(f => { const rid = f.m[0], r = famRec(rid), rel = f.m[1], act = !!S.G[rid], lg = act ? leagueOf(rid) : -1, now = act ? (lg >= 0 ? LEAGUE_SHORT[lg] : '—') : 'Retraité';
+    h += '<div class="offmc"><div class="offmt">' + (rel === 'pere' && (r.cw || 0) >= 3 ? 'Fils d’un champion' : relT[rel]) + '</div><div class="offmr"><div class="s">' + offAv(f.g.id, 70) + '<div><div class="k">La recrue</div><div class="n">' + offLnk(f.g.id) + '</div><div class="mute">' + f.g.a + ' <span>ans</span> · ' + POTS[scale(POTS, f.g.p)][1] + '</div></div></div><div class="ar">⟷</div><div class="s">' + offAv(rid, 70, '#6b5bd1') + '<div><div class="k">' + relN[rel] + '</div><div class="n">' + offLnk(rid) + '</div><div class="mute">' + now + '</div></div></div></div>' +
+      '<div class="offms">' + [[r.cs || 0, 'saisons'], [r.cw || 0, 'titres'], [r.ce ? fmtM(r.ce) : '—', 'gains en carrière'], [now, 'aujourd’hui']].map(([v, k]) => '<div><b>' + v + '</b><span>' + k + '</span></div>').join('') + '</div></div>'; });
+  return h + '</div><p class="ofmvf"><span>Les chiffres du bas sont ceux du parent sur le circuit.</span></p>';
 }
 /* v449 : « Promotions et relégations » en page télé (option D, choix de Max) : une carte par frontière (L1 ⇅ L2, L2 ⇅ L3,
    L3 ⇅ L4), avec TOUS ceux qui montent et qui descendent, leur rang de fin de saison et leurs points. */
