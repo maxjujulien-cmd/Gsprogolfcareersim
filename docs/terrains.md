@@ -30,6 +30,10 @@ La liste incluse dans le jeu est `public/terrains-data.js` (`window.CG_TERRAINS`
 6. Changer `exported` et le nombre de terrains dans l'en-tête. Le jeu ajoute alors, sur les appareils qui ont déjà la liste, seulement les terrains dont `since` est plus récent que la dernière liste vue (`preloadCourses()`, `src/js/30-le-voyage-position-des-terrains.js`).
 7. Lancer `npm run build`, puis `npm test`.
 
+## Vérifier les positions
+
+`node tools/verifier-positions.cjs page-sgt.html ecarts.json` compare chaque position avec les coordonnées de SGT (page `courses` téléchargée) et liste les écarts de plus de 25 km. SGT a presque toujours raison : les anciennes positions avaient été devinées en cherchant le nom du terrain sur OpenStreetMap (Penrith GC, un terrain australien, placé à Penrith en Angleterre). Deux pièges : un même nom pour deux terrains (les départager par le par total), et SGT qui place parfois un terrain au centre d'une grande ville (vérifier à la main ces cas-là).
+
 ## Historique
 
 | Date | Terrains | Ajoutés | Notes |
@@ -40,3 +44,4 @@ La liste incluse dans le jeu est `public/terrains-data.js` (`window.CG_TERRAINS`
 | 2026-11-27 (v444) | 2 516 | 0 | Positions ajoutées à 179 terrains qui n'en avaient pas : 174 d'après les coordonnées que SGT donne maintenant (pays et fuseau repris du terrain localisé le plus proche, corrigés à la main pour 6 terrains), 5 placés d'après la ville indiquée par SGT. Restent 49 terrains sans position, presque tous fictifs. |
 | 2026-11-27 (v445) | 2 516 | 0 | Les 49 derniers placés selon la liste remplie par Max (lieux réels choisis pour les terrains fictifs ; `src: "max"`). Tous les terrains ont maintenant une position. |
 | 2026-11-28 | 2 516 | 0 | v456 : position de Quail Valley Golf Club corrigée (Vero Beach, Floride, et non Missouri City, Texas ; vérifiée sur SGT). Depuis la v456, une position venue de la liste suit toujours la liste, même sur un appareil qui l'avait déjà en mémoire ; une position placée à la main par le joueur est gardée. |
+| 2026-11-28 | 2 516 | 0 | v457 : vérification complète des positions avec SGT. 894 terrains déplacés (dont 162 changent de pays), d'après les coordonnées SGT, avec pays et fuseau horaire refaits ; à la main : London GC (Ash, Kent, et non le centre de Londres), The National Old Course (Cape Schanck), Trump Charlotte (Mooresville), White Eagle (Hudson, Wisconsin), St Georges G&CC (Setauket, NY ; l'autre St Georges est bien à Toronto). 151 terrains n'ont pas pu être vérifiés (absents de SGT sous ce nom ou sans coordonnées sur SGT). Dans le jeu, une position trouvée automatiquement (OpenStreetMap) suit maintenant aussi la liste ; seule une position placée à la main est gardée. |
