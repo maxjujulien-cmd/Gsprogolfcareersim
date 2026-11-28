@@ -336,6 +336,7 @@ function pnOk() {
   const cur = PNX.cur, act = pnActive(cur);
   pnRevStop();
   act.forEach(i => { cur.humans[i].h[cur.r][cur.k] = cur.vals[i]; });
+  ANIM.hk++;   // v453 : nouveau trou du tournoi rapide
   cur.mvb = {}; pnRows(cur, cur.r, cur.k).forEach(x => { if (!x.cut) cur.mvb[x.key] = x.pos; });   // places avant ce trou (pour les flèches)
   cur.k++;
   if (cur.k === 18 && pnWaiting(cur)) { pnKmHole(cur, 18); pnSave(); render(); window.scrollTo(0, 0); return; }

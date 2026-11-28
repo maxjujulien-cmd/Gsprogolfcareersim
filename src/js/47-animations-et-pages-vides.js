@@ -16,7 +16,7 @@ function emptyCard(icon, title, text, withGo, cls) {
     (withGo ? '<button class="btn emgo" data-a="emgo">Jouer mon premier tournoi</button>' : '') + '</div>';
 }
 function emGo() { VIEW = { name: 'home' }; render(); window.scrollTo(0, 0); mgrGo(); }   // l'action principale de l'accueil (jouer, reprendre…)
-const ANIM = { enter: 380, count: 900, flip: 1100, trail: 4100, seen: new Map(), tr: new Map() };
+const ANIM = { enter: 380, count: 900, flip: 1100, trail: 4100, seen: new Map(), tr: new Map(), last: new Map(), hk: 0, lk: 0 };   // v453 : last = chiffres du dernier trou, gardés jusqu'au trou suivant
 const animOff = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
 /* une ligne par golfeur et par tableau : où elle est, son rang affiché, et ses chiffres (pour savoir s'il a joué) */
 function animRows() {
@@ -43,13 +43,14 @@ function animEnter() {
 function animFlip(before, live) {
   const now = performance.now(), rows = animRows(), ease = 'cubic-bezier(.45,.05,.25,1)';
   const solo = live && typeof REVEAL !== 'undefined' && REVEAL && REVEAL.gbg && REVEAL.cur != null ? REVEAL.cur : null;
-  if (!live) ANIM.tr.clear();
+  if (!live) { ANIM.tr.clear(); ANIM.last.clear(); }
+  if (ANIM.lk !== ANIM.hk) { ANIM.last.clear(); ANIM.lk = ANIM.hk; }   // v453 : un nouveau trou efface les chiffres du précédent
   rows.forEach((v, k) => {
     const b = before.get(k); if (!b || !v.tr.animate) return;
     const dy = (b.top - v.top) / zf(), d = b.pos != null && v.pos != null ? b.pos - v.pos : 0;
     /* seulement s'il vient de jouer un trou au-dessus ou en dessous du par : un golfeur simplement dépassé (rang décalé
        d'une place à cause des égalités) glisse sans couleur, sinon tout le tableau se colore */
-    if (live && d && b.sig !== v.sig && b.tot !== v.tot && (solo == null || v.id === solo)) ANIM.tr.set(k, { d, t0: now });
+    if (live && d && b.sig !== v.sig && b.tot !== v.tot && (solo == null || v.id === solo)) { ANIM.tr.set(k, { d, t0: now }); ANIM.last.set(k, d); }
     if (live && solo === v.id && d) {   // agrandissement, glissement, puis retour à la taille normale
       const c = d > 0 ? '46,204,113' : '255,107,94', hold = 350, mv = 700, tot = hold + mv + 200;
       v.tr.style.position = 'relative'; v.tr.style.zIndex = 1;
@@ -67,8 +68,13 @@ function animFlip(before, live) {
   ANIM.tr.forEach((t, k) => {
     const el = now - t.t0, v = rows.get(k); if (el >= ANIM.trail || !v) { if (el >= ANIM.trail) ANIM.tr.delete(k); return; }
     v.tr.classList.add(t.d > 0 ? 'mvu' : 'mvd'); v.tr.style.setProperty('--mvt', (-Math.round(el)) + 'ms');
-    const a = v.tr.querySelector('[data-a=golfer][data-id]'), s = document.createElement('span');
-    s.className = 'mvb ' + (t.d > 0 ? 'up' : 'dn'); s.textContent = (t.d > 0 ? '▲' : '▼') + Math.abs(t.d); s.setAttribute('aria-hidden', 'true');
+  });
+  /* v453 (demande de Max) : le chiffre de places gagnées ou perdues reste affiché jusqu'au trou suivant */
+  ANIM.last.forEach((d, k) => {
+    const v = rows.get(k); if (!v) return;
+    const a = v.tr.querySelector('[data-a=golfer][data-id]') || v.tr.querySelector('[data-pk]'); if (!a || !a.parentElement || a.parentElement.querySelector('.mvb')) return;
+    const s = document.createElement('span');
+    s.className = 'mvb ' + (d > 0 ? 'up' : 'dn'); s.textContent = (d > 0 ? '▲' : '▼') + Math.abs(d); s.setAttribute('aria-hidden', 'true');
     const old = a.parentElement.querySelector('.anmv'); (old || a).after(s);
   });
 }

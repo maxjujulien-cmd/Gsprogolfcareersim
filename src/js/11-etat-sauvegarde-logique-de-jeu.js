@@ -581,6 +581,7 @@ function gbgPick(k, ids) {
   return top.concat(rest).filter(x => x.b < x.a || ++dn <= 3).slice(0, GBG_MAX).sort((x, y) => y.b - x.b || y.a - x.a).map(x => x.id);   // du bas vers le haut : la tête en dernier
 }
 function startReveal(k, onDone, only) {
+  ANIM.hk++;   // v453 : nouveau trou (efface les chiffres de mouvement du trou précédent)
   if (S.ui.reveal !== 'seq' && S.ui.reveal !== 'gbg') { onDone(); return; }
   const c = S.cur;
   const ids = (only || (c.r === 0 ? fld(c) : c.alive)).filter(id => id !== 0);

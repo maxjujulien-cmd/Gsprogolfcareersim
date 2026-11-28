@@ -69,7 +69,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 
 ## À chaque nouvelle version
 
-1. Numéro de version suivant (dernière : **v452**), noté dans les commentaires du code modifié, **et dans `GAME_V` (`src/js/02-carriere-de-golf-moteur-de.js`)** : c'est le numéro affiché en bas à gauche du jeu (v432, choix de Max).
+1. Numéro de version suivant (dernière : **v453**), noté dans les commentaires du code modifié, **et dans `GAME_V` (`src/js/02-carriere-de-golf-moteur-de.js`)** : c'est le numéro affiché en bas à gauche du jeu (v432, choix de Max).
 2. **Vérifications en trois niveaux** (décision de Max, 27 novembre 2026 : les vérifications répétées coûtaient trop de temps et de données) :
    - **Toujours** (moins d'une minute) : `npm run build`, puis `npm test` **une seule fois** (aller-retour, démarrage, et un seul passage du test anglais).
    - **Seulement quand c'est pertinent** : **une seule** capture 1920 × 1080 pour un changement visible ; le test anglais relancé plusieurs fois seulement après un gros ajout de textes (nouvelle page) ; une ronde jouée depuis une sauvegarde chargée seulement si le changement touche au chargement des parties ou au déroulement d'une ronde ; le banc d'essai seulement pour un changement d'équilibre.
@@ -77,7 +77,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 3. Mettre à jour `docs/parametres.md` (et le README si besoin).
 4. **Commit et push sur GitHub, toujours, à la fin de chaque changement.** Ne jamais laisser une version seulement dans l'artifact ou dans un fichier envoyé.
 5. Envoyer à Max le fichier autonome `IndoorGolfCareer-vNNN.html`.
-6. **Republier l'artifact « Indoor Golf Career »** (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) **à chaque nouvelle version** (décision de Max, 27 novembre 2026) : publier `dist/index.html` avec `url`, et un fichier de données (`ootp-names.js`, `ootp-names-extra.js`, `terrains-data.js`) seulement s'il a changé (le relire d'abord avec `action: read` et `path`). L'artifact est partagé « toute personne ayant le lien » : attention à la photo du trophée (voir plus bas). Dernière publication : v452.
+6. **Republier l'artifact « Indoor Golf Career »** (https://claude.ai/artifact/NijQgQmv7xLd7eQfKQ73vB) **à chaque nouvelle version** (décision de Max, 27 novembre 2026) : publier `dist/index.html` avec `url`, et un fichier de données (`ootp-names.js`, `ootp-names-extra.js`, `terrains-data.js`) seulement s'il a changé (le relire d'abord avec `action: read` et `path`). L'artifact est partagé « toute personne ayant le lien » : attention à la photo du trophée (voir plus bas). Dernière publication : v453.
 
 ## Intersaison en pages « télé » (v425-v428, en cours)
 
@@ -110,6 +110,7 @@ Les détails et les chiffres sont dans `docs/parametres.md`. **Le lire avant tou
 - World Ranking de la fiche (v449, option A « ligne télé ») : pastilles de rang de fin de saison reliées, trait gris meilleur → pire rang, bulle au survol gardée, 4 chiffres en haut (`wrChartHTML`). Chapitre « Promotions et relégations » en page télé (v449, option D « les trois frontières ») : une carte par frontière avec tous ceux qui montent et descendent, rang et points (`offMvHTML`).
 - Classe de recrues (v451) : tri en cliquant sur le titre de chaque colonne (⇅, 2e clic inverse), à la place des boutons Index / Niveau / Potentiel. Le « R » des recrues (première saison en ligue) est affiché partout où le handicap l'est (`rkTag` dans `hxTag`), y compris pour ton golfeur manuel.
 - Fiche du golfeur refaite (v452, maquette A « trois colonnes », inspirée de Football Manager et d'OOTP ; Max a d'abord classé les infos dans https://claude.ai/artifact/3MUMLpDzjpP36bBEM2EwP9, base `ordre/fiche`) : sur ordinateur, bandeau (photo ou initiales, identité, niveau, potentiel, handicap, World Ranking, rang, points, Suivre), onglets juste dessous, puis l'Aperçu en 3 colonnes : Cette saison + Points par tournoi + Classements (World Ranking, parcours dans les ligues, rang mondial par saison) | Niveau et potentiel + Handicap et statistiques (carte handicap, radar) | Carrière (palmarès, par ligue) + Le golfeur (fiche perso, talents et notes, famille, à surveiller). `gHeadPC`, `gDashPC` dans `29-*.js`. Aussi pour ton golfeur manuel. Téléphone inchangé.
+- Chiffre de mouvement du tableau en direct (v453, demande de Max) : le « ▲3 / ▼2 » à côté du nom reste affiché jusqu'au trou suivant (`ANIM.last`, remis à zéro par `ANIM.hk++` dans `startReveal` et au trou suivant du tournoi rapide) ; la surbrillance de la ligne garde ses 4 secondes.
 - Les photos des golfeurs viennent de la bibliothèque de Max (dossier Graphics, `44-bibliotheque-de-photos.js`).
 
 ## Banc d'essai de Max avant publication
