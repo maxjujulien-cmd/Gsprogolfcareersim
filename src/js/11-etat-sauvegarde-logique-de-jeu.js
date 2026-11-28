@@ -269,6 +269,7 @@ function createPlayerGolfer(opts) {
   if (opts.league === 4) { g.rcl = S.season; plJoinRc(); } else { makeRoom(opts.league); S.L[opts.league].push(0); }
   S.st[0] = newStanding();
   S.needsPlayerCreate = false; S.spect = false;
+  try { plBuild(S.season); } catch (e) { }   // v455 : ton golfeur simulé entre dans la liste des espoirs de la saison
   persist();
 }
 /* Ligues à 150 : si une partie plus ancienne a des ligues plus petites, on les complète avec des recrues
@@ -301,7 +302,7 @@ function loadState(obj) {
   if (S.pav !== 1) { paBackfill(); persist(); }
   if (S.almv !== 1) { almBackfill(); persist(); }
   if (S.talv !== 1) { talMigrate(); persist(); }
-  if (S.plv !== 1) { try { plBackfill(); } catch (e) { } S.plv = 1; persist(); }   // v454 : listes des espoirs refaites pour les saisons passées
+  if (S.plv !== 2) { S.pl = {}; try { plBackfill(); } catch (e) { } S.plv = 2; persist(); }   // v455 : refaites aussi pour inclure ton golfeur simulé   // v454 : listes des espoirs refaites pour les saisons passées
   if (S.biov !== 1) { bioMigrate(); persist(); }   // v286 : fiche d'identité et personnalité médiatique
   if (S.skv !== 1) { skMigrate(); persist(); }   // v220 : cotes de jeu   // v214 : talents cachés pour les golfeurs des anciennes parties
   try { wrBackfill(); } catch (e) { }

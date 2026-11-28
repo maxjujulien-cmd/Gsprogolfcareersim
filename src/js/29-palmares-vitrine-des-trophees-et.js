@@ -121,7 +121,7 @@ function vGolfer() {
     { const ph = hcHolder(id) || (S.old && S.old[id]); B.pa = paHTML(ph && ph.pa, hist.length ? hist[0].s : null); }
     B.best = bestScoresHTML(id); B.riv = rivalsHTML(id);
     { const RR = rsRows(id, past, l), bk = rsBestKey(RR), ch = rsChartHTML(RR, bk, id); rsCh = ch;   // v333
-      B.carIn = rsCareerHTML(id, by, cols, RR, bk, earnAll) + bigWinsHTML(id);   // v452 : carrière dans l'aperçu (ordinateur)
+      B.carIn = rsCareerHTML(id, by, cols, RR, bk, earnAll) + bigWinsHTML(id); B.rsN = rsChartHTML(RR, bk, id, 620);   // v455 : graphique à la taille de la colonne   // v452 : carrière dans l'aperçu (ordinateur)
       B.car = '<h2>Carri\u00e8re</h2><div class="carl">' + rsCareerHTML(id, by, cols, RR, bk, earnAll) + bigWinsHTML(id) + '</div>' + (ch ? '<div class="carr">' + ch + '</div>' : ''); }
     const last = hist.slice(-24), maxp = 100;
     B.bars = '<h3>Points par tournoi</h3><div class="bars" role="img" aria-label="Points gagn\u00e9s lors des derniers tournois">' + last.map(x => '<i class="' + (x.pos === 0 ? 'mc' : '') + '" style="height:' + Math.max(4, Math.round(x.pts / maxp * 100)) + '%" title="' + esc(x.name) + ' : ' + x.pts + ' pts"></i>').join('') + '</div><div class="small mute">Les barres rouges sont des coupures rat\u00e9es.</div>';
@@ -185,7 +185,7 @@ function gDashPC(id, g, l, B, hist, rsCh, TR, earnAll) {
   let c1 = (seaPanel(id, l, TR, earnAll) || tzPanel(TR, earnAll, { active: true, cls: 'tzpc', pid: id }));
   c1 += dPanel('Points par tournoi', (B.bars ? '<div class="gbars">' + B.bars.replace(/^<h3>[^<]*<\/h3>/, '') + '</div>' : '<p class="mute small" style="padding:12px 14px;margin:0">Aucun tournoi pour l’instant.</p>') + (hist.length ? '<div class="dst3 g4"><div><b>' + wins + '</b><span>Victoires</span></div><div><b>' + t10 + '</b><span>Top 10</span></div><div><b>' + made + '/' + hist.length + '</b><span>Coupures</span></div><div><b>' + (hp == null ? '–' : hp) + '</b><span>Points Temple</span></div></div>' : ''), '<a href="#" data-a="ptab" data-v="res">Tous les résultats →</a>', 'gd-bars');
   const wrc = wrChartHTML(id);
-  c1 += dPanel('Classements', '<div class="gdbig">' + big(wr ? '#' + wr : 'NC', 'World Ranking') + big(l >= 0 ? LEAGUE_NAMES[l] : '–', 'Ligue actuelle') + big(nS, nS > 1 ? 'saisons' : 'saison') + '</div>' + (rsCh ? '<div class="gdch">' + rsCh.replace(/<h3>Progression<\/h3>/, '') + '</div>' : '') + (wrc ? '<div class="gdch">' + wrc + '</div>' : ''), '', 'gd-cls');
+  c1 += dPanel('Classements', '<div class="gdbig">' + big(wr ? '#' + wr : 'NC', 'World Ranking') + big(l >= 0 ? LEAGUE_NAMES[l] : '–', 'Ligue actuelle') + big(nS, nS > 1 ? 'saisons' : 'saison') + '</div>' + ((B.rsN || rsCh) ? '<div class="gdch">' + (B.rsN || rsCh).replace(/<h3>Progression<\/h3>/, '') + '</div>' : '') + (wrc ? '<div class="gdch">' + wrc + '</div>' : ''), '', 'gd-cls');
   // Colonne 2 : niveau et potentiel, puis handicap et statistiques
   let c2 = '';
   if (LVL || B.prog) c2 += dPanel('Niveau et potentiel', LVL + (B.prog ? '<div class="gdch">' + B.prog.replace(/^<h3>[^<]*<\/h3>/, '') + '</div>' : ''), '', 'gd-lv');

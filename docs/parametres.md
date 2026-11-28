@@ -655,3 +655,4 @@ Voir les essais dans `docs/analyse-100-saisons.md` (point 2). **Rappel : dans le
 - v452 : fiche du golfeur refaite (affichage seulement, aucun changement d'équilibre).
 - v453 : le chiffre de places gagnées/perdues reste affiché jusqu'au trou suivant (affichage seulement).
 - v454 : Aperçu de la saison (favoris, montée selon les analystes) et Top 30 Prospects (affichage et historique ; aucun changement d'équilibre).
+- v455 : listes des espoirs avec le golfeur simulé du joueur, menu d'années, graphique des ligues lisible dans la fiche (affichage seulement).

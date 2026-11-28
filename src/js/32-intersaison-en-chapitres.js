@@ -410,7 +410,7 @@ function plBuild(t) {
   if (t < 2) return; S.pl = S.pl || {};
   const out = [], before = new Set(); for (let u = 1; u < t; u++) plL1Start(u).forEach(id => before.add(id));
   const look = (id, g, act) => {
-    if (!g || id === 0 || before.has(id)) return;
+    if (!g || before.has(id) || id === 0 && (S.mode !== 'sim' || t <= careerStart(0))) return;   // v455 : ton golfeur simulé est classé comme les autres
     const e = (g.oh || []).find(x => x[0] === t - 1); let o, p;
     if (e) { o = e[1]; p = e[2]; } else if (act && t === S.season && g.o != null) { o = g.o; p = g.p; } else return;
     const age = act ? g.a - (S.season - t) : g.a != null && g.s != null ? g.a - (g.s - t) : null;
@@ -454,7 +454,7 @@ function apUpN(l) { const P = S.hist[S.season - 2], E = P && P.end; const n = E 
 const APC = {};
 function apOdds(l) {   // l = 0 : chance du titre ; sinon chance de monter
   const key = S.season + ':' + l; if (APC[key]) return APC[key];
-  const ids = S.L[l].filter(id => S.G[id] && id !== 0).map(id => [id, apStr(id, l)]).sort((a, b) => b[1] - a[1]).slice(0, 40);
+  const ids = S.L[l].filter(id => S.G[id] && (id !== 0 || S.mode === 'sim')).map(id => [id, apStr(id, l)]).sort((a, b) => b[1] - a[1]).slice(0, 40);
   if (!ids.length) return (APC[key] = []);
   const n = ids.length, sp = Math.max(1, (ids[0][1] - ids[Math.min(14, n - 1)][1]) / 1.6), N = l === 0 ? 1 : Math.min(apUpN(l), n), cnt = ids.map(() => 0), R = plRng(S.season * 977 + l * 131 + 7);
   const gs = () => Math.sqrt(-2 * Math.log(R() || 1e-9)) * Math.cos(2 * Math.PI * R());
@@ -522,7 +522,8 @@ function vPlHist() {
   const ys = Object.keys(S.pl || {}).map(Number).filter(t => S.pl[t] && S.pl[t].length).sort((a, b) => b - a);
   if (!ys.length) return '<p class="mute">Aucune liste pour l’instant : la première sera publiée à l’avant-saison.</p>';
   const t = ys.includes(VIEW.ply) ? VIEW.ply : ys[0], L = S.pl[t];
-  let h = '<div class="apvyrs">' + ys.map(y => '<button type="button" class="' + (y === t ? 'on' : '') + '" data-a="ply" data-v="' + y + '">' + yr(y) + '</button>').join('') + '</div>';
+  const k = ys.indexOf(t), older = ys[k + 1], newer = ys[k - 1];   // v455 : menu déroulant + flèches (demande de Max)
+  let h = '<div class="rcnav apvnav"><button class="btn sec sm" data-a="ply" data-v="' + (older || '') + '"' + (older ? '' : ' disabled') + ' aria-label="Année précédente">‹</button><select data-c="plyr" aria-label="Choisir une année">' + ys.map(y => '<option value="' + y + '"' + (y === t ? ' selected' : '') + '>' + yr(y) + '</option>').join('') + '</select><button class="btn sec sm" data-a="ply" data-v="' + (newer || '') + '"' + (newer ? '' : ' disabled') + ' aria-label="Année suivante">›</button></div>';
   const now = id => { const g = S.G[id]; if (!g) return '<span class="mute">Retraité</span>'; const l = leagueOf(id); return apLg(l) + ' ' + TIERS[tierOf(g)][1]; };
   const earn = id => { const g = S.G[id] || (S.old && S.old[id]); return g && g.ce > 0 ? fmtM(g.ce) : '—'; };
   const tbl = '<div class="scroll"><table class="apvt light"><tr><th>#</th><th class="l">Golfeur</th><th>Âge alors</th><th class="l">Alors</th><th class="l">Aujourd’hui</th><th>Gains en carrière</th></tr>' + L.map((r, i) => '<tr><td class="apvn">' + (i + 1) + '</td><td class="l">' + flagVisual(natOf(r[0]), 18) + ' <a href="#" data-a="golfer" data-id="' + r[0] + '">' + esc(nameOf(r[0])) + '</a></td><td>' + r[3] + '</td><td class="l">' + plLv(r) + '</td><td class="l">' + now(r[0]) + '</td><td><b>' + earn(r[0]) + '</b></td></tr>').join('') + '</table></div>';

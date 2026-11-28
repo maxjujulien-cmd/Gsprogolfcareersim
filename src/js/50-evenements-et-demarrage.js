@@ -597,6 +597,7 @@ document.addEventListener('change', e => {
   if (c === 'sndon') { try { localStorage.setItem('igc-snd', el.checked ? '1' : '0'); } catch (e) { } if (el.checked) sndPlay('clap'); return; }
   if (c === 'phon') { GFX.on = el.checked; try { localStorage.setItem('igc-photos', el.checked ? '1' : '0'); } catch (e) { } render(); return; }
   if (c === 'gfxfaces' || c === 'gfxbgs') { const fs = [...(el.files || [])]; el.value = ''; if (fs.length) gfxRun(fs, c === 'gfxfaces' ? 'faces' : 'bgs'); return; }
+  if (c === 'plyr') { VIEW.ply = +el.value; render(); return; }   // v455
   if (c === 'rcyr') { VIEW.s = +el.value; render(); window.scrollTo(0, 0); return; }
   if (c === 'futyr') { VIEW.cyr = +el.value || 0; VIEW.open = null; render(); return; }   // v413 : saison future à préparer (Terrains)
   if (c === 'pgflt') { pigeState().flt = el.checked; persist(); if (inPN()) pnSave(); return; }

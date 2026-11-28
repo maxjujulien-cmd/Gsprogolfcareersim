@@ -1490,3 +1490,4 @@ I18N_RX.push([/^Saison (\d{4})$/, 'Season $1'], [/^Qui va monter en Ligue (\d) \
   [/^(\d+) places pour la Ligue (\d)\. ●●● = choisi par les trois analystes\.$/, '$1 spots for League $2. ●●● = picked by all three analysts.'], [/^La L1 dans 1 saison \?$/, 'L1 next season?'], [/^La L1 dans (\d+) saisons \?$/, 'L1 in $1 seasons?'], [/^… et (\d+) autres$/, '… and $1 more'],
   [/^n° (\d+) l’an passé$/, 'No. $1 last year'], [/^Classé n° (\d+) dans le Top 30 des espoirs$/, 'Ranked #$1 in the Top 30 Prospects'], [/^Top 30 Prospects (\d{4}) · et ce qu’ils sont devenus$/, 'Top 30 Prospects $1 · and what became of them'], [/^Top 30 Prospects (\d{4})$/, 'Top 30 Prospects $1'],
   [/^(\d+) ans \((\d{4})\)$/, '$1 yrs ($2)'], [/^n° (\d+)$/, 'No. $1']);
+Object.assign(I18N_EN, { 'Année précédente': 'Previous year', 'Année suivante': 'Next year', 'Choisir une année': 'Choose a year' });   // v455
