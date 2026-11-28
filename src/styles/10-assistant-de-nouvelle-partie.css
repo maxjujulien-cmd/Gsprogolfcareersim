@@ -69,3 +69,23 @@ html.pc .pnset>.pnb-go .btn[data-a="pnstart"]{display:none}
 .oftct .h{display:flex;align-items:center;gap:12px}
 .oftct .ofshint{font:600 11px Arimo,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:rgba(233,238,242,.55);margin-left:auto;padding-right:12px}
 .oftct .ofsreset{margin-left:auto;margin-right:12px;font:700 12px Arimo,Arial,sans-serif;color:#111;background:#F0C419;border:0;border-radius:4px;padding:4px 10px;cursor:pointer}
+/* v449 : World Ranking en « ligne télé » (option A) : 4 chiffres en haut */
+html.pc .wrtiles.wrt4{grid-template-columns:repeat(4,1fr)}
+.wrline .wrcol:hover circle,.wrline .wrcol.on circle,.wrline .wrcol:focus circle{stroke:var(--ink);stroke-width:2.5}
+/* v449 : Promotions et relégations en page télé (option D) */
+.ofmvg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:14px}
+.ofmvc{background:rgba(8,12,10,.85);display:flex;flex-direction:column;max-height:560px;min-width:0}
+.ofmvh{padding:10px 14px;font:800 18px Arimo,Arial,sans-serif;letter-spacing:.06em;color:#fff}
+.ofmvb{overflow:auto;padding-bottom:6px}
+.ofmvk{padding:10px 12px 3px;font:700 12px Arimo,Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase}
+.ofmvk.up{color:#5CC796}.ofmvk.dn{color:#ff8a7a}
+.ofmvb table{width:100%;border-collapse:collapse}
+.ofmvb td{padding:5px 12px;border-bottom:1px solid rgba(255,255,255,.06);font-size:15px;color:#e9eef2}
+.ofmvb td.r{width:44px;color:#9fb0bd;font-variant-numeric:tabular-nums}
+.ofmvb td.p{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}.ofmvb td.p.up{color:#5CC796}.ofmvb td.p.dn{color:#ff8a7a}
+.ofmvb tr.me td{background:rgba(240,196,25,.18)}
+.ofmv0{margin:4px 12px;color:#9fb0bd;font-size:14px}
+.ofmvme{display:inline-flex;gap:12px;align-items:baseline;margin-top:10px;padding:8px 14px;background:rgba(8,12,10,.85);border-left:4px solid #9fb0bd;font-size:16px;color:#e9eef2}
+.ofmvme.up{border-color:#5CC796}.ofmvme.dn{border-color:#ff8a7a}.ofmvme b{font:800 16px Arimo,Arial,sans-serif}
+.ofmvf{margin:8px 0 0;color:rgba(233,238,242,.6);font-size:13px}
+@media (max-width:900px){.ofmvg{grid-template-columns:1fr}.ofmvc{max-height:none}}

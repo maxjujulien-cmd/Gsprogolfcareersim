@@ -74,7 +74,7 @@ function offChapters(s) {
         (!up.length && !dn.length ? '<p class="mute small" style="margin:0">Pas de changement de fin de saison.</p>' : '') +
         (mu ? '<p class="small mute" style="margin:4px 0 0">' + mu + ' déplacé' + (mu > 1 ? 's' : '') + ' en cours de saison</p>' : '') + '</div>';
     }
-    C.push({ id: 'mv', ico: '↕️', t: 'Promotions et relégations', sub: 'Les ligues de ' + yr(s + 1), h, R });
+    C.push({ id: 'mv', ico: '↕️', t: 'Promotions et relégations', full: 1, img: HERO_IMG, dim: 1, h: offMvHTML(s, E, from, to) });   // v449 : page télé (option D)
   }
   /* 8. World Ranking */
   if (E.wr && E.wr.length) {
@@ -171,6 +171,23 @@ function offTcHTML(s, E, x) {
   const sc = (E.news || []).map((n, i) => [n, i]).filter(([n]) => /éclosion tardive|franchi un cap|déçoit|perd soudainement|année difficile/.test(n));
   if (sc.length) { const it = sc.map(([n, i]) => '<span>' + newsHTML(n, (E.nids && E.nids[i]) || idsIn(n)) + '</span>').join('');
     h += '<div class="ofxtk ofrtk oftck"><div class="lab"><span>Dans les coulisses</span></div><div class="its"><div class="mq" style="animation-duration:' + Math.max(30, sc.length * 9) + 's"><div>' + it + '</div><div aria-hidden="true" class="dup">' + it.replace(/<a /g, '<a tabindex="-1" ') + '</div></div></div></div>'; }
+  return h;
+}
+/* v449 : « Promotions et relégations » en page télé (option D, choix de Max) : une carte par frontière (L1 ⇅ L2, L2 ⇅ L3,
+   L3 ⇅ L4), avec TOUS ceux qui montent et qui descendent, leur rang de fin de saison et leurs points. */
+function offMvHTML(s, E, from, to) {
+  const LC = OFX_LC, rk = (id, l) => { const i = (E.tables[l] || []).findIndex(r => r[0] === id); return i >= 0 ? i + 1 : null; }, pt = (id, l) => { const r = (E.tables[l] || []).find(r => r[0] === id); return r ? r[1] : 0; };
+  let nu = 0, nd = 0; const nm = (E.midMoves || []).length;
+  for (let l = 0; l < 4; l++) { nu += (l > 0 && E.up[l] || []).length; nd += (l < 3 && E.down[l] || []).length; }
+  let h = '<div class="ofxnm ofrth" role="heading" aria-level="2">Promotions et relégations</div><p class="ofrtl"><span>' + plural(nu, 'golfeur') + ' montent</span> · <span>' + nd + ' descendent</span>' + (nm ? ' · <span>' + nm + ' déplacés en cours de saison</span>' : '') + ' · <span>Les ligues de</span> ' + yr(s + 1) + '</p>';
+  if (from >= 0 && to >= 0) h += '<div class="ofmvme ' + (to < from ? 'up' : to > from ? 'dn' : '') + '"><b>' + (to < from ? '▲' : to > from ? '▼' : '=') + ' Toi</b><span>' + (to < from ? 'Tu montes en ' : to > from ? 'Tu descends en ' : 'Tu restes en ') + LEAGUE_NAMES[to] + '</span><span class="mute">' + ord(E.rank) + ' en ' + LEAGUE_SHORT[from] + '</span></div>';
+  h += '<div class="ofmvg">' + [0, 1, 2].map(l => {
+    const U = (E.up[l + 1] || []).slice().sort((a, b) => rk(a, l + 1) - rk(b, l + 1)), D = (E.down[l] || []).slice().sort((a, b) => rk(a, l) - rk(b, l));
+    const li = (id, lf, up) => '<tr' + (id === 0 ? ' class="me"' : '') + '><td class="r">' + (rk(id, lf) || '—') + '</td><td class="l n">' + offLnk(id) + '</td><td class="p ' + (up ? 'up' : 'dn') + '">' + pt(id, lf) + '</td></tr>';
+    return '<div class="ofmvc"><div class="ofmvh" style="background:linear-gradient(90deg,' + LC[l] + ',' + LC[l + 1] + ')">L' + (l + 1) + ' ⇅ L' + (l + 2) + '</div><div class="ofmvb">' +
+      '<div class="ofmvk up">▲ <span>Montent en</span> L' + (l + 1) + ' · ' + U.length + '</div>' + (U.length ? '<table>' + U.map(id => li(id, l + 1, 1)).join('') + '</table>' : '<p class="ofmv0">Personne</p>') +
+      '<div class="ofmvk dn">▼ <span>Descendent en</span> L' + (l + 2) + ' · ' + D.length + '</div>' + (D.length ? '<table>' + D.map(id => li(id, l, 0)).join('') + '</table>' : '<p class="ofmv0">Personne</p>') + '</div></div>';
+  }).join('') + '</div><p class="ofmvf"><span>Le chiffre de gauche est le rang de fin de saison dans l’ancienne ligue ; à droite, les points.</span></p>';
   return h;
 }
 /* v427 : le chapitre « Retraites » en page télé (tableau des départs). Une ligne de x.rt : [id, âge, saisons, …, gains, dernière ligue, dernier niveau, forcée]. */

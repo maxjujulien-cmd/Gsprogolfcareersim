@@ -1436,3 +1436,8 @@ I18N_RX.push([/^(.+) : (trou d’un coup|albatros|aigle|birdie|par|bogey|double 
 /* v448 : la Finale en spectateur, tri du tableau Progression */
 Object.assign(I18N_EN, { 'Suivre la ronde 1 trou par trou': 'Follow round 1 hole by hole', 'Simuler la Finale au complet': 'Simulate the whole Finale' });
 Object.assign(I18N_EN, { 'Clique sur une colonne pour trier': 'Click a column to sort', 'Ordre d’origine': 'Original order' });
+/* v449 : World Ranking en ligne, Promotions et relégations en page télé */
+Object.assign(I18N_EN, { 'saisons finies dans le top 10': 'seasons finished in the top 10', 'saison finie dans le top 10': 'season finished in the top 10', 'Survole une saison pour le détail.': 'Hover over a season for details.', 'Touche une saison pour le détail.': 'Tap a season for details.',
+  'La pastille donne le rang à la fin de la saison ; le trait gris va du meilleur au pire rang de l’année.': 'The dot shows the end-of-season rank; the grey bar runs from the year’s best to worst rank.' });
+Object.assign(I18N_EN, { 'Montent en': 'Move up to', 'Descendent en': 'Drop to', 'Personne': 'Nobody', 'Les ligues de': 'The leagues of', 'Le chiffre de gauche est le rang de fin de saison dans l’ancienne ligue ; à droite, les points.': 'Left: end-of-season rank in the old league; right: points.' });
+I18N_RX.push([/^(\d+) golfeurs? montent$/, (m, n) => n + (n === '1' ? ' golfer moves up' : ' golfers move up')], [/^(\d+) descendent$/, '$1 drop down'], [/^(\d+) déplacés en cours de saison$/, '$1 moved mid-season']);
