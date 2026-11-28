@@ -38,13 +38,15 @@ Max colle une liste de noms de terrains (texte). Il va jouer l'un d'eux sur son 
 
 - **Une phrase d'abord : mon choix et pourquoi.**
 - Un **tableau de classement** : rang, terrain, lieu, style, beauté (★ sur 5), punitif (faible / moyen / élevé), tee conseillé (distance, rating / slope).
-- Puis **une fiche courte par terrain**, dans l'ordre du classement :
-  - le décor et l'ambiance ;
-  - **l'histoire du vrai terrain** s'il existe (architecte, ouverture, grands tournois, moments célèbres), en 2 ou 3 phrases ; préciser si la version GSPro est fidèle ou inspirée (« DPC Pebble » = Pebble Beach) ;
-  - comment il se joue (largeur, dangers, trous marquants) ;
-  - le tee conseillé pour un handicap 4 (environ 6 300 à 6 800 verges ; plus court si le terrain est très punitif) ;
-  - un point fort et un point faible.
-- Les terrains du bas peuvent avoir une fiche plus courte, mais **aucun terrain ne doit être oublié**.
+- Puis **une fiche détaillée par terrain**, dans l'ordre du classement. **Max veut du détail** (demande du 28 novembre 2026) : de vraies descriptions, pas des fiches télégraphiques. Pour chaque terrain, un paragraphe par rubrique :
+  - **Décor et ambiance** : ce qu'on voit à l'écran (mer, montagnes, forêt, dunes, couleurs, dénivelés), la région, l'atmosphère, ce qui rend la ronde mémorable.
+  - **Histoire du vrai terrain** s'il existe : architecte (et ce qui le caractérise), ouverture, rénovations, grands tournois et leurs vainqueurs, moments célèbres, anecdotes, place dans les classements. Préciser si la version GSPro est fidèle ou inspirée (« DPC Pebble » = Pebble Beach).
+  - **Comment il se joue** : largeur des fairways, dangers (eau, hors-limites, forêt, bunkers), greens, trous marquants (numéro, par, longueur, pourquoi on s'en souviendra), par 5 atteignables, par 3 vedettes, le vent ; ce que les chiffres disent (slope, difficulté SGT, nombre de par 3 et de par 5).
+  - **La version GSPro** : concepteur, date de la dernière version, ce qu'on peut en dire (tees manquants, longueur réduite, etc.).
+  - **Tee conseillé** pour un handicap 4 (environ 6 300 à 6 800 verges ; plus court si le terrain est très punitif), avec la raison.
+  - **Points forts et points faibles** (➕ / ➖).
+- Les fiches s'appuient sur des faits : chercher sur le web (une recherche par terrain connu, en parallèle) les trous marquants, les tournois et les anecdotes plutôt que d'écrire de mémoire. Pour un terrain peu connu, dire honnêtement ce qu'on ignore, et décrire au mieux à partir des chiffres et de la région, sans inventer.
+- Les terrains du bas peuvent avoir une fiche un peu plus courte, mais **aucun terrain ne doit être oublié**.
 - Pas de termes de code. Distances en verges, comme dans le jeu.
 
 ## Garder le skill à jour
