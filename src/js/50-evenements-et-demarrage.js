@@ -69,7 +69,6 @@ async function act(a, el) {
     case 'ibxundo': ibxUndo(); render(); break;
     case 'ibxset': VIEW.ibset = !VIEW.ibset; render(); break;
     case 'ibxoff': { const o = new Set(S.ibxOff || []); o.has(d.v) ? o.delete(d.v) : o.add(d.v); S.ibxOff = Array.from(o); if (o.has(VIEW.ibf)) VIEW.ibf = 'all'; VIEW.ibset = true; persist(); render(); break; }
-    case 'gdch': { GDCH = d.v; const sy = window.scrollY; render(); window.scrollTo(0, sy); break; }   // v452 : graphique choisi dans la fiche
     case 'ptab': PTAB = d.v; render(); { const t = document.querySelector('.ptabs'); if (t && t.getBoundingClientRect().top < 0) t.scrollIntoView({ block: 'start' }); } break;
     case 'setmaj': VIEW.nmaj = ['1', '1.25', '1.5', '2'].includes(d.v) ? d.v : '1.25'; render(); break;
     case 'setfmt': VIEW.fmt = +d.v === 1 ? 1 : 2; render(); break;

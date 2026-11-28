@@ -1450,8 +1450,3 @@ Object.assign(I18N_EN, { 'Le classement mondial à la fin de': 'The world rankin
 I18N_RX.push([/^Succède à (.+)$/, 'Takes over from $1'], [/^(\d+) recrues? avec un nom déjà connu sur le circuit$/, (m, n) => n + (n === '1' ? ' rookie' : ' rookies') + ' with a name already known on the tour'], [/^La classe (\d+)$/, 'The $1 class'],
   [/^Ils joueront la saison (\d+) dans la classe de recrues : leur index à la fin de la saison décidera de leur ligue de départ\.$/, 'They will play the $1 season in the Rookie Class: their index at season’s end will decide their starting league.'], [/^(\d+) recrues?$/, (m, n) => n + (n === '1' ? ' rookie' : ' rookies')]);
 Object.assign(I18N_EN, { 'Trier': 'Sort' });   // v451
-/* v452 : fiche du golfeur */
-Object.assign(I18N_EN, { 'Le golfeur': 'The golfer', 'Niveau actuel': 'Current level', 'Ville natale': 'Hometown', 'Taille': 'Height', 'Poids': 'Weight', 'Main': 'Hand', 'Gaucher': 'Left-handed', 'Droitier': 'Right-handed', 'Tempérament': 'Temperament', 'Fin de tournoi': 'Closing', 'Personnalité': 'Personality',
-  'À surveiller': 'Watch', 'Points Temple': 'Hall of Fame pts', 'Tous les résultats →': 'All results →', 'Le jeu': 'Game', 'Toutes les stats →': 'All stats →', 'Graphiques': 'Charts', 'Ligues': 'Leagues', 'Mondial': 'World', 'Profil': 'Profile', 'Palmarès': 'Honours', 'Aucun tournoi pour l’instant.': 'No tournaments yet.', 'Sommet': 'Peak' });
-I18N_RX.push([/^Rang en L(\d)$/, 'Rank in L$1'], [/^Points (\d{4})$/, '$1 points']);
-I18N_RX.push([/^(\d+) saisons? de suite$/, '$1 seasons in a row']);
