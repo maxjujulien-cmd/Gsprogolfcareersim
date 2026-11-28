@@ -104,9 +104,12 @@ function hcAt(id, at) {
   const i = hc.hi.length - 1 - off; if (i < 0) return null;
   return hc.hi[i] == null ? null : hc.hi[i] / 10;
 }
+/* v451 : le « R » des recrues (première saison en ligue) est montré partout où le handicap l'est (demande de Max) */
+const rk0 = () => S.mode !== 'sim' && S.season > 1 && leagueOf(0) >= 0 && !S.hist.some(H => H && H.s > careerStart(0) && H.s < S.season && H.end && H.end.tables && H.end.tables.some(tb => tb.some(r => r[0] === 0)));   // ton golfeur (mode manuel) : aucune saison complète en ligue
+const rkTag = (id, at) => (!at || at[0] === S.season) && (id === 0 && !S.G[0] ? rk0() : typeof isRookie === 'function' && isRookie(S.G[id])) ? '<span class="rkb" title="Recrue" aria-label="Recrue">R</span>' : '';
 function hxTag(id, at, cls) {
-  const v = hcAt(id, at); if (v == null) return '';
-  return '<span class="hx hcp' + (cls ? ' ' + cls : '') + (v < 0 ? ' pl' : '') + '" title="Handicap" aria-label="Handicap ' + fmtHI(v) + '">' + fmtHI(v) + '</span>';
+  const v = hcAt(id, at), rk = rkTag(id, at); if (v == null) return rk;
+  return rk + '<span class="hx hcp' + (cls ? ' ' + cls : '') + (v < 0 ? ' pl' : '') + '" title="Handicap" aria-label="Handicap ' + fmtHI(v) + '">' + fmtHI(v) + '</span>';
 }
 /* Golfeurs : les meilleurs index d'une ligue, avec l'évolution sur 10 tournois */
 function bestIdxHTML(l) {

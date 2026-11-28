@@ -294,7 +294,7 @@ async function act(a, el) {
     case 'phdel': { const g = S.G[VIEW.id]; if (g) { g.ph = null; persist(); render(); } break; }
     case 'rcgo': if (d.s !== '') { VIEW.s = +d.s; render(); window.scrollTo(0, 0); } break;
     case 'rcview': pushNav(); go('leagues', { l: 4, s: +d.s }); break;
-    case 'rcsort': VIEW.rcsort = d.v; render(); break;
+    case 'rcsort': { const k = d.v, o = VIEW.rcsort && VIEW.rcsort.k ? VIEW.rcsort : null; VIEW.rcsort = { k, d: o && o.k === k ? -o.d : (/^(o|p|n|w)$/.test(k) ? -1 : 1) }; const sy = window.scrollY; render(); window.scrollTo(0, sy); break; }   // v451
     case 'rcfol': { ensureWL(); const id = +d.id, ins = wlIn(id); if (ins.length) ins.forEach(l => { l.ids = l.ids.filter(x => x !== id); }); else S.wl.lists[0].ids.push(id); persist(); render(); toast(ins.length ? 'Retiré de ta Watchlist' : 'Ajouté à ta Watchlist (' + S.wl.lists[0].n + ')'); break; }
     case 'backview': goBack(); break;
     case 'golfers': go('golfers'); break;

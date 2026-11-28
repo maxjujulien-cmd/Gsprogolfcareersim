@@ -1449,3 +1449,4 @@ Object.assign(I18N_EN, { 'Le classement mondial à la fin de': 'The world rankin
   'saisons': 'seasons', 'titres': 'titles', 'gains en carrière': 'career earnings', 'aujourd’hui': 'today', 'Retraité': 'Retired', 'Les chiffres du bas sont ceux du parent sur le circuit.': 'The numbers at the bottom are the relative’s career on the tour.' });
 I18N_RX.push([/^Succède à (.+)$/, 'Takes over from $1'], [/^(\d+) recrues? avec un nom déjà connu sur le circuit$/, (m, n) => n + (n === '1' ? ' rookie' : ' rookies') + ' with a name already known on the tour'], [/^La classe (\d+)$/, 'The $1 class'],
   [/^Ils joueront la saison (\d+) dans la classe de recrues : leur index à la fin de la saison décidera de leur ligue de départ\.$/, 'They will play the $1 season in the Rookie Class: their index at season’s end will decide their starting league.'], [/^(\d+) recrues?$/, (m, n) => n + (n === '1' ? ' rookie' : ' rookies')]);
+Object.assign(I18N_EN, { 'Trier': 'Sort' });   // v451

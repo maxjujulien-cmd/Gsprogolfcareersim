@@ -106,3 +106,8 @@ html.pc .wrtiles.wrt4{grid-template-columns:repeat(4,1fr)}
 .offmr .k{font:700 12px Arimo,Arial,sans-serif;letter-spacing:.1em;color:#d5b6ff;text-transform:uppercase}.offmr .n{font:800 28px Arimo,Arial,sans-serif}.offmr .ar{text-align:center;font-size:40px;color:#b06ad6}
 .offms{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.08)}.offms>div{padding:10px 16px}.offms b{font:800 26px Arimo,Arial,sans-serif;display:block}.offms span{color:#9fb0bd;font-size:13px}
 @media (max-width:900px){.ofrk5{grid-template-columns:1fr 1fr}.offmr{grid-template-columns:1fr}.offmr .ar{display:none}.ofwr23{display:none}}
+/* v451 : tri par colonne dans la classe de recrues ; R des recrues à côté du handicap */
+.rct th .rcsb{all:unset;cursor:pointer;font:inherit;color:inherit;white-space:nowrap}
+.rct th .rcsb i{font-style:normal;opacity:.45;font-size:.85em}.rct th .rcsb.on{color:var(--acc)}.rct th .rcsb.on i{opacity:1}
+.rct th .rcsb:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.rkb+.hx{margin-left:4px}.rkb{margin-left:6px}

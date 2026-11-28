@@ -12,7 +12,7 @@
    Tout ce qui se règle est dans DEFAULT_CFG (et modifiable dans l'app :
    onglet Plus > Réglages du monde). Échelle des scores : coups vs par.
    ===================================================================== */
-const GAME_V = 'v450';   // v432 : numéro de version affiché en bas à gauche (à changer à chaque nouvelle version)
+const GAME_V = 'v451';   // v432 : numéro de version affiché en bas à gauche (à changer à chaque nouvelle version)
 const LOGO_BIG = document.querySelector('#splash img').src, LOGO_SM = '{{asset:logo-sm.webp}}';
 /* Écran d'accueil : le logo pendant 2 secondes à l'ouverture (un toucher le passe) */
 (function () {
